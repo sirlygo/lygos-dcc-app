@@ -373,10 +373,51 @@
                         <div class="space-y-2">
                             <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Working Prompt</label>
                             <textarea id="dm-ai-prompt-output" rows="4" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="Press a prompt starter or draft your own request for the AI."></textarea>
-                            <div class="flex justify-end gap-2">
+                            <div class="flex flex-wrap justify-end gap-2">
+                                <button id="dm-ai-append-context" class="px-3 py-2 text-xs border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Append Context</button>
                                 <button id="dm-ai-clear-prompt" class="px-3 py-2 text-xs border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition">Clear</button>
                                 <button id="dm-ai-copy-prompt" class="px-3 py-2 text-xs bg-primary text-white rounded hover:bg-opacity-90 transition">Copy Prompt</button>
                             </div>
+                        </div>
+                        <div class="space-y-2">
+                            <h4 class="text-sm font-semibold">AI Launch Pad</h4>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Package your prompt, context, and style directives, then jump straight into your preferred assistant.</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                                <label class="flex flex-col gap-1">
+                                    <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Assistant Target</span>
+                                    <select id="dm-ai-provider" class="w-full px-2 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                                        <option value="poe">Poe (multi-model)</option>
+                                        <option value="chatgpt">ChatGPT</option>
+                                        <option value="claude">Claude</option>
+                                        <option value="gemini">Gemini</option>
+                                        <option value="custom">Custom URL</option>
+                                    </select>
+                                </label>
+                                <label id="dm-ai-provider-url-wrapper" class="flex flex-col gap-1 hidden">
+                                    <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Custom Assistant URL</span>
+                                    <input id="dm-ai-provider-url" type="url" class="w-full px-2 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="https://assistant.example.com/session">
+                                </label>
+                                <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-white/70 dark:bg-gray-900/60 cursor-pointer">
+                                    <input type="checkbox" id="dm-ai-include-context" class="accent-primary" checked>
+                                    <span class="text-xs sm:text-sm">Attach context snapshot automatically</span>
+                                </label>
+                                <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-white/70 dark:bg-gray-900/60 cursor-pointer">
+                                    <input type="checkbox" id="dm-ai-include-style" class="accent-primary" checked>
+                                    <span class="text-xs sm:text-sm">Include style guide directives</span>
+                                </label>
+                                <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded px-2 py-1 bg-white/70 dark:bg-gray-900/60 cursor-pointer sm:col-span-2">
+                                    <input type="checkbox" id="dm-ai-auto-copy" class="accent-primary" checked>
+                                    <span class="text-xs sm:text-sm">Copy final prompt to clipboard when launching</span>
+                                </label>
+                            </div>
+                            <p id="dm-ai-provider-hint" class="text-xs text-gray-500 dark:text-gray-400"></p>
+                            <textarea id="dm-ai-full-preview" rows="4" class="w-full px-3 py-2 border border-dashed border-gray-300 dark:border-gray-700 rounded bg-white/70 dark:bg-gray-900/60 text-sm" readonly placeholder="Build a working prompt or context to preview the final AI hand-off."></textarea>
+                            <div class="flex flex-wrap justify-end gap-2">
+                                <button id="dm-ai-preview-full" class="px-3 py-2 text-xs border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition">Refresh Preview</button>
+                                <button id="dm-ai-copy-full" class="px-3 py-2 text-xs border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Copy Final Prompt</button>
+                                <button id="dm-ai-launch" class="px-3 py-2 text-xs bg-primary text-white rounded hover:bg-opacity-90 transition">Open AI Chat</button>
+                            </div>
+                            <p id="dm-ai-launch-status" class="text-xs text-gray-500 dark:text-gray-400"></p>
                         </div>
                     </div>
                 </div>
@@ -1102,7 +1143,12 @@
             },
             tone: 'neutral',
             structure: 'auto',
-            length: 'standard'
+            length: 'standard',
+            includeContext: true,
+            includeStyleGuide: true,
+            autoCopyFull: true,
+            provider: 'poe',
+            customProviderUrl: ''
         };
         const defaultState = {
             characters: [],
@@ -1364,6 +1410,34 @@
             const lengthLabel = aiLengthLabels[lengthKey] || `Length: ${lengthKey}`;
             return [toneLabel, structureLabel, lengthLabel].filter(Boolean).join(' • ');
         }
+
+        const aiProviderTargets = {
+            poe: {
+                label: 'Poe (multi-model)',
+                url: 'https://poe.com/',
+                hint: 'Opens Poe so you can pick Claude, GPT-4o, or other assistants and paste the copied prompt.'
+            },
+            chatgpt: {
+                label: 'ChatGPT',
+                url: 'https://chat.openai.com/',
+                hint: 'Launches ChatGPT in a new tab. Paste the prompt to continue the conversation.'
+            },
+            claude: {
+                label: 'Claude',
+                url: 'https://claude.ai/new',
+                hint: 'Opens Claude for a fresh chat with Anthropic models.'
+            },
+            gemini: {
+                label: 'Gemini',
+                url: 'https://gemini.google.com/app',
+                hint: 'Opens Google Gemini. Paste the prompt into a new chat.'
+            },
+            custom: {
+                label: 'Custom URL',
+                url: '',
+                hint: 'Provide the chat URL you want to use below, then paste the generated prompt there.'
+            }
+        };
 
         const aiPromptTemplates = {
             'session-recap': ({ context, data, settings }) => {
@@ -1882,6 +1956,119 @@
             dmAIPromptOutput.addEventListener('input', () => {
                 renderDMAIHelpers();
             });
+        }
+
+        const dmAIAppendContextButton = document.getElementById('dm-ai-append-context');
+        if (dmAIAppendContextButton) {
+            dmAIAppendContextButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                const settings = ensureDMAISettings();
+                const context = buildDMAIContext(gatherDMAIData(), settings);
+                if (!context.trim()) {
+                    setDMAILaunchStatus('No context available to append yet.', 'error', 1800);
+                    return;
+                }
+                const promptOutput = document.getElementById('dm-ai-prompt-output');
+                if (!promptOutput) return;
+                const currentValue = promptOutput.value || '';
+                if (currentValue.toLowerCase().includes('context:')) {
+                    setDMAILaunchStatus('Context already attached to the working prompt.', 'muted', 2000);
+                    return;
+                }
+                const insertion = currentValue.trim()
+                    ? `${currentValue.trim()}\n\nContext:\n${context}`
+                    : `Context:\n${context}`;
+                promptOutput.value = insertion;
+                renderDMAIHelpers();
+                setDMAILaunchStatus('Context appended to the working prompt.', 'success', 2500);
+            });
+        }
+
+        const dmAIIncludeContextToggle = document.getElementById('dm-ai-include-context');
+        if (dmAIIncludeContextToggle) {
+            dmAIIncludeContextToggle.addEventListener('change', (event) => {
+                const settings = ensureDMAISettings();
+                settings.includeContext = !!event.target.checked;
+                saveState();
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAIIncludeStyleToggle = document.getElementById('dm-ai-include-style');
+        if (dmAIIncludeStyleToggle) {
+            dmAIIncludeStyleToggle.addEventListener('change', (event) => {
+                const settings = ensureDMAISettings();
+                settings.includeStyleGuide = !!event.target.checked;
+                saveState();
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAIAutoCopyToggle = document.getElementById('dm-ai-auto-copy');
+        if (dmAIAutoCopyToggle) {
+            dmAIAutoCopyToggle.addEventListener('change', (event) => {
+                const settings = ensureDMAISettings();
+                settings.autoCopyFull = !!event.target.checked;
+                saveState();
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAIProviderSelect = document.getElementById('dm-ai-provider');
+        if (dmAIProviderSelect) {
+            dmAIProviderSelect.addEventListener('change', (event) => {
+                const settings = ensureDMAISettings();
+                settings.provider = event.target.value;
+                saveState();
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAIProviderUrl = document.getElementById('dm-ai-provider-url');
+        if (dmAIProviderUrl) {
+            dmAIProviderUrl.addEventListener('input', (event) => {
+                const settings = ensureDMAISettings();
+                settings.customProviderUrl = event.target.value;
+                saveState();
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAIPreviewFull = document.getElementById('dm-ai-preview-full');
+        if (dmAIPreviewFull) {
+            dmAIPreviewFull.addEventListener('click', (event) => {
+                event.preventDefault();
+                renderDMAIHelpers();
+                setDMAILaunchStatus('Preview refreshed.', 'muted', 1500);
+            });
+        }
+
+        const dmAICopyFull = document.getElementById('dm-ai-copy-full');
+        if (dmAICopyFull) {
+            dmAICopyFull.addEventListener('click', async (event) => {
+                event.preventDefault();
+                const settings = getDMAISettings();
+                const data = gatherDMAIData();
+                const context = buildDMAIContext(data, settings);
+                const promptOutput = document.getElementById('dm-ai-prompt-output');
+                const promptValue = promptOutput ? promptOutput.value : '';
+                const fullPrompt = compileDMAIFullPrompt({ context, settings, promptText: promptValue });
+                if (!fullPrompt.trim()) {
+                    setDMAILaunchStatus('Nothing to copy yet—add context or a working prompt.', 'error', 2000);
+                    return;
+                }
+                const success = await copyTextToClipboard(fullPrompt, dmAICopyFull);
+                if (success) {
+                    setDMAILaunchStatus('Final prompt copied to your clipboard.', 'success', 2500);
+                } else {
+                    setDMAILaunchStatus('Clipboard copy failed—select the preview text manually.', 'error', 2500);
+                }
+            });
+        }
+
+        const dmAILaunchButton = document.getElementById('dm-ai-launch');
+        if (dmAILaunchButton) {
+            dmAILaunchButton.addEventListener('click', handleDMAILaunch);
         }
 
         document.querySelectorAll('.dm-ai-context-toggle').forEach(toggle => {
@@ -3541,6 +3728,111 @@
             return sections.join('\n\n').trim();
         }
 
+        function compileDMAIFullPrompt({ context, settings, promptText } = {}) {
+            const activeSettings = settings || getDMAISettings();
+            const includeContext = activeSettings?.includeContext !== false;
+            const includeStyleGuide = activeSettings?.includeStyleGuide !== false;
+            const workingPrompt = (promptText !== undefined ? promptText : (document.getElementById('dm-ai-prompt-output')?.value || '')).trim();
+            const contextBlock = context !== undefined ? context : buildDMAIContext(gatherDMAIData(), activeSettings);
+            const sections = [];
+            const normalizedPrompt = workingPrompt.trim();
+            const promptLower = normalizedPrompt.toLowerCase();
+
+            if (normalizedPrompt) {
+                sections.push(normalizedPrompt);
+            }
+
+            if (includeContext && contextBlock && contextBlock.trim() && !promptLower.includes('context:')) {
+                sections.push(`Context:\n${contextBlock}`);
+            }
+
+            const styleGuide = includeStyleGuide ? buildAIStyleDirectives(activeSettings) : '';
+            if (styleGuide && !promptLower.includes('style guide:')) {
+                sections.push(`Style guide:\n${styleGuide}`);
+            }
+
+            return sections.join('\n\n').trim();
+        }
+
+        function getDMAILaunchUrl(settings = getDMAISettings()) {
+            const provider = settings?.provider || defaultDMAISettings.provider;
+            if (provider === 'custom') {
+                return (settings?.customProviderUrl || '').trim();
+            }
+            const target = aiProviderTargets[provider] || aiProviderTargets[defaultDMAISettings.provider];
+            return target?.url || '';
+        }
+
+        let dmAILaunchStatusTimer = null;
+
+        function setDMAILaunchStatus(message = '', tone = 'muted', duration = 0) {
+            const status = document.getElementById('dm-ai-launch-status');
+            if (!status) return;
+            status.textContent = message;
+            status.classList.remove('text-green-500', 'text-red-400');
+            if (tone === 'success') {
+                status.classList.add('text-green-500');
+                status.classList.remove('text-red-400');
+            } else if (tone === 'error') {
+                status.classList.add('text-red-400');
+                status.classList.remove('text-green-500');
+            }
+            if (tone === 'muted') {
+                status.classList.remove('text-green-500', 'text-red-400');
+            }
+            if (dmAILaunchStatusTimer) {
+                clearTimeout(dmAILaunchStatusTimer);
+                dmAILaunchStatusTimer = null;
+            }
+            if (message && duration > 0) {
+                dmAILaunchStatusTimer = setTimeout(() => {
+                    status.textContent = '';
+                    status.classList.remove('text-green-500', 'text-red-400');
+                    dmAILaunchStatusTimer = null;
+                }, duration);
+            }
+        }
+
+        async function handleDMAILaunch(event) {
+            event.preventDefault();
+            const launchButton = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+            const settings = ensureDMAISettings();
+            const data = gatherDMAIData();
+            const context = buildDMAIContext(data, settings);
+            const promptOutput = document.getElementById('dm-ai-prompt-output');
+            const promptValue = promptOutput ? promptOutput.value : '';
+            const fullPrompt = compileDMAIFullPrompt({ context, settings, promptText: promptValue });
+            if (!fullPrompt.trim()) {
+                setDMAILaunchStatus('Add a working prompt or prep details before launching.', 'error', 2200);
+                return;
+            }
+            const launchUrl = getDMAILaunchUrl(settings);
+            if (!launchUrl) {
+                setDMAILaunchStatus('Provide a custom assistant URL before launching.', 'error', 2200);
+                return;
+            }
+            const openedWindow = window.open(launchUrl, '_blank', 'noopener');
+            if (!openedWindow) {
+                setDMAILaunchStatus('Pop-up blocked—allow pop-ups for this site and try again.', 'error', 3200);
+                return;
+            }
+            if (settings.autoCopyFull !== false) {
+                try {
+                    const copied = await copyTextToClipboard(fullPrompt, launchButton);
+                    if (copied) {
+                        setDMAILaunchStatus('Full prompt copied—paste it into your assistant tab.', 'success', 3200);
+                    } else {
+                        setDMAILaunchStatus('Unable to copy automatically. Copy from the preview instead.', 'error', 3200);
+                    }
+                } catch (error) {
+                    setDMAILaunchStatus('Clipboard permissions blocked—copy from the preview instead.', 'error', 3200);
+                }
+            } else {
+                setDMAILaunchStatus('Prompt ready—copy it from the preview when you arrive.', 'muted', 2800);
+            }
+            renderDMAIHelpers();
+        }
+
         function ensureDMAISettings() {
             if (!state.dm) {
                 state.dm = clone(defaultState.dm);
@@ -3598,6 +3890,13 @@
             }
         }
 
+        function setButtonAvailability(button, enabled) {
+            if (!button) return;
+            button.disabled = !enabled;
+            button.classList.toggle('opacity-50', !enabled);
+            button.classList.toggle('cursor-not-allowed', !enabled);
+        }
+
         function resetCopyButton(button) {
             if (!button) return;
             if (copyFeedbackTimers.has(button)) {
@@ -3639,23 +3938,16 @@
 
             const copyContextButton = document.getElementById('dm-ai-copy-context');
             const copyPromptButton = document.getElementById('dm-ai-copy-prompt');
+            const copyFullButton = document.getElementById('dm-ai-copy-full');
             const promptOutput = document.getElementById('dm-ai-prompt-output');
             const hasPrompt = !!(promptOutput?.value || '').trim();
 
             resetCopyButton(copyContextButton);
             resetCopyButton(copyPromptButton);
+            resetCopyButton(copyFullButton);
 
-            if (copyContextButton) {
-                copyContextButton.disabled = !hasPrepContext;
-                copyContextButton.classList.toggle('opacity-50', !hasPrepContext);
-                copyContextButton.classList.toggle('cursor-not-allowed', !hasPrepContext);
-            }
-
-            if (copyPromptButton) {
-                copyPromptButton.disabled = !hasPrompt;
-                copyPromptButton.classList.toggle('opacity-50', !hasPrompt);
-                copyPromptButton.classList.toggle('cursor-not-allowed', !hasPrompt);
-            }
+            setButtonAvailability(copyContextButton, hasPrepContext);
+            setButtonAvailability(copyPromptButton, hasPrompt);
 
             if (promptOutput && !hasPrompt) {
                 promptOutput.placeholder = hasPrepContext
@@ -3663,9 +3955,96 @@
                     : 'Add prep details above or jot down what you need from the AI.';
             }
 
+            const appendContextButton = document.getElementById('dm-ai-append-context');
+            setButtonAvailability(appendContextButton, hasPrepContext);
+
+            const includeContextToggle = document.getElementById('dm-ai-include-context');
+            if (includeContextToggle && includeContextToggle.checked !== (settings?.includeContext !== false)) {
+                includeContextToggle.checked = settings?.includeContext !== false;
+            }
+
+            const includeStyleToggle = document.getElementById('dm-ai-include-style');
+            if (includeStyleToggle && includeStyleToggle.checked !== (settings?.includeStyleGuide !== false)) {
+                includeStyleToggle.checked = settings?.includeStyleGuide !== false;
+            }
+
+            const autoCopyToggle = document.getElementById('dm-ai-auto-copy');
+            if (autoCopyToggle && autoCopyToggle.checked !== (settings?.autoCopyFull !== false)) {
+                autoCopyToggle.checked = settings?.autoCopyFull !== false;
+            }
+
+            const providerSelect = document.getElementById('dm-ai-provider');
+            const provider = settings?.provider || defaultDMAISettings.provider;
+            if (providerSelect && providerSelect.value !== provider) {
+                providerSelect.value = provider;
+            }
+
+            const providerUrlWrapper = document.getElementById('dm-ai-provider-url-wrapper');
+            const providerUrlInput = document.getElementById('dm-ai-provider-url');
+            const requiresCustomUrl = provider === 'custom';
+            if (providerUrlWrapper) {
+                providerUrlWrapper.classList.toggle('hidden', !requiresCustomUrl);
+            }
+            if (providerUrlInput) {
+                const storedUrl = settings?.customProviderUrl || '';
+                if (providerUrlInput.value !== storedUrl) {
+                    providerUrlInput.value = storedUrl;
+                }
+            }
+
+            const trimmedCustomUrl = (settings?.customProviderUrl || '').trim();
+
+            const providerHint = document.getElementById('dm-ai-provider-hint');
+            if (providerHint) {
+                const target = aiProviderTargets[provider] || aiProviderTargets[defaultDMAISettings.provider];
+                providerHint.textContent = requiresCustomUrl && !trimmedCustomUrl
+                    ? 'Add the chat URL you want to open when launching.'
+                    : (target?.hint || '');
+            }
+
+            const promptValue = promptOutput ? promptOutput.value : '';
+            const fullPrompt = compileDMAIFullPrompt({ context, settings, promptText: promptValue });
+            const hasFullPrompt = fullPrompt.trim().length > 0;
+            const hasLaunchTarget = !requiresCustomUrl || !!trimmedCustomUrl;
+
+            const fullPreview = document.getElementById('dm-ai-full-preview');
+            if (fullPreview) {
+                fullPreview.value = fullPrompt;
+                fullPreview.placeholder = hasFullPrompt
+                    ? 'Final prompt ready—paste into your assistant or launch directly.'
+                    : 'Build a working prompt or context to preview the final AI hand-off.';
+            }
+
+            const previewButton = document.getElementById('dm-ai-preview-full');
+            setButtonAvailability(previewButton, hasFullPrompt);
+
+            setButtonAvailability(copyFullButton, hasFullPrompt);
+            if (copyFullButton) {
+                if (hasFullPrompt) {
+                    copyFullButton.removeAttribute('title');
+                } else {
+                    copyFullButton.title = 'Add context or a working prompt to assemble a final request first.';
+                }
+            }
+
+            const launchButton = document.getElementById('dm-ai-launch');
+            setButtonAvailability(launchButton, hasFullPrompt && hasLaunchTarget);
+            if (launchButton && hasFullPrompt && !hasLaunchTarget) {
+                launchButton.title = 'Add a custom assistant URL before launching.';
+            } else if (launchButton) {
+                launchButton.removeAttribute('title');
+            }
+
+            const hasPrepData = (
+                (state.dm.encounters || []).length +
+                (state.dm.sessionNotes || []).length +
+                (state.dm.randomHistory || []).length +
+                Object.values(state.dm.trackers || {}).reduce((sum, value) => sum + Number(value || 0), 0)
+            ) > 0;
+            const promptButtonsEnabled = hasPrepContext || hasPrepData;
             document.querySelectorAll('[data-ai-prompt]').forEach(button => {
-                button.classList.toggle('opacity-60', !hasPrepContext);
-                button.setAttribute('aria-disabled', String(!hasPrepContext));
+                button.classList.toggle('opacity-60', !promptButtonsEnabled);
+                button.setAttribute('aria-disabled', String(!promptButtonsEnabled));
             });
         }
 
@@ -3732,6 +4111,7 @@
             } else if (button) {
                 showCopyFeedback(button, 'Copy failed', 2000);
             }
+            return success;
         }
 
         function copyTextToClipboard(text, button) {
@@ -3740,17 +4120,17 @@
                 if (button) {
                     showCopyFeedback(button, 'Nothing to copy', 1200);
                 }
-                return;
+                return Promise.resolve(false);
             }
             if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                navigator.clipboard.writeText(value).then(() => {
+                return navigator.clipboard.writeText(value).then(() => {
                     showCopyFeedback(button);
+                    return true;
                 }).catch(() => {
-                    fallbackCopy(value, button);
+                    return fallbackCopy(value, button);
                 });
-            } else {
-                fallbackCopy(value, button);
             }
+            return Promise.resolve(fallbackCopy(value, button));
         }
 
         function triggerDMGenerator(type) {
