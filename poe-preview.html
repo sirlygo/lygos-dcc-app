@@ -118,7 +118,10 @@
             </div>
 
             <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
-                <h3 class="text-xl font-bold mb-4">Roll Results</h3>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold">Roll Results</h3>
+                    <button id="clear-roll-history" onclick="clearRollHistory()" class="text-sm text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed">Clear History</button>
+                </div>
                 <div id="dice-results" class="space-y-3 max-h-96 overflow-y-auto">
                     <p class="text-gray-500 dark:text-gray-400 text-center py-8">Roll some dice to see results</p>
                 </div>
@@ -425,9 +428,77 @@
 
         // Data storage (in-memory)
         let characters = [];
+        let campaigns = [];
         let combatants = [];
         let combatRound = 1;
         let rollHistory = [];
+
+        const STORAGE_KEY = 'dcc_vtt_state_v2';
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text ?? '';
+            return div.innerHTML;
+        }
+
+        function renderMarkdown(text) {
+            if (!text) return '';
+            const escaped = escapeHtml(text);
+            return `<p>${escaped.replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
+        }
+
+        function formatDate(isoString) {
+            if (!isoString) return '';
+            const date = new Date(isoString);
+            if (Number.isNaN(date.getTime())) return '';
+            return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function formatDateTime(isoString) {
+            if (!isoString) return '';
+            const date = new Date(isoString);
+            if (Number.isNaN(date.getTime())) return '';
+            return date.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+        }
+
+        function getExcerpt(text, maxLength = 120) {
+            if (!text) return '';
+            const trimmed = text.trim();
+            if (trimmed.length <= maxLength) return trimmed;
+            return `${trimmed.slice(0, maxLength)}...`;
+        }
+
+        function saveState() {
+            if (typeof localStorage === 'undefined') return;
+            try {
+                const state = {
+                    characters,
+                    campaigns,
+                    combatants,
+                    combatRound,
+                    rollHistory
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (error) {
+                console.warn('Unable to save state', error);
+            }
+        }
+
+        function loadState() {
+            if (typeof localStorage === 'undefined') return;
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (!stored) return;
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed.characters)) characters = parsed.characters;
+                if (Array.isArray(parsed.campaigns)) campaigns = parsed.campaigns;
+                if (Array.isArray(parsed.combatants)) combatants = parsed.combatants;
+                if (Array.isArray(parsed.rollHistory)) rollHistory = parsed.rollHistory;
+                if (typeof parsed.combatRound === 'number') combatRound = parsed.combatRound;
+            } catch (error) {
+                console.warn('Unable to load saved state', error);
+            }
+        }
 
         // Tab switching
         function switchTab(tab) {
@@ -463,6 +534,18 @@
             document.getElementById('character-form').reset();
         }
 
+        function showCreateCampaign() {
+            document.getElementById('create-campaign-modal').classList.remove('hidden');
+            document.getElementById('create-campaign-modal').classList.add('flex');
+        }
+
+        function hideCreateCampaign() {
+            document.getElementById('create-campaign-modal').classList.add('hidden');
+            document.getElementById('create-campaign-modal').classList.remove('flex');
+            const form = document.getElementById('campaign-form');
+            if (form) form.reset();
+        }
+
         document.getElementById('character-form').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -487,7 +570,32 @@
             characters.push(character);
             renderCharacters();
             hideCreateCharacter();
+            saveState();
         });
+
+        const campaignForm = document.getElementById('campaign-form');
+        if (campaignForm) {
+            campaignForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const campaign = {
+                    id: Date.now(),
+                    name: document.getElementById('campaign-name').value.trim(),
+                    description: document.getElementById('campaign-description').value.trim(),
+                    createdAt: new Date().toISOString(),
+                    adventures: []
+                };
+
+                if (!campaign.name) {
+                    return;
+                }
+
+                campaigns.push(campaign);
+                renderCampaigns();
+                hideCreateCampaign();
+                saveState();
+            });
+        }
 
         function renderCharacters() {
             const container = document.getElementById('character-list');
@@ -501,8 +609,8 @@
                 <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 hover:shadow-lg transition cursor-pointer" onclick="showCharacterDetail(${char.id})">
                     <div class="flex justify-between items-start mb-3">
                         <div>
-                            <h3 class="text-xl font-bold">${char.name}</h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Level ${char.level} ${char.class}</p>
+                            <h3 class="text-xl font-bold">${escapeHtml(char.name)}</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Level ${char.level} ${escapeHtml(char.class)}</p>
                         </div>
                         <button onclick="event.stopPropagation(); deleteCharacter(${char.id})" class="text-red-500 hover:text-red-700 text-xl">&times;</button>
                     </div>
@@ -547,6 +655,270 @@
             `).join('');
         }
 
+        function renderCampaigns() {
+            const container = document.getElementById('campaign-list');
+            if (!container) return;
+
+            if (!Array.isArray(campaigns) || campaigns.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-8">No campaigns yet. Plan your next adventure!</p>';
+                return;
+            }
+
+            const sortedCampaigns = [...campaigns].sort((a, b) => {
+                const aDate = new Date(a.createdAt || 0).getTime();
+                const bDate = new Date(b.createdAt || 0).getTime();
+                return bDate - aDate;
+            });
+
+            container.innerHTML = sortedCampaigns.map(campaign => {
+                const adventures = Array.isArray(campaign.adventures) ? campaign.adventures : [];
+                const adventureCount = adventures.length;
+                const descriptionPreview = escapeHtml(getExcerpt(campaign.description || ''));
+                return `
+                    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 hover:shadow-lg transition cursor-pointer" onclick="showCampaignDetail(${campaign.id})">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="space-y-1">
+                                <h3 class="text-xl font-bold">${escapeHtml(campaign.name)}</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Started ${formatDate(campaign.createdAt)}</p>
+                            </div>
+                            <button onclick="event.stopPropagation(); deleteCampaign(${campaign.id})" class="text-red-500 hover:text-red-700 text-xl">&times;</button>
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${descriptionPreview || 'No description yet. Open the campaign to add one.'}</p>
+                        <div class="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            <span class="px-2 py-1 bg-white dark:bg-gray-800 rounded-full">${adventureCount} ${adventureCount === 1 ? 'Adventure' : 'Adventures'}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showCampaignDetail(id) {
+            const campaign = campaigns.find(c => c.id === id);
+            if (!campaign) return;
+
+            if (!Array.isArray(campaign.adventures)) {
+                campaign.adventures = [];
+            }
+
+            document.getElementById('detail-campaign-name').textContent = campaign.name;
+
+            const adventures = campaign.adventures;
+            const adventureList = adventures.length ? `
+                <div class="space-y-2">
+                    ${adventures.map(adventure => `
+                        <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded-lg flex justify-between items-start gap-3">
+                            <div class="flex-1">
+                                <button onclick="showAdventureDetail(${campaign.id}, ${adventure.id})" class="text-left font-semibold hover:text-primary transition text-base">
+                                    ${escapeHtml(adventure.name)}
+                                </button>
+                                ${adventure.summary ? `<p class="text-sm text-gray-600 dark:text-gray-400 mt-1">${escapeHtml(getExcerpt(adventure.summary, 160))}</p>` : ''}
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <button onclick="editAdventureSummary(${campaign.id}, ${adventure.id})" class="text-sm text-primary hover:underline">Edit</button>
+                                <button onclick="deleteAdventure(${campaign.id}, ${adventure.id})" class="text-sm text-red-500 hover:underline">Delete</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '<p class="text-gray-500 dark:text-gray-400">No adventures yet. Add one to start planning!</p>';
+
+            const descriptionSection = campaign.description
+                ? `<div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg text-sm leading-relaxed">${renderMarkdown(campaign.description)}</div>`
+                : '<p class="text-gray-500 dark:text-gray-400">Add campaign notes to keep everyone on the same page.</p>';
+
+            const content = `
+                <div class="space-y-4">
+                    <div class="flex flex-wrap gap-3 text-sm text-gray-500 dark:text-gray-400">
+                        <span>Created ${formatDate(campaign.createdAt)}</span>
+                        <span>${adventures.length} ${adventures.length === 1 ? 'Adventure' : 'Adventures'}</span>
+                    </div>
+                    ${descriptionSection}
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="addAdventure(${campaign.id})" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">+ Add Adventure</button>
+                        <button onclick="editCampaign(${campaign.id})" class="px-4 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition text-base">Edit Details</button>
+                        <button onclick="deleteCampaign(${campaign.id})" class="px-4 py-2 text-red-500 hover:text-red-600 transition text-base">Delete Campaign</button>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">Adventures</h4>
+                        ${adventureList}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('campaign-detail-content').innerHTML = content;
+            document.getElementById('campaign-detail-modal').classList.remove('hidden');
+            document.getElementById('campaign-detail-modal').classList.add('flex');
+        }
+
+        function hideCampaignDetail() {
+            document.getElementById('campaign-detail-modal').classList.add('hidden');
+            document.getElementById('campaign-detail-modal').classList.remove('flex');
+        }
+
+        function showAdventureDetail(campaignId, adventureId) {
+            const campaign = campaigns.find(c => c.id === campaignId);
+            if (!campaign || !Array.isArray(campaign.adventures)) return;
+
+            const adventure = campaign.adventures.find(a => a.id === adventureId);
+            if (!adventure) return;
+
+            adventure.sessions = Array.isArray(adventure.sessions) ? adventure.sessions : [];
+
+            document.getElementById('detail-adventure-name').textContent = adventure.name;
+
+            const sessionEntries = adventure.sessions.length ? `
+                <div class="space-y-3">
+                    ${adventure.sessions.map(session => `
+                        <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded-lg">
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">${formatDateTime(session.loggedAt)}</div>
+                            <div class="text-sm leading-relaxed">${renderMarkdown(session.entry)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '<p class="text-gray-500 dark:text-gray-400">No session notes yet. Log your first session after game night!</p>';
+
+            const content = `
+                <div class="space-y-4">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Campaign: ${escapeHtml(campaign.name)}</p>
+                    ${adventure.summary ? `<div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg text-sm leading-relaxed">${renderMarkdown(adventure.summary)}</div>` : '<p class="text-gray-500 dark:text-gray-400">Add an overview to keep track of important hooks and NPCs.</p>'}
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="logAdventureSession(${campaign.id}, ${adventure.id})" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Add Session Log</button>
+                        <button onclick="editAdventureSummary(${campaign.id}, ${adventure.id})" class="px-4 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition text-base">Edit Overview</button>
+                        <button onclick="deleteAdventure(${campaign.id}, ${adventure.id})" class="px-4 py-2 text-red-500 hover:text-red-600 transition text-base">Delete Adventure</button>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lg mb-2">Session Notes</h4>
+                        ${sessionEntries}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('adventure-detail-content').innerHTML = content;
+            document.getElementById('adventure-detail-modal').classList.remove('hidden');
+            document.getElementById('adventure-detail-modal').classList.add('flex');
+        }
+
+        function hideAdventureDetail() {
+            document.getElementById('adventure-detail-modal').classList.add('hidden');
+            document.getElementById('adventure-detail-modal').classList.remove('flex');
+        }
+
+        async function editCampaign(id) {
+            const campaign = campaigns.find(c => c.id === id);
+            if (!campaign) return;
+
+            const newName = await showCustomPrompt('Update campaign name', campaign.name, { okText: 'Save' });
+            if (newName === null || !newName.trim()) {
+                return;
+            }
+
+            const newDescription = await showCustomPrompt('Update campaign notes (Markdown supported)', campaign.description || '', { multiline: true, okText: 'Save Notes', rows: 6 });
+            if (newDescription === null) {
+                return;
+            }
+
+            campaign.name = newName.trim();
+            campaign.description = newDescription.trim();
+            saveState();
+            renderCampaigns();
+            showCampaignDetail(id);
+        }
+
+        async function addAdventure(campaignId) {
+            const campaign = campaigns.find(c => c.id === campaignId);
+            if (!campaign) return;
+
+            if (!Array.isArray(campaign.adventures)) {
+                campaign.adventures = [];
+            }
+
+            const name = await showCustomPrompt('Adventure name', '', { okText: 'Create' });
+            if (name === null || !name.trim()) {
+                return;
+            }
+
+            const summary = await showCustomPrompt('Adventure overview (Markdown supported)', '', { multiline: true, okText: 'Save Overview', rows: 5, placeholder: 'Key plot hooks, important NPCs, treasure...' });
+            if (summary === null) {
+                return;
+            }
+
+            campaign.adventures.unshift({
+                id: Date.now(),
+                name: name.trim(),
+                summary: summary.trim(),
+                sessions: []
+            });
+
+            saveState();
+            renderCampaigns();
+            showCampaignDetail(campaignId);
+        }
+
+        async function editAdventureSummary(campaignId, adventureId) {
+            const campaign = campaigns.find(c => c.id === campaignId);
+            if (!campaign || !Array.isArray(campaign.adventures)) return;
+            const adventure = campaign.adventures.find(a => a.id === adventureId);
+            if (!adventure) return;
+
+            const updatedSummary = await showCustomPrompt('Update adventure overview (Markdown supported)', adventure.summary || '', { multiline: true, okText: 'Save Overview', rows: 5 });
+            if (updatedSummary === null) {
+                return;
+            }
+
+            adventure.summary = updatedSummary.trim();
+            saveState();
+            renderCampaigns();
+            showCampaignDetail(campaignId);
+            showAdventureDetail(campaignId, adventureId);
+        }
+
+        async function logAdventureSession(campaignId, adventureId) {
+            const campaign = campaigns.find(c => c.id === campaignId);
+            if (!campaign || !Array.isArray(campaign.adventures)) return;
+            const adventure = campaign.adventures.find(a => a.id === adventureId);
+            if (!adventure) return;
+
+            adventure.sessions = Array.isArray(adventure.sessions) ? adventure.sessions : [];
+
+            const entry = await showCustomPrompt('Add session log (Markdown supported)', '', { multiline: true, okText: 'Add Log', rows: 6, placeholder: 'Session highlights, memorable moments, XP awards...' });
+            if (entry === null || !entry.trim()) {
+                return;
+            }
+
+            adventure.sessions.unshift({
+                id: Date.now(),
+                entry: entry.trim(),
+                loggedAt: new Date().toISOString()
+            });
+
+            saveState();
+            showAdventureDetail(campaignId, adventureId);
+        }
+
+        async function deleteCampaign(id) {
+            const confirmed = await showCustomConfirm('Delete this campaign and all of its adventures?');
+            if (!confirmed) return;
+
+            campaigns = campaigns.filter(c => c.id !== id);
+            saveState();
+            renderCampaigns();
+            hideCampaignDetail();
+        }
+
+        async function deleteAdventure(campaignId, adventureId) {
+            const campaign = campaigns.find(c => c.id === campaignId);
+            if (!campaign || !Array.isArray(campaign.adventures)) return;
+
+            const confirmed = await showCustomConfirm('Remove this adventure? Session logs will be lost.');
+            if (!confirmed) return;
+
+            campaign.adventures = campaign.adventures.filter(a => a.id !== adventureId);
+            saveState();
+            renderCampaigns();
+            showCampaignDetail(campaignId);
+            hideAdventureDetail();
+        }
+
         function showCharacterDetail(id) {
             const char = characters.find(c => c.id === id);
             if (!char) return;
@@ -557,7 +929,7 @@
                 <div class="space-y-4">
                     <div class="grid grid-cols-2 gap-4 text-sm">
                         <div><span class="font-semibold">Level:</span> ${char.level}</div>
-                        <div><span class="font-semibold">Class:</span> ${char.class}</div>
+                        <div><span class="font-semibold">Class:</span> ${escapeHtml(char.class)}</div>
                     </div>
 
                     <div class="grid grid-cols-3 gap-4">
@@ -618,7 +990,7 @@
                     ${char.equipment ? `
                     <div>
                         <h4 class="font-bold mb-2">Equipment & Notes</h4>
-                        <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded whitespace-pre-wrap">${char.equipment}</div>
+                        <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded whitespace-pre-wrap">${escapeHtml(char.equipment)}</div>
                     </div>
                     ` : ''}
 
@@ -646,21 +1018,26 @@
             char.hpCurrent = Math.max(0, Math.min(char.hpMax, char.hpCurrent + amount));
             renderCharacters();
             showCharacterDetail(id);
+            saveState();
         }
 
-        function deleteCharacter(id) {
-            showCustomConfirm('Are you sure you want to delete this character?', () => {
-                characters = characters.filter(c => c.id !== id);
-                renderCharacters();
-                hideCharacterDetail();
-            });
+        async function deleteCharacter(id) {
+            const confirmed = await showCustomConfirm('Are you sure you want to delete this character?');
+            if (!confirmed) return;
+
+            characters = characters.filter(c => c.id !== id);
+            renderCharacters();
+            combatants = combatants.filter(c => c.characterId !== id);
+            renderCombat();
+            hideCharacterDetail();
+            saveState();
         }
 
         // Dice Roller
         function rollDice(sides) {
-            const count = parseInt(document.getElementById('dice-count').value) || 1;
-            const modifier = parseInt(document.getElementById('dice-modifier').value) || 0;
-            const description = document.getElementById('roll-description').value;
+            const count = parseInt(document.getElementById('dice-count').value, 10) || 1;
+            const modifier = parseInt(document.getElementById('dice-modifier').value, 10) || 0;
+            const description = document.getElementById('roll-description').value.trim();
 
             const rolls = [];
             let total = modifier;
@@ -672,66 +1049,114 @@
             }
 
             const result = {
+                id: Date.now(),
                 sides,
                 count,
                 rolls,
                 modifier,
                 total,
                 description,
-                timestamp: new Date().toLocaleTimeString()
+                timestamp: new Date().toISOString()
             };
 
             rollHistory.unshift(result);
-            if (rollHistory.length > 20) rollHistory.pop();
+            if (rollHistory.length > 30) rollHistory.pop();
 
             displayRollResults();
+            saveState();
         }
 
         function displayRollResults() {
             const container = document.getElementById('dice-results');
+            const clearButton = document.getElementById('clear-roll-history');
+            const isEmpty = !Array.isArray(rollHistory) || rollHistory.length === 0;
+            if (clearButton) {
+                clearButton.disabled = isEmpty;
+            }
 
-            if (rollHistory.length === 0) {
+            if (isEmpty) {
                 container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-8">Roll some dice to see results</p>';
                 return;
             }
 
-            container.innerHTML = rollHistory.map(r => `
-                <div class="dice-result bg-white dark:bg-gray-800 p-4 rounded-lg border-l-4 border-primary">
-                    ${r.description ? `<div class="font-semibold mb-1">${r.description}</div>` : ''}
-                    <div class="flex items-center justify-between">
-                        <div class="text-sm text-gray-600 dark:text-gray-400">
-                            ${r.count}d${r.sides}${r.modifier !== 0 ? (r.modifier > 0 ? '+' : '') + r.modifier : ''}
-                            <span class="ml-2">[${r.rolls.join(', ')}]</span>
+            container.innerHTML = rollHistory.map(r => {
+                const rolls = Array.isArray(r.rolls) && r.rolls.length > 0 ? r.rolls : [0];
+                const baseTotal = rolls.reduce((sum, val) => sum + val, 0);
+                const average = (baseTotal / rolls.length).toFixed(1);
+                const diceCount = typeof r.count === 'number' ? r.count : rolls.length;
+                const modifier = typeof r.modifier === 'number' ? r.modifier : 0;
+                const total = typeof r.total === 'number' ? r.total : baseTotal + modifier;
+                const tags = [];
+                if (r.sides === 20 && rolls.some(value => value === 20)) {
+                    tags.push('<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">Critical Success!</span>');
+                }
+                if (rolls.some(value => value === 1)) {
+                    tags.push('<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">Natural 1</span>');
+                }
+
+                return `
+                    <div class="dice-result bg-white dark:bg-gray-800 p-4 rounded-lg border-l-4 border-primary">
+                        ${r.description ? `<div class="font-semibold mb-1">${escapeHtml(r.description)}</div>` : ''}
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="text-sm text-gray-600 dark:text-gray-400">
+                                ${diceCount}d${r.sides}${modifier !== 0 ? (modifier > 0 ? '+' : '') + modifier : ''}
+                                <span class="ml-2">[${rolls.join(', ')}]</span>
+                            </div>
+                            <div class="text-2xl font-bold text-primary">${total}</div>
                         </div>
-                        <div class="text-2xl font-bold text-primary">${r.total}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Base total: ${baseTotal}${modifier !== 0 ? `, modifier: ${(modifier > 0 ? '+' : '') + modifier}` : ''}${rolls.length > 1 ? `, average roll: ${average}` : ''}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${formatDateTime(r.timestamp)}</div>
+                        ${tags.length ? `<div class="mt-2 flex flex-wrap gap-2">${tags.join('')}</div>` : ''}
                     </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-500 mt-1">${r.timestamp}</div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
+        }
+
+        function clearRollHistory() {
+            if (!Array.isArray(rollHistory) || rollHistory.length === 0) return;
+            rollHistory = [];
+            displayRollResults();
+            saveState();
         }
 
         // Combat Tracker
-        function addCombatant() {
-            const name = showCustomPrompt('Enter combatant name:');
-            if (!name) return;
+        async function addCombatant() {
+            const name = await showCustomPrompt('Enter combatant name:', '', { okText: 'Continue' });
+            if (name === null || !name.trim()) return;
 
-            const initiative = showCustomPrompt('Enter initiative (or leave blank to roll):');
-            const init = initiative ? parseInt(initiative) : Math.floor(Math.random() * 20) + 1;
+            const initiativeInput = await showCustomPrompt('Enter initiative (leave blank to roll):', '', { okText: 'Continue' });
+            let initiative = Math.floor(Math.random() * 20) + 1;
+            if (initiativeInput && initiativeInput.trim()) {
+                const parsed = parseInt(initiativeInput.trim(), 10);
+                if (!Number.isNaN(parsed)) {
+                    initiative = parsed;
+                }
+            }
 
-            const hp = showCustomPrompt('Enter HP:', '10');
-            const ac = showCustomPrompt('Enter AC:', '10');
+            const hpInput = await showCustomPrompt('Enter HP:', '10', { okText: 'Continue' });
+            if (hpInput === null) return;
+            const hpValue = parseInt(hpInput.trim(), 10);
+            const hp = Number.isNaN(hpValue) ? 10 : Math.max(0, hpValue);
+
+            const acInput = await showCustomPrompt('Enter AC:', '10', { okText: 'Add Combatant' });
+            if (acInput === null) return;
+            const acValue = parseInt(acInput.trim(), 10);
+            const ac = Number.isNaN(acValue) ? 10 : Math.max(0, acValue);
 
             combatants.push({
                 id: Date.now(),
-                name,
-                initiative: init,
-                hp: parseInt(hp) || 10,
-                hpMax: parseInt(hp) || 10,
-                ac: parseInt(ac) || 10,
+                name: name.trim(),
+                initiative,
+                hp,
+                hpMax: hp,
+                ac,
                 isActive: false
             });
 
             renderCombat();
+            saveState();
         }
 
         function addCharacterToCombat(charId) {
@@ -752,6 +1177,7 @@
             });
 
             renderCombat();
+            saveState();
             hideCharacterDetail();
         }
 
@@ -762,10 +1188,12 @@
                 combatants[0].isActive = true;
             }
             renderCombat();
+            saveState();
         }
 
         function renderCombat() {
             const container = document.getElementById('combat-list');
+            document.getElementById('combat-round').textContent = combatRound;
 
             if (combatants.length === 0) {
                 container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-8">No combatants. Add characters or NPCs to begin combat.</p>';
@@ -779,7 +1207,7 @@
                             <div class="flex items-center gap-3">
                                 ${c.isActive ? '<span class="text-primary text-2xl">▶</span>' : '<span class="text-2xl opacity-0">▶</span>'}
                                 <div class="flex-1">
-                                    <div class="font-bold text-lg">${c.name}</div>
+                                    <div class="font-bold text-lg">${escapeHtml(c.name)}</div>
                                     <div class="text-sm text-gray-600 dark:text-gray-400">Initiative: ${c.initiative} | AC: ${c.ac}</div>
                                 </div>
                             </div>
@@ -816,20 +1244,24 @@
             }
 
             renderCombat();
+            saveState();
         }
 
         function removeCombatant(id) {
             combatants = combatants.filter(c => c.id !== id);
             renderCombat();
+            saveState();
         }
 
-        function clearCombat() {
-            showCustomConfirm('Clear all combatants?', () => {
-                combatants = [];
-                combatRound = 1;
-                document.getElementById('combat-round').textContent = combatRound;
-                renderCombat();
-            });
+        async function clearCombat() {
+            const confirmed = await showCustomConfirm('Clear all combatants?');
+            if (!confirmed) return;
+
+            combatants = [];
+            combatRound = 1;
+            document.getElementById('combat-round').textContent = combatRound;
+            renderCombat();
+            saveState();
         }
 
         function nextRound() {
@@ -848,75 +1280,145 @@
 
                 renderCombat();
             }
+            saveState();
         }
 
         // Custom dialog functions
-        function showCustomConfirm(message, onConfirm) {
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 modal-backdrop flex items-center justify-center z-50';
-            modal.innerHTML = `
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
-                    <p class="text-gray-700 dark:text-gray-300 mb-4">${message}</p>
-                    <div class="flex justify-end space-x-3">
-                        <button class="cancel-btn px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-base">Cancel</button>
-                        <button class="confirm-btn px-4 py-2 bg-red-500 text-white hover:bg-red-600 rounded text-base">Confirm</button>
+        function showCustomConfirm(message) {
+            return new Promise(resolve => {
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 modal-backdrop flex items-center justify-center z-50';
+                modal.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
+                        <p class="text-gray-700 dark:text-gray-300 mb-4">${escapeHtml(message)}</p>
+                        <div class="flex justify-end space-x-3">
+                            <button class="cancel-btn px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-base">Cancel</button>
+                            <button class="confirm-btn px-4 py-2 bg-red-500 text-white hover:bg-red-600 rounded text-base">Confirm</button>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
 
-            modal.querySelector('.cancel-btn').onclick = () => modal.remove();
-            modal.querySelector('.confirm-btn').onclick = () => {
-                modal.remove();
-                onConfirm();
-            };
+                const cleanup = () => {
+                    modal.remove();
+                    document.removeEventListener('keydown', onKeydown);
+                };
 
-            document.body.appendChild(modal);
+                const cancel = () => {
+                    cleanup();
+                    resolve(false);
+                };
+
+                const confirm = () => {
+                    cleanup();
+                    resolve(true);
+                };
+
+                const onKeydown = (event) => {
+                    if (event.key === 'Escape') {
+                        cancel();
+                    }
+                };
+
+                modal.querySelector('.cancel-btn').onclick = cancel;
+                modal.querySelector('.confirm-btn').onclick = confirm;
+                modal.addEventListener('click', event => {
+                    if (event.target === modal) {
+                        cancel();
+                    }
+                });
+
+                document.addEventListener('keydown', onKeydown);
+                document.body.appendChild(modal);
+            });
         }
 
-        function showCustomPrompt(message, defaultValue = '') {
-            const result = {value: null};
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 modal-backdrop flex items-center justify-center z-50';
-            modal.innerHTML = `
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
-                    <p class="text-gray-700 dark:text-gray-300 mb-4">${message}</p>
-                    <input type="text" class="prompt-input w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 mb-4 text-base" value="${defaultValue}">
-                    <div class="flex justify-end space-x-3">
-                        <button class="cancel-btn px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-base">Cancel</button>
-                        <button class="ok-btn px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded text-base">OK</button>
+        function showCustomPrompt(message, defaultValue = '', options = {}) {
+            const {
+                multiline = false,
+                okText = 'OK',
+                cancelText = 'Cancel',
+                placeholder = '',
+                rows = 4
+            } = options;
+
+            return new Promise(resolve => {
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 modal-backdrop flex items-center justify-center z-50';
+                modal.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
+                        <p class="text-gray-700 dark:text-gray-300 mb-4">${escapeHtml(message)}</p>
+                        ${multiline
+                            ? `<textarea class="prompt-input w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 mb-4 text-base" rows="${rows}" placeholder="${escapeHtml(placeholder)}"></textarea>`
+                            : `<input type="text" class="prompt-input w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 mb-4 text-base" placeholder="${escapeHtml(placeholder)}">`
+                        }
+                        <div class="flex justify-end space-x-3">
+                            <button class="cancel-btn px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-base">${escapeHtml(cancelText)}</button>
+                            <button class="ok-btn px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded text-base">${escapeHtml(okText)}</button>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
 
-            const input = modal.querySelector('.prompt-input');
-            const done = () => {
-                result.value = input.value;
-                modal.remove();
-            };
+                const input = modal.querySelector('.prompt-input');
+                input.value = defaultValue;
 
-            modal.querySelector('.cancel-btn').onclick = () => modal.remove();
-            modal.querySelector('.ok-btn').onclick = done;
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') done();
+                const cleanup = () => {
+                    modal.remove();
+                    document.removeEventListener('keydown', onKeydown);
+                };
+
+                const cancel = () => {
+                    cleanup();
+                    resolve(null);
+                };
+
+                const submit = () => {
+                    const value = multiline ? input.value.trim() : input.value.trim();
+                    cleanup();
+                    resolve(value);
+                };
+
+                const onKeydown = (event) => {
+                    if (event.key === 'Escape') {
+                        cancel();
+                    }
+                };
+
+                modal.querySelector('.cancel-btn').onclick = cancel;
+                modal.querySelector('.ok-btn').onclick = submit;
+                input.addEventListener('keydown', (event) => {
+                    if (!multiline && event.key === 'Enter') {
+                        event.preventDefault();
+                        submit();
+                    }
+                    if (multiline && event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                        event.preventDefault();
+                        submit();
+                    }
+                });
+                modal.addEventListener('click', event => {
+                    if (event.target === modal) {
+                        cancel();
+                    }
+                });
+
+                document.addEventListener('keydown', onKeydown);
+                document.body.appendChild(modal);
+
+                requestAnimationFrame(() => {
+                    input.focus();
+                    if (!multiline) {
+                        input.select();
+                    }
+                });
             });
-
-            document.body.appendChild(modal);
-            input.focus();
-            input.select();
-
-            // Synchronous-like behavior using a busy wait (not ideal but works for this use case)
-            const startTime = Date.now();
-            while (result.value === null && Date.now() - startTime < 60000) {
-                // Wait for user input or timeout
-                const event = new Promise(resolve => setTimeout(resolve, 10));
-            }
-
-            return result.value;
         }
 
         // Initialize
+        loadState();
         renderCharacters();
+        renderCampaigns();
         renderCombat();
+        displayRollResults();
     </script>
 
 
