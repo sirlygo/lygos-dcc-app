@@ -70,6 +70,9 @@
                 <li class="mr-2">
                     <button onclick="switchTab('campaigns')" id="tab-campaigns" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Campaigns</button>
                 </li>
+                <li class="mr-2">
+                    <button onclick="switchTab('ai')" id="tab-ai" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">AI Tools</button>
+                </li>
             </ul>
         </nav>
 
@@ -252,6 +255,85 @@
                 <!-- Campaigns will be added here -->
             </div>
         </div>
+
+        <div id="content-ai" class="tab-content hidden">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold mb-2">AI Tools & Inspiration</h2>
+                <p class="text-gray-600 dark:text-gray-400 max-w-3xl">Use these smart generators to quickly spark story hooks, deepen your characters, and analyze your party's strengths without leaving the tabletop.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow-sm">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold">Character Backstory Builder</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Blend a quick prompt with evocative origins, motivations, and quirks.</p>
+                        </div>
+                        <button onclick="copyAIResult('backstory')" class="text-primary hover:text-primary/80 text-sm font-semibold">Copy</button>
+                    </div>
+                    <label class="block text-sm font-semibold mb-2" for="ai-backstory-prompt">Prompt (optional)</label>
+                    <input id="ai-backstory-prompt" type="text" placeholder="ex: Cowardly wizard who loves fireworks" class="w-full mb-4 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                    <button onclick="runAIGenerator('backstory')" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Generate Backstory</button>
+                    <div id="ai-backstory-output" class="mt-4 text-sm text-gray-700 dark:text-gray-200 space-y-2">
+                        <p class="text-gray-500 dark:text-gray-400">Your generated backstory will appear here.</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow-sm">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold">Adventure Seed Studio</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Generate hooks with twists, memorable locations, and rewards.</p>
+                        </div>
+                        <button onclick="copyAIResult('adventure')" class="text-primary hover:text-primary/80 text-sm font-semibold">Copy</button>
+                    </div>
+                    <label class="block text-sm font-semibold mb-2" for="ai-adventure-prompt">Theme (optional)</label>
+                    <input id="ai-adventure-prompt" type="text" placeholder="ex: Haunted moor with cursed treasure" class="w-full mb-4 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                    <button onclick="runAIGenerator('adventure')" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Generate Adventure Seed</button>
+                    <div id="ai-adventure-output" class="mt-4 text-sm text-gray-700 dark:text-gray-200 space-y-2">
+                        <p class="text-gray-500 dark:text-gray-400">Need a spark? Generate an adventure hook above.</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow-sm">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold">Prophecy & Treasure Oracle</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Reveal omens, rumors, and wondrous loot to pepper into your sessions.</p>
+                        </div>
+                        <button onclick="copyAIResult('prophecy')" class="text-primary hover:text-primary/80 text-sm font-semibold">Copy</button>
+                    </div>
+                    <label class="block text-sm font-semibold mb-2" for="ai-prophecy-prompt">Focus (optional)</label>
+                    <input id="ai-prophecy-prompt" type="text" placeholder="ex: Signs of an awakening demon" class="w-full mb-4 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                    <button onclick="runAIGenerator('prophecy')" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Reveal Prophecy</button>
+                    <div id="ai-prophecy-output" class="mt-4 text-sm text-gray-700 dark:text-gray-200 space-y-2">
+                        <p class="text-gray-500 dark:text-gray-400">Prophecies and treasures will reveal themselves here.</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow-sm">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold">Party Insight Analyst</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Scan your saved characters for tactical recommendations.</p>
+                        </div>
+                        <button onclick="copyAIResult('party')" class="text-primary hover:text-primary/80 text-sm font-semibold">Copy</button>
+                    </div>
+                    <button onclick="runAIGenerator('party')" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Analyze Party</button>
+                    <div id="ai-party-output" class="mt-4 text-sm text-gray-700 dark:text-gray-200 space-y-2">
+                        <p class="text-gray-500 dark:text-gray-400">Analyze your saved characters to receive tactical insights.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold">Recent AI Inspiration</h3>
+                    <button onclick="clearAIHistory()" class="text-sm text-gray-500 hover:text-gray-300">Clear</button>
+                </div>
+                <div id="ai-history" class="space-y-4 text-sm"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Create Campaign Modal -->
@@ -410,6 +492,8 @@
         </div>
     </div>
 
+    <div id="ai-toast" class="fixed bottom-6 right-6 px-4 py-2 rounded shadow-lg text-white text-sm font-semibold hidden"></div>
+
     <script>
         // Dark mode setup
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -428,6 +512,14 @@
         let combatants = [];
         let combatRound = 1;
         let rollHistory = [];
+        let aiHistory = [];
+        let aiState = {
+            backstory: '',
+            adventure: '',
+            prophecy: '',
+            party: ''
+        };
+        let aiToastTimeout;
 
         // Tab switching
         function switchTab(tab) {
@@ -494,6 +586,7 @@
 
             if (characters.length === 0) {
                 container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-8 col-span-full">No characters yet. Create one to get started!</p>';
+                refreshPartyInsights();
                 return;
             }
 
@@ -545,6 +638,8 @@
                     </div>
                 </div>
             `).join('');
+
+            refreshPartyInsights();
         }
 
         function showCharacterDetail(id) {
@@ -850,6 +945,520 @@
             }
         }
 
+        // AI Tools & Inspiration
+        const aiTables = {
+            origins: [
+                "among traveling caravan storytellers",
+                "in the shadow of a shattered citadel",
+                "within a remote coastal hamlet that trades with spirits",
+                "beneath colossal mushrooms in the Glowfen Marsh",
+                "inside a mountain library guarded by taciturn dwarves",
+                "on the decks of a storm-chasing privateer fleet",
+                "at an abbey that charts constellations and prophecies",
+                "in a bustling market built around a petrified titan",
+                "deep in the borderlands where the wild hunt rides",
+                "within a forgotten village that worships luck incarnate"
+            ],
+            training: [
+                "learned to read omens dancing in campfires",
+                "studied forbidden dueling forms with a reclusive mentor",
+                "mapped ley lines while apprenticing to a hedge wizard",
+                "mastered hardy survival tactics from caravan outriders",
+                "served as an archivist who copied crumbling battle journals",
+                "honed quick hands picking the purses of careless nobles",
+                "kept the peace as a mediator among rival merchant houses",
+                "trained beasts great and small to answer whispered commands",
+                "learned sacred chants that mend wounds and calm spirits",
+                "crafted clockwork curios that smuggle hidden blades"
+            ],
+            definingEvents: [
+                "a comet split the night sky and whispered their true name",
+                "bandits razed their home, leaving only a sigil scorched into stone",
+                "a patron saint spoke through a dream of swirling gears",
+                "an ancient relic opened and flooded them with distant memories",
+                "their dearest friend vanished chasing a rumor of a golden door",
+                "a duel gone wrong bound their fate to a grieving rival",
+                "they navigated a labyrinth and emerged with time lost but wisdom gained",
+                "a plague spared them yet etched glowing runes across their skin",
+                "their ship was pulled beneath the sea and returned a day before it sank",
+                "they witnessed a demon bargain for the moon's reflection"
+            ],
+            motivations: [
+                "protect the scattered survivors of their clan",
+                "prove that destiny can be rewritten through stubborn heroism",
+                "reclaim an heirloom blade that chooses its bearer",
+                "unlock the secret language hidden inside battle hymns",
+                "track the architect of the sigil that ruined their home",
+                "earn glory enough to found a sanctuary for wayward souls",
+                "perfect a daring spell that stitches light and shadow",
+                "help their lost friend find peace, even beyond the veil",
+                "restore balance to a region cursed by gambling with fate",
+                "dismantle the cabal that twists prophecy for profit"
+            ],
+            secrets: [
+                "Haunted by a bargain they accidentally struck with a minor chaos lord",
+                "Still carries the last letter from an enemy who saved their life",
+                "Hides a shard of living crystal that hums when danger is near",
+                "Believes a whispered voice guides their steps—and sometimes lies",
+                "Knows the location of a hidden gate but fears what waits beyond",
+                "Shelters a cursed song that can topple city walls if sung aloud",
+                "Owes a life-debt to a witch who demands uncomfortable favors",
+                "Keeps quiet about a prophecy declaring they will betray a friend",
+                "Fears the moonlight will reveal their shadow moving on its own",
+                "Carries an unspent luck token that exacts a price when flipped"
+            ],
+            quirks: [
+                "Collects small clockwork trinkets and dismantles them when anxious",
+                "Always hums battle hymns before rolling initiative",
+                "Sketches everyone they meet in a tattered field journal",
+                "Insists on sharing fortunes drawn from handmade tarot shells",
+                "Keeps a pocketful of salted caramel for bargaining with fey",
+                "Argues tactical points with an invisible 'captain' on their shoulder",
+                "Offers heartfelt toasts to celebrate even minor victories",
+                "Can fall asleep anywhere but startles awake if silence lasts too long",
+                "Writes letters to future versions of the party after each adventure",
+                "Sees constellations in campfire sparks and names them aloud"
+            ],
+            patrons: [
+                "a retired judge who now runs a hidden scriptorium",
+                "an ambitious demon-hunter seeking tactical allies",
+                "a secretive circle of scholars who monitor wild magic",
+                "a talking raven that relays the will of the Queen Below",
+                "a dwarven quartermaster financing expeditions into ruins",
+                "an oracle child whose visions demand careful interpretation",
+                "a spectral captain that trades guidance for unfinished business",
+                "a guild of mapmakers eager to chart forbidden territories",
+                "a cabal of healers preserving relics of saints and sinners",
+                "an ancient treant that barters knowledge for stories"
+            ],
+            adventureLocations: [
+                "the drowned halls beneath the bell towers of Highwater",
+                "a fungal forest that migrates between planes each solstice",
+                "the rusted spine of a colossal war machine half-buried in dunes",
+                "a market carved into the ribs of a fossilized leviathan",
+                "storm-wreathed cliffs where shrines cling like barnacles",
+                "a moonlit orchard that blooms with memories instead of fruit",
+                "the whispering vaults below the Archivists' Collegium",
+                "a border fort that swaps reality with its mirror twin at dawn",
+                "mist-shrouded catacombs accessible only during eclipses",
+                "the basalt citadel that crowns the Endless Stair"
+            ],
+            adventureObjectives: [
+                "retrieve the soulbound key before the eclipse reaches zenith",
+                "seal the rift leaking memories into the waking world",
+                "escort a reluctant oracle to witness their destined vision",
+                "liberate captives bound inside living crystal sarcophagi",
+                "win the favor of an ancient spirit to avert a brewing war",
+                "track a rogue judge manipulating the laws of chance",
+                "steal back a relic that rewrites oaths spoken nearby",
+                "stop a cult from stitching a demon into the city's clockwork",
+                "rescue a caravan bearing the last seeds of a sacred grove",
+                "outwit a tyrant's tournament that awards cursed boons"
+            ],
+            adventureComplications: [
+                "The local militia hunts the same prize to fund a siege",
+                "Weather turns the ground into a labyrinth of shifting mirrors",
+                "An old ally leads the opposition under magical coercion",
+                "A rival adventuring band spreads misinformation for clout",
+                "Ancient wards demand a toll of treasured memories",
+                "The area awakens constructs that copy the heroes' abilities",
+                "Time loops reset progress unless specific rites are honored",
+                "A protective spirit insists the heroes solve a moral dilemma first",
+                "A volatile planar bleed rearranges the map every hour",
+                "Unstable magic mutates mundane equipment into unpredictable forms"
+            ],
+            adventureTwists: [
+                "The villain is a future echo of one party member",
+                "The relic hides a benevolent entity seeking liberation",
+                "Completing the quest crowns the heroes as reluctant stewards",
+                "The supposed threat shields the region from a worse calamity",
+                "The true mastermind sits within the heroes' trusted network",
+                "Victory requires sacrificing a cherished shortcut or ally",
+                "The quest location is a living creature that can negotiate",
+                "Fulfilling the objective sparks an ancient factional feud",
+                "A prophecy marks success only if mercy is shown at the climax",
+                "The antagonist wants to lose but on dramatically public terms"
+            ],
+            adventureRewards: [
+                "a map etched across a dragon scale that reshapes when heated",
+                "a banner that rallies allies with heroic memories",
+                "the deed to a crossroads inn that touches three realms",
+                "a deck of living tarot able to store a single soul",
+                "an hourglass that rewinds one round at a steep price",
+                "a forged alliance with sky pirates patrolling the region",
+                "a seed that sprouts into a guardian treant overnight",
+                "a crystalline archive containing spells thought lost",
+                "a favor owed by the enigmatic King of Beggars",
+                "a thunderstone hammer that chooses a worthy bearer"
+            ],
+            adventureAllies: [
+                "a repentant cultist with impeccable memory for rituals",
+                "a chatty mimic posing as a traveler's chest",
+                "an animated suit of armor sworn to an ancient code",
+                "a mapmaker who sketches future paths mid-battle",
+                "a stoic gargoyle who judges intentions before helping",
+                "a goblin engineer armed with volatile prototypes",
+                "a bard who can rewind a single conversation per day",
+                "a lantern archon collecting stories of mortal courage",
+                "a cleric of chance who measures fate with weighted dice",
+                "a scout riding a spectral elk that scents portal magic"
+            ],
+            omens: [
+                "shards of midnight glass raining upward into the sky",
+                "choirs of distant bells ringing beneath the ocean",
+                "a pale aurora coiling down staircases and alleyways",
+                "ink bleeding from tomes to form cryptic stanzas",
+                "mirrors fogging with the silhouettes of forgotten heroes",
+                "meteors tracing sigils visible only to those who dream deeply",
+                "animals speaking in perfect unison for a heartbeat",
+                "lunar phases spinning through an entire cycle overnight",
+                "campfires that hiss names when fed silver dust",
+                "constellations reordering themselves into a warning sigil"
+            ],
+            sensations: [
+                "Echoes taste faintly of cinnamon and lightning",
+                "Shadows lag a step behind their owners",
+                "Footprints fill with shimmering stardust",
+                "Winds carry the cadence of ancient war drums",
+                "Water refuses to reflect anyone marked by destiny",
+                "Doors bloom with frost in midsummer nights",
+                "Coins land on their edge and hum with resonance",
+                "Children speak prophecies when skipping stones",
+                "Anvil strikes chime in harmonious thirds",
+                "Candles burn with inverted violet flames"
+            ],
+            treasures: [
+                "a halo of feathers that grants a single miraculous escape",
+                "a compass that points toward the heart's greatest doubt",
+                "the Chronicle of Stars, able to rename constellations",
+                "a chalice that transforms sorrows into protective wards",
+                "a cloak stitched from aurora strands that blinds enemies",
+                "a music box containing the last song of a fallen kingdom",
+                "a gauntlet that can bottle the wind for later release",
+                "a runeblade eager to duel its previous wielder",
+                "a lantern housing a fragment of hospitable starlight",
+                "a key that opens any lock but trades away a cherished memory"
+            ],
+            consequences: [
+                "Storms of living ink will rewrite local history",
+                "Luck drains from the region, empowering only tyrants",
+                "The boundary between dreams and waking will dissolve",
+                "A rival faction will seize the prophecy for darker ends",
+                "Forgotten gods will reclaim the land with unforgiving law",
+                "A doomsday clock hidden in a cathedral will begin tolling",
+                "The wild hunt will ride permanently through mortal roads",
+                "A planar refugee crisis will spill across the frontier",
+                "The moon will refuse to rise until balance is restored",
+                "The next natural 20 will instead shatter the die that rolled it"
+            ]
+        };
+
+        function randomFrom(list) {
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
+        function capitalize(text) {
+            if (!text) return '';
+            return text.charAt(0).toUpperCase() + text.slice(1);
+        }
+
+        function ensurePeriod(text) {
+            if (!text) return '';
+            return /[.!?]$/.test(text.trim()) ? text.trim() : `${text.trim()}.`;
+        }
+
+        function generateBackstory(prompt) {
+            const origin = randomFrom(aiTables.origins);
+            const training = randomFrom(aiTables.training);
+            const event = randomFrom(aiTables.definingEvents);
+            const motivation = randomFrom(aiTables.motivations);
+            const secret = randomFrom(aiTables.secrets);
+            const quirk = randomFrom(aiTables.quirks);
+            const patron = randomFrom(aiTables.patrons);
+
+            const promptLead = prompt ? `**Prompt inspiration:** ${ensurePeriod(prompt)}\n\n` : '';
+            const firstParagraph = `Raised ${origin}, they ${training}. When ${event}, they vowed to ${motivation}.`;
+
+            return `${promptLead}### Backstory\n${ensurePeriod(firstParagraph)}\n\n**Driving Goal:** ${capitalize(motivation)}.\n**Hidden Complication:** ${ensurePeriod(secret)}\n**Signature Quirk:** ${ensurePeriod(quirk)}\n**Trusted Ally or Patron:** ${ensurePeriod(patron)}`;
+        }
+
+        function generateAdventure(prompt) {
+            const location = randomFrom(aiTables.adventureLocations);
+            const objective = randomFrom(aiTables.adventureObjectives);
+            const complication = randomFrom(aiTables.adventureComplications);
+            const twist = randomFrom(aiTables.adventureTwists);
+            const reward = randomFrom(aiTables.adventureRewards);
+            const ally = randomFrom(aiTables.adventureAllies);
+
+            const theme = prompt ? `**Requested theme:** ${ensurePeriod(prompt)}\n\n` : '';
+
+            return `${theme}### Adventure Seed\n**Setup:** Rumors point to ${location}. Heroes must ${objective}.\n\n**Complication:** ${ensurePeriod(complication)}\n**Twist:** ${ensurePeriod(twist)}\n**Potential Reward:** ${ensurePeriod(reward)}\n**Helpful Ally:** ${ensurePeriod(ally)}`;
+        }
+
+        function generateProphecy(prompt) {
+            const omen = randomFrom(aiTables.omens);
+            const sensation = randomFrom(aiTables.sensations);
+            const treasure = randomFrom(aiTables.treasures);
+            const consequence = randomFrom(aiTables.consequences);
+
+            const focus = prompt ? `**Focus:** ${ensurePeriod(prompt)}\n\n` : '';
+            const lead = `${capitalize(omen)} Foretellers record that ${sensation.toLowerCase()}.`;
+
+            return `${focus}### Prophecy\n${ensurePeriod(lead)}\n\n**Treasure Foretold:** ${ensurePeriod(treasure)}\n**If Ignored:** ${ensurePeriod(consequence)}`;
+        }
+
+        function buildSynergyLine(statsAvg, classCounts) {
+            if ((classCounts.Wizard || 0) + (classCounts.Elf || 0) >= 1 && statsAvg.int >= 12) {
+                return 'Arcane minds thrive—seed mysteries that reward research and ritual magic.';
+            }
+            if ((classCounts.Warrior || 0) + (classCounts.Dwarf || 0) >= 1 && statsAvg.str >= 13) {
+                return 'Frontline might is formidable—challenge them with clever terrain and concerted foes.';
+            }
+            if ((classCounts.Thief || 0) + statsAvg.agi >= 13) {
+                return 'Agility shines—design encounters that reward mobility, stealth, and precision strikes.';
+            }
+            if (statsAvg.luc >= 13) {
+                return 'Luck surges through the crew—sprinkle risky gambits and dramatic die rolls into play.';
+            }
+            return 'Balance defines this band—layer threats that demand teamwork and creative problem solving.';
+        }
+
+        function buildPartyInsights() {
+            const memberCount = characters.length;
+            const totalLevel = characters.reduce((sum, char) => sum + (char.level || 0), 0);
+            const avgLevel = memberCount > 0 ? (totalLevel / memberCount).toFixed(1) : '0.0';
+            const highestACChar = characters.reduce((best, char) => (best && best.ac > char.ac ? best : char), characters[0]);
+            const healthiestChar = characters.reduce((best, char) => (best && best.hpMax > char.hpMax ? best : char), characters[0]);
+
+            const statsTotals = { str: 0, agi: 0, sta: 0, per: 0, int: 0, luc: 0 };
+            const abilityLabels = { str: 'Strength', agi: 'Agility', sta: 'Stamina', per: 'Perception', int: 'Intelligence', luc: 'Luck' };
+
+            characters.forEach(char => {
+                statsTotals.str += char.str || 0;
+                statsTotals.agi += char.agi || 0;
+                statsTotals.sta += char.sta || 0;
+                statsTotals.per += char.per || 0;
+                statsTotals.int += char.int || 0;
+                statsTotals.luc += char.luc || 0;
+            });
+
+            const statsAvg = Object.fromEntries(Object.entries(statsTotals).map(([key, value]) => [key, value / memberCount]));
+            const statEntries = Object.entries(statsAvg).sort((a, b) => b[1] - a[1]);
+            const bestStat = statEntries[0];
+            const weakestStat = statEntries[statEntries.length - 1];
+
+            const classCounts = {};
+            characters.forEach(char => {
+                const cls = char.class || 'Untrained';
+                classCounts[cls] = (classCounts[cls] || 0) + 1;
+            });
+
+            const suggestions = [];
+            const frontlineScore = (statsAvg.str + statsAvg.sta) / 2;
+            const precisionScore = (statsAvg.agi + statsAvg.per) / 2;
+            const arcanePresence = (classCounts.Wizard || 0) + (classCounts.Elf || 0);
+            const divinePresence = (classCounts.Cleric || 0);
+
+            if (frontlineScore < 12 && ((classCounts.Warrior || 0) + (classCounts.Dwarf || 0)) === 0) {
+                suggestions.push('Frontline durability is light—consider providing sturdier hirelings or defensive boons.');
+            }
+            if (precisionScore < 11 || (classCounts.Thief || 0) === 0) {
+                suggestions.push('Locks, traps, and infiltration may prove difficult—offer alternate paths or gadgets to improvise.');
+            }
+            if (arcanePresence === 0) {
+                suggestions.push('No dedicated arcane caster detected—sprinkle scrolls, wands, or scholarly NPCs to widen options.');
+            }
+            if (divinePresence === 0) {
+                suggestions.push('Healing and blessings are scarce—schedule rest opportunities or allies who can mend wounds.');
+            }
+            if ((highestACChar?.ac || 0) < 14) {
+                suggestions.push('Armor values trend low—reward tactical positioning, cover, or defensive magic items.');
+            }
+            if (statsAvg.luc > 13) {
+                suggestions.push('Luck is abundant—lean into swingy tables and dramatic critical results.');
+            }
+            if (suggestions.length === 0) {
+                suggestions.push('This party covers most bases—escalate stakes with layered objectives and moral choices.');
+            }
+
+            const classLines = Object.entries(classCounts)
+                .sort((a, b) => b[1] - a[1])
+                .map(([cls, count]) => `- ${cls}: ${count}`)
+                .join('\n');
+
+            const synergy = buildSynergyLine(statsAvg, classCounts);
+
+            return `### Party Insights\n- **Members:** ${memberCount}\n- **Average Level:** ${avgLevel}\n- **Highest AC:** ${highestACChar ? `${highestACChar.ac} (${highestACChar.name})` : 'N/A'}\n- **Greatest Health Pool:** ${healthiestChar ? `${healthiestChar.hpMax} HP (${healthiestChar.name})` : 'N/A'}\n- **Standout Aptitude:** ${abilityLabels[bestStat[0]]} (avg ${bestStat[1].toFixed(1)})\n- **Needs Support:** ${abilityLabels[weakestStat[0]]} (avg ${weakestStat[1].toFixed(1)})\n\n**Class Coverage:**\n${classLines}\n\n**Synergy Spotlight:** ${ensurePeriod(synergy)}\n\n**AI Suggestions:**\n${suggestions.map(s => `- ${s}`).join('\n')}`;
+        }
+
+        const aiGenerators = {
+            backstory: {
+                promptId: 'ai-backstory-prompt',
+                outputId: 'ai-backstory-output',
+                title: 'Character Backstory',
+                generator: generateBackstory
+            },
+            adventure: {
+                promptId: 'ai-adventure-prompt',
+                outputId: 'ai-adventure-output',
+                title: 'Adventure Seed',
+                generator: generateAdventure
+            },
+            prophecy: {
+                promptId: 'ai-prophecy-prompt',
+                outputId: 'ai-prophecy-output',
+                title: 'Prophecy & Treasure',
+                generator: generateProphecy
+            },
+            party: {
+                outputId: 'ai-party-output',
+                title: 'Party Insights',
+                generator: () => buildPartyInsights()
+            }
+        };
+
+        function runAIGenerator(type) {
+            const config = aiGenerators[type];
+            if (!config) return;
+
+            const prompt = config.promptId ? document.getElementById(config.promptId).value.trim() : '';
+
+            if (type === 'party' && characters.length === 0) {
+                updateAIOutput(config.outputId, '_Add at least one character to analyze._');
+                aiState[type] = '';
+                showAIToast('Add characters before running the analyst.', 'error');
+                return;
+            }
+
+            const content = config.generator(prompt);
+            aiState[type] = content;
+            updateAIOutput(config.outputId, content);
+            addAIHistory(config.title, content);
+            showAIToast(`${config.title} ready!`);
+        }
+
+        function refreshPartyInsights() {
+            if (!aiState.party) return;
+
+            if (characters.length === 0) {
+                aiState.party = '';
+                updateAIOutput(aiGenerators.party.outputId, '_Add at least one character to analyze._');
+                return;
+            }
+
+            const updated = aiGenerators.party.generator('');
+            aiState.party = updated;
+            updateAIOutput(aiGenerators.party.outputId, updated);
+        }
+
+        function updateAIOutput(elementId, markdown) {
+            const target = document.getElementById(elementId);
+            if (!target) return;
+
+            if (!markdown) {
+                target.innerHTML = '<p class="text-gray-500 dark:text-gray-400">Try generating inspiration to see results here.</p>';
+                return;
+            }
+
+            target.innerHTML = `<div class="space-y-2 leading-relaxed">${marked.parse(markdown)}</div>`;
+        }
+
+        function addAIHistory(title, content) {
+            const entry = {
+                id: Date.now(),
+                title,
+                content,
+                timestamp: new Date().toLocaleString()
+            };
+
+            aiHistory.unshift(entry);
+            if (aiHistory.length > 8) {
+                aiHistory = aiHistory.slice(0, 8);
+            }
+
+            renderAIHistory();
+        }
+
+        function renderAIHistory() {
+            const container = document.getElementById('ai-history');
+            if (!container) return;
+
+            if (aiHistory.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 dark:text-gray-400">Use the AI tools above to build a library of prompts and inspirations.</p>';
+                return;
+            }
+
+            container.innerHTML = aiHistory.map(entry => `
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
+                    <div class="flex items-start justify-between gap-4 mb-2">
+                        <div class="font-semibold text-gray-800 dark:text-gray-200">${entry.title}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">${entry.timestamp}</div>
+                    </div>
+                    <div class="space-y-2 text-sm leading-relaxed text-gray-700 dark:text-gray-300">${marked.parse(entry.content)}</div>
+                </div>
+            `).join('');
+        }
+
+        function clearAIHistory() {
+            if (aiHistory.length === 0) {
+                showAIToast('History is already clear.', 'error');
+                return;
+            }
+            aiHistory = [];
+            renderAIHistory();
+            showAIToast('AI inspiration history cleared.');
+        }
+
+        function showAIToast(message, tone = 'success') {
+            const toast = document.getElementById('ai-toast');
+            if (!toast) return;
+
+            toast.textContent = message;
+            toast.classList.remove('hidden', 'bg-green-600', 'bg-red-600');
+            toast.classList.add(tone === 'error' ? 'bg-red-600' : 'bg-green-600');
+
+            clearTimeout(aiToastTimeout);
+            aiToastTimeout = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2200);
+        }
+
+        function copyAIResult(type) {
+            const text = aiState[type];
+            if (!text) {
+                showAIToast('Generate something first.', 'error');
+                return;
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text)
+                    .then(() => showAIToast('Copied to clipboard!'))
+                    .catch(() => {
+                        fallbackCopy(text);
+                        showAIToast('Copied to clipboard!');
+                    });
+            } else {
+                fallbackCopy(text);
+                showAIToast('Copied to clipboard!');
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'absolute';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Clipboard copy failed', err);
+            }
+            document.body.removeChild(textarea);
+        }
+
         // Custom dialog functions
         function showCustomConfirm(message, onConfirm) {
             const modal = document.createElement('div');
@@ -917,6 +1526,7 @@
         // Initialize
         renderCharacters();
         renderCombat();
+        renderAIHistory();
     </script>
 
 
