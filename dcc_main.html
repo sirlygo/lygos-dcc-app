@@ -55,6 +55,43 @@
             font-size: 0.75rem;
             opacity: 0.8;
         }
+        .map-grid {
+            background-image: linear-gradient(rgba(93, 92, 222, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(93, 92, 222, 0.2) 1px, transparent 1px);
+            pointer-events: none;
+        }
+        .map-marker {
+            transform: translate(-50%, -50%);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .map-marker:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        .map-marker-active {
+            box-shadow: 0 0 0 4px rgba(93, 92, 222, 0.35);
+            z-index: 30;
+        }
+        .map-marker-label {
+            white-space: nowrap;
+            padding: 0.125rem 0.375rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+        }
+        .dm-log-entry {
+            border-left: 3px solid rgba(93, 92, 222, 0.45);
+        }
+        .dm-note-details summary::-webkit-details-marker {
+            display: none;
+        }
+        .dm-note-summary::marker {
+            content: '';
+        }
+        .dm-note-preview {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
     </style>
     <script src="https://puc.poecdn.net/authenticated_preview_page/syncedState.3f7572448765332f3047.js"></script>
 </head>
@@ -80,6 +117,116 @@
             </div>
         </section>
 
+        <!-- DM Tools Tab -->
+        <section id="content-dm" class="tab-content hidden space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="space-y-1">
+                    <h2 class="text-2xl font-bold">DM Control Panel</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Track prep, pace sessions, and surface inspiration without shuffling paper behind the screen.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="resetDMTools()" class="px-4 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition text-sm">Reset Panel</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                <div class="xl:col-span-2 space-y-4">
+                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-semibold">Encounter Builder</h3>
+                            <span class="text-xs text-gray-500" id="dm-encounter-count">0 prepped</span>
+                        </div>
+                        <form id="dm-encounter-form" class="grid grid-cols-1 md:grid-cols-6 gap-3">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold mb-1">Encounter Name</label>
+                                <input type="text" name="encounter-name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="e.g., Goblin ambush" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-1">Quantity</label>
+                                <input type="number" name="encounter-quantity" min="1" value="1" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-1">Threat</label>
+                                <select name="encounter-threat" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                                    <option value="Low">Low</option>
+                                    <option value="Moderate">Moderate</option>
+                                    <option value="Dangerous">Dangerous</option>
+                                    <option value="Deadly">Deadly</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold mb-1">Environment</label>
+                                <input type="text" name="encounter-environment" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="Ruined temple, swamp trail...">
+                            </div>
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold mb-1">Tactics & Rewards</label>
+                                <textarea name="encounter-notes" rows="2" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="Opening gambit, morale, treasure, complications..."></textarea>
+                            </div>
+                            <div class="md:col-span-6 flex justify-end">
+                                <button type="submit" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm">Save Encounter</button>
+                            </div>
+                        </form>
+                        <div id="dm-encounter-list" class="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                            <p class="text-xs text-gray-500">No encounters prepped yet.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-semibold">Session Notes</h3>
+                            <span class="text-xs text-gray-500" id="dm-note-count">0 captured</span>
+                        </div>
+                        <form id="dm-note-form" class="space-y-3">
+                            <textarea id="dm-note-input" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="Summaries, secrets revealed, NPC goals..." required></textarea>
+                            <div class="flex items-center justify-between text-xs text-gray-500">
+                                <label class="flex items-center gap-2">
+                                    <input type="checkbox" id="dm-note-spotlight" class="h-4 w-4 text-primary">
+                                    Spotlight this note
+                                </label>
+                                <button type="submit" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm">Log Note</button>
+                            </div>
+                        </form>
+                        <div id="dm-note-list" class="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                            <p class="text-xs text-gray-500">No notes logged yet.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-semibold">Session Clock</h3>
+                            <span class="text-xs text-gray-500" id="dm-stopwatch-status">Idle</span>
+                        </div>
+                        <div class="text-3xl font-bold text-primary" id="dm-stopwatch-display">00:00:00</div>
+                        <div class="flex flex-wrap gap-2">
+                            <button id="dm-stopwatch-start" class="flex-1 px-3 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm">Start</button>
+                            <button id="dm-stopwatch-pause" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm">Pause</button>
+                            <button id="dm-stopwatch-reset" class="flex-1 px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm">Reset</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-3">
+                        <h3 class="text-xl font-semibold">Resource Trackers</h3>
+                        <div id="dm-trackers" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm"></div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-3">
+                        <h3 class="text-xl font-semibold">Inspiration Engine</h3>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <button id="dm-random-weather" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Weather</button>
+                            <button id="dm-random-complication" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Complication</button>
+                            <button id="dm-random-treasure" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Treasure Hook</button>
+                            <button id="dm-random-npc" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">NPC Quirk</button>
+                        </div>
+                        <div id="dm-random-history" class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                            <p class="text-xs text-gray-500">Roll the inspiration engine to populate this log.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <nav class="border-b border-gray-300 dark:border-gray-800">
             <ul class="flex flex-wrap -mb-px text-sm md:text-base">
                 <li class="mr-2">
@@ -92,10 +239,16 @@
                     <button data-tab="combat" onclick="switchTab('combat')" id="tab-combat" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Combat Tracker</button>
                 </li>
                 <li class="mr-2">
+                    <button data-tab="map" onclick="switchTab('map')" id="tab-map" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Maps</button>
+                </li>
+                <li class="mr-2">
                     <button data-tab="tables" onclick="switchTab('tables')" id="tab-tables" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Reference Tables</button>
                 </li>
                 <li class="mr-2">
                     <button data-tab="campaigns" onclick="switchTab('campaigns')" id="tab-campaigns" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Campaigns</button>
+                </li>
+                <li class="mr-2">
+                    <button data-tab="dm" onclick="switchTab('dm')" id="tab-dm" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">DM Tools</button>
                 </li>
             </ul>
         </nav>
@@ -137,6 +290,15 @@
                         </select>
                     </div>
                     <div>
+                        <label class="block text-sm font-semibold mb-1">Status Filter</label>
+                        <select id="character-status-filter" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
+                            <option value="all">All Heroes</option>
+                            <option value="ready">Battle Ready (≥ 50% HP)</option>
+                            <option value="injured">Injured (&lt; 50% HP)</option>
+                            <option value="down">Down / 0 HP</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-sm font-semibold mb-1">Sort</label>
                         <select id="character-sort" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
                             <option value="name">Name (A-Z)</option>
@@ -169,7 +331,7 @@
                 </div>
             </div>
 
-            <div id="dice-stats" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+            <div id="dice-stats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"></div>
 
             <div class="bg-gray-50 dark:bg-surface rounded-lg p-6 border border-gray-200 dark:border-gray-800 space-y-6">
                 <div class="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-2">
@@ -310,125 +472,239 @@
             <div id="combat-list" class="space-y-3"></div>
         </section>
 
-        <!-- Reference Tables -->
-        <section id="content-tables" class="tab-content hidden space-y-4">
-            <div>
-                <h2 class="text-2xl font-bold mb-2">Reference Tables</h2>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Quick lookups for common DCC rulings and random inspiration.</p>
+        <!-- Map Tab -->
+        <section id="content-map" class="tab-content hidden space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="space-y-1">
+                    <h2 class="text-2xl font-bold">Map Room</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Upload battlemaps or world vistas, drop markers, and keep keyed notes handy for play.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <label class="px-4 py-2 border border-primary text-primary rounded cursor-pointer hover:bg-primary hover:text-white transition text-sm">
+                        <input type="file" id="map-upload" accept="image/*" class="hidden">
+                        Upload Image
+                    </label>
+                    <button onclick="clearMap()" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm">Clear Map</button>
+                </div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800">
-                    <h3 class="text-xl font-bold mb-3">Critical Hits (d20)</h3>
-                    <ul class="space-y-2 text-sm">
-                        <li><span class="font-semibold">1-6:</span> Normal damage</li>
-                        <li><span class="font-semibold">7-11:</span> +1d6 damage</li>
-                        <li><span class="font-semibold">12-13:</span> +2d6 damage</li>
-                        <li><span class="font-semibold">14-15:</span> +3d6 damage</li>
-                        <li><span class="font-semibold">16-17:</span> +1d10 damage + bleed 1d6</li>
-                        <li><span class="font-semibold">18:</span> +2d10 damage + bleed 1d6</li>
-                        <li><span class="font-semibold">19:</span> +3d10 damage + bleed 2d6</li>
-                        <li><span class="font-semibold">20:</span> +4d10 damage + limb/organ damage</li>
-                    </ul>
-                </div>
 
-                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800">
-                    <h3 class="text-xl font-bold mb-3">Fumbles (d8)</h3>
-                    <ul class="space-y-2 text-sm">
-                        <li><span class="font-semibold">1:</span> Drop weapon</li>
-                        <li><span class="font-semibold">2:</span> Slip, lose next action</li>
-                        <li><span class="font-semibold">3:</span> Twist ankle, -5 ft movement</li>
-                        <li><span class="font-semibold">4:</span> Stumble, foe gets free attack</li>
-                        <li><span class="font-semibold">5:</span> Hit ally for normal damage</li>
-                        <li><span class="font-semibold">6:</span> Weapon stuck, DC 10 STR to free</li>
-                        <li><span class="font-semibold">7:</span> Armor strap breaks, -1 AC</li>
-                        <li><span class="font-semibold">8:</span> Weapon damaged, -1 to hit</li>
-                    </ul>
-                </div>
-
-                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800">
-                    <h3 class="text-xl font-bold mb-3">Ability Score Modifiers</h3>
-                    <div class="grid grid-cols-2 gap-2 text-sm">
-                        <div><span class="font-semibold">3:</span> -3</div>
-                        <div><span class="font-semibold">4-5:</span> -2</div>
-                        <div><span class="font-semibold">6-8:</span> -1</div>
-                        <div><span class="font-semibold">9-12:</span> 0</div>
-                        <div><span class="font-semibold">13-15:</span> +1</div>
-                        <div><span class="font-semibold">16-17:</span> +2</div>
-                        <div><span class="font-semibold">18:</span> +3</div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="lg:col-span-2 space-y-3">
+                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-3">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                            <div class="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                                <p>Click anywhere on the map to capture coordinates for your next marker.</p>
+                                <p id="map-uploaded-name">No map loaded.</p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-4">
+                                <label class="flex items-center gap-2 text-xs font-semibold uppercase text-gray-500">
+                                    <input type="checkbox" id="map-grid-toggle" class="h-4 w-4 text-primary" checked>
+                                    Show Grid
+                                </label>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-gray-500">Grid Size</span>
+                                    <input type="range" id="map-grid-size" min="20" max="120" value="50" class="w-28">
+                                    <span id="map-grid-size-display" class="text-xs font-semibold text-primary">50 px</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-gray-500">Zoom</span>
+                                    <input type="range" id="map-zoom" min="50" max="200" value="100" class="w-28">
+                                    <span id="map-zoom-display" class="text-xs font-semibold text-primary">100%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400" id="map-coordinate-hint">No marker selected.</div>
+                    </div>
+                    <div id="map-scroll" class="relative overflow-auto bg-gray-900 rounded-lg border border-gray-800 h-[26rem]">
+                        <div id="map-placeholder" class="absolute inset-0 flex items-center justify-center text-center px-6 text-sm text-gray-400">
+                            Upload a map image to begin plotting the dungeon.
+                        </div>
+                        <div id="map-inner" class="relative select-none" style="display: none;">
+                            <img id="map-image" alt="Campaign map" class="block max-w-none">
+                            <div id="map-grid" class="map-grid absolute inset-0 opacity-50"></div>
+                            <div id="map-marker-layer" class="absolute inset-0 pointer-events-none"></div>
+                        </div>
                     </div>
                 </div>
+                <div class="space-y-4">
+                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-3">
+                        <h3 class="text-lg font-semibold">Add Marker</h3>
+                        <form id="map-marker-form" class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-semibold mb-1">Label</label>
+                                <input type="text" id="map-marker-label" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="Secret door, camp, hazard..." required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-1">Description</label>
+                                <textarea id="map-marker-note" rows="2" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="Optional notes"></textarea>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-semibold mb-1">X (%)</label>
+                                    <input type="number" id="map-marker-x" min="0" max="100" step="0.1" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold mb-1">Y (%)</label>
+                                    <input type="number" id="map-marker-y" min="0" max="100" step="0.1" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" required>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-1">Marker Color</label>
+                                <select id="map-marker-color" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                                    <option value="primary">Primary</option>
+                                    <option value="emerald">Emerald</option>
+                                    <option value="amber">Amber</option>
+                                    <option value="rose">Rose</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm">Drop Marker</button>
+                        </form>
+                        <p class="text-xs text-gray-500" id="map-coordinates-display">Click the map to seed coordinates.</p>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold">Markers</h3>
+                            <span class="text-xs text-gray-500" id="map-marker-count">0</span>
+                        </div>
+                        <div id="map-marker-list" class="space-y-2 max-h-64 overflow-y-auto text-sm text-gray-700 dark:text-gray-300">
+                            <p class="text-xs text-gray-500">No markers yet.</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-2">
+                        <h3 class="text-lg font-semibold">Map Notes</h3>
+                        <textarea id="map-notes" rows="4" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="Area legends, keyed references, or travel reminders."></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800">
+        <!-- Reference Tables -->
+        <section id="content-tables" class="tab-content hidden space-y-4">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold mb-2">Reference Tables</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Quick lookups for common DCC rulings and random inspiration.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="table-search" placeholder="Search tables" class="w-full sm:w-64 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                    <button id="table-random-btn" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm">Roll Inspiration</button>
+                </div>
+            </div>
+            <div id="table-random-panel" class="hidden bg-gray-50 dark:bg-surface border border-primary/40 dark:border-primary/60 rounded-lg p-4 text-sm text-gray-700 dark:text-gray-300"></div>
+            <p id="table-search-empty" class="hidden text-sm text-gray-500 dark:text-gray-400">No tables match the current search.</p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800" data-table-card data-table-name="Critical Hits (d20)">
+                    <h3 class="text-xl font-bold mb-3">Critical Hits (d20)</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li data-table-entry><span class="font-semibold">1-6:</span> Normal damage</li>
+                        <li data-table-entry><span class="font-semibold">7-11:</span> +1d6 damage</li>
+                        <li data-table-entry><span class="font-semibold">12-13:</span> +2d6 damage</li>
+                        <li data-table-entry><span class="font-semibold">14-15:</span> +3d6 damage</li>
+                        <li data-table-entry><span class="font-semibold">16-17:</span> +1d10 damage + bleed 1d6</li>
+                        <li data-table-entry><span class="font-semibold">18:</span> +2d10 damage + bleed 1d6</li>
+                        <li data-table-entry><span class="font-semibold">19:</span> +3d10 damage + bleed 2d6</li>
+                        <li data-table-entry><span class="font-semibold">20:</span> +4d10 damage + limb/organ damage</li>
+                    </ul>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800" data-table-card data-table-name="Fumbles (d8)">
+                    <h3 class="text-xl font-bold mb-3">Fumbles (d8)</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li data-table-entry><span class="font-semibold">1:</span> Drop weapon</li>
+                        <li data-table-entry><span class="font-semibold">2:</span> Slip, lose next action</li>
+                        <li data-table-entry><span class="font-semibold">3:</span> Twist ankle, -5 ft movement</li>
+                        <li data-table-entry><span class="font-semibold">4:</span> Stumble, foe gets free attack</li>
+                        <li data-table-entry><span class="font-semibold">5:</span> Hit ally for normal damage</li>
+                        <li data-table-entry><span class="font-semibold">6:</span> Weapon stuck, DC 10 STR to free</li>
+                        <li data-table-entry><span class="font-semibold">7:</span> Armor strap breaks, -1 AC</li>
+                        <li data-table-entry><span class="font-semibold">8:</span> Weapon damaged, -1 to hit</li>
+                    </ul>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800" data-table-card data-table-name="Ability Score Modifiers">
+                    <h3 class="text-xl font-bold mb-3">Ability Score Modifiers</h3>
+                    <ul class="grid grid-cols-2 gap-2 text-sm">
+                        <li data-table-entry><span class="font-semibold">3:</span> -3</li>
+                        <li data-table-entry><span class="font-semibold">4-5:</span> -2</li>
+                        <li data-table-entry><span class="font-semibold">6-8:</span> -1</li>
+                        <li data-table-entry><span class="font-semibold">9-12:</span> 0</li>
+                        <li data-table-entry><span class="font-semibold">13-15:</span> +1</li>
+                        <li data-table-entry><span class="font-semibold">16-17:</span> +2</li>
+                        <li data-table-entry><span class="font-semibold">18:</span> +3</li>
+                    </ul>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800" data-table-card data-table-name="Luck Uses">
                     <h3 class="text-xl font-bold mb-3">Luck Uses</h3>
                     <ul class="space-y-2 text-sm">
-                        <li>Modify any roll before or after it is made.</li>
-                        <li>Improve critical hit/fumble results.</li>
-                        <li>Adjust initiative order.</li>
-                        <li>Discover lucky finds or clues.</li>
-                        <li>Snatch survival from the jaws of death.</li>
-                        <li class="italic">Luck spent is permanent unless magically restored.</li>
+                        <li data-table-entry>Modify any roll before or after it is made.</li>
+                        <li data-table-entry>Improve critical hit/fumble results.</li>
+                        <li data-table-entry>Adjust initiative order.</li>
+                        <li data-table-entry>Discover lucky finds or clues.</li>
+                        <li data-table-entry>Snatch survival from the jaws of death.</li>
+                        <li data-table-entry class="italic">Luck spent is permanent unless magically restored.</li>
                     </ul>
                 </div>
 
-                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800">
+                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800" data-table-card data-table-name="Action Dice by Level">
                     <h3 class="text-xl font-bold mb-3">Action Dice by Level</h3>
                     <ul class="space-y-2 text-sm">
-                        <li><span class="font-semibold">Level 1-4:</span> 1d20</li>
-                        <li><span class="font-semibold">Level 5:</span> 1d20 + 1d14</li>
-                        <li><span class="font-semibold">Level 6-7:</span> 1d20 + 1d16</li>
-                        <li><span class="font-semibold">Level 8-9:</span> 1d20 + 1d20</li>
-                        <li><span class="font-semibold">Level 10:</span> 1d20 + 1d20 + 1d14</li>
-                        <li class="text-xs italic">Warriors gain additional dice at higher levels.</li>
+                        <li data-table-entry><span class="font-semibold">Level 1-4:</span> 1d20</li>
+                        <li data-table-entry><span class="font-semibold">Level 5:</span> 1d20 + 1d14</li>
+                        <li data-table-entry><span class="font-semibold">Level 6-7:</span> 1d20 + 1d16</li>
+                        <li data-table-entry><span class="font-semibold">Level 8-9:</span> 1d20 + 1d20</li>
+                        <li data-table-entry><span class="font-semibold">Level 10:</span> 1d20 + 1d20 + 1d14</li>
+                        <li data-table-entry class="text-xs italic">Warriors gain additional dice at higher levels.</li>
                     </ul>
                 </div>
 
-                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800">
+                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800" data-table-card data-table-name="Spell Corruption (d10)">
                     <h3 class="text-xl font-bold mb-3">Spell Corruption (d10)</h3>
                     <ul class="space-y-2 text-sm">
-                        <li><span class="font-semibold">1:</span> Eyes glow when casting</li>
-                        <li><span class="font-semibold">2:</span> Hair turns white/silver</li>
-                        <li><span class="font-semibold">3:</span> Skin becomes pallid</li>
-                        <li><span class="font-semibold">4:</span> Fingernails blacken</li>
-                        <li><span class="font-semibold">5:</span> Voice becomes raspy</li>
-                        <li><span class="font-semibold">6:</span> Aura chills nearby air</li>
-                        <li><span class="font-semibold">7:</span> Smell of ozone or brimstone</li>
-                        <li><span class="font-semibold">8:</span> Horn nubs sprout</li>
-                        <li><span class="font-semibold">9:</span> Shadow acts independently</li>
-                        <li><span class="font-semibold">10:</span> Runes scar across skin</li>
+                        <li data-table-entry><span class="font-semibold">1:</span> Eyes glow when casting</li>
+                        <li data-table-entry><span class="font-semibold">2:</span> Hair turns white/silver</li>
+                        <li data-table-entry><span class="font-semibold">3:</span> Skin becomes pallid</li>
+                        <li data-table-entry><span class="font-semibold">4:</span> Fingernails blacken</li>
+                        <li data-table-entry><span class="font-semibold">5:</span> Voice becomes raspy</li>
+                        <li data-table-entry><span class="font-semibold">6:</span> Aura chills nearby air</li>
+                        <li data-table-entry><span class="font-semibold">7:</span> Smell of ozone or brimstone</li>
+                        <li data-table-entry><span class="font-semibold">8:</span> Horn nubs sprout</li>
+                        <li data-table-entry><span class="font-semibold">9:</span> Shadow acts independently</li>
+                        <li data-table-entry><span class="font-semibold">10:</span> Runes scar across skin</li>
                     </ul>
                 </div>
-                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800">
+                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800" data-table-card data-table-name="Mighty Deeds Inspiration (d5)">
                     <h3 class="text-xl font-bold mb-3">Mighty Deeds Inspiration (d5)</h3>
                     <ul class="space-y-2 text-sm">
-                        <li><span class="font-semibold">1:</span> Disarm or batter aside a foe's weapon</li>
-                        <li><span class="font-semibold">2:</span> Shove an enemy into hazards or off balance</li>
-                        <li><span class="font-semibold">3:</span> Rally allies, granting +1 to hit this round</li>
-                        <li><span class="font-semibold">4:</span> Smash shields or armor, reducing AC by 1</li>
-                        <li><span class="font-semibold">5:</span> Seize the initiative, acting again at the end of the round</li>
+                        <li data-table-entry><span class="font-semibold">1:</span> Disarm or batter aside a foe's weapon</li>
+                        <li data-table-entry><span class="font-semibold">2:</span> Shove an enemy into hazards or off balance</li>
+                        <li data-table-entry><span class="font-semibold">3:</span> Rally allies, granting +1 to hit this round</li>
+                        <li data-table-entry><span class="font-semibold">4:</span> Smash shields or armor, reducing AC by 1</li>
+                        <li data-table-entry><span class="font-semibold">5:</span> Seize the initiative, acting again at the end of the round</li>
                     </ul>
                 </div>
-                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800">
+                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800" data-table-card data-table-name="Dungeon Hazards (d6)">
                     <h3 class="text-xl font-bold mb-3">Dungeon Hazards (d6)</h3>
                     <ul class="space-y-2 text-sm">
-                        <li><span class="font-semibold">1:</span> Collapsing ceiling (Reflex DC 12 or 1d6 damage)</li>
-                        <li><span class="font-semibold">2:</span> Poison needle trap (Fort DC 10 or 1d4 damage + 1 CON)</li>
-                        <li><span class="font-semibold">3:</span> Hidden pit, 10 ft drop (1d6 damage)</li>
-                        <li><span class="font-semibold">4:</span> Swarm of bats erupts, imposing -2 to ranged attacks</li>
-                        <li><span class="font-semibold">5:</span> Sudden darkness; treat light sources as sputtering</li>
-                        <li><span class="font-semibold">6:</span> Arcane glyph explodes (Will DC 12 or lose next action)</li>
+                        <li data-table-entry><span class="font-semibold">1:</span> Collapsing ceiling (Reflex DC 12 or 1d6 damage)</li>
+                        <li data-table-entry><span class="font-semibold">2:</span> Poison needle trap (Fort DC 10 or 1d4 damage + 1 CON)</li>
+                        <li data-table-entry><span class="font-semibold">3:</span> Hidden pit, 10 ft drop (1d6 damage)</li>
+                        <li data-table-entry><span class="font-semibold">4:</span> Swarm of bats erupts, imposing -2 to ranged attacks</li>
+                        <li data-table-entry><span class="font-semibold">5:</span> Sudden darkness; treat light sources as sputtering</li>
+                        <li data-table-entry><span class="font-semibold">6:</span> Arcane glyph explodes (Will DC 12 or lose next action)</li>
                     </ul>
                 </div>
-                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800">
+                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800" data-table-card data-table-name="Treasure Finds (d8)">
                     <h3 class="text-xl font-bold mb-3">Treasure Finds (d8)</h3>
                     <ul class="space-y-2 text-sm">
-                        <li><span class="font-semibold">1:</span> Pouch of 3d12 silver coins</li>
-                        <li><span class="font-semibold">2:</span> Minor potion (roll on mercurial effects when imbibed)</li>
-                        <li><span class="font-semibold">3:</span> Map fragment hinting at a hidden level</li>
-                        <li><span class="font-semibold">4:</span> Bundle of exotic trade goods worth 50 gp</li>
-                        <li><span class="font-semibold">5:</span> +1 weapon with an odd personality quirk</li>
-                        <li><span class="font-semibold">6:</span> Cache of rare spell components</li>
-                        <li><span class="font-semibold">7:</span> Idol that whispers secrets, but demands a price</li>
-                        <li><span class="font-semibold">8:</span> Hoard of gems worth 3d6 × 10 gp</li>
+                        <li data-table-entry><span class="font-semibold">1:</span> Pouch of 3d12 silver coins</li>
+                        <li data-table-entry><span class="font-semibold">2:</span> Minor potion (roll on mercurial effects when imbibed)</li>
+                        <li data-table-entry><span class="font-semibold">3:</span> Map fragment hinting at a hidden level</li>
+                        <li data-table-entry><span class="font-semibold">4:</span> Bundle of exotic trade goods worth 50 gp</li>
+                        <li data-table-entry><span class="font-semibold">5:</span> +1 weapon with an odd personality quirk</li>
+                        <li data-table-entry><span class="font-semibold">6:</span> Cache of rare spell components</li>
+                        <li data-table-entry><span class="font-semibold">7:</span> Idol that whispers secrets, but demands a price</li>
+                        <li data-table-entry><span class="font-semibold">8:</span> Hoard of gems worth 3d6 × 10 gp</li>
                     </ul>
                 </div>
             </div>
@@ -466,6 +742,7 @@
             </div>
 
             <div id="campaign-summary" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+            <div id="campaign-timeline" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
             <div id="campaign-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </section>
     </div>
@@ -684,16 +961,43 @@
                 round: 1,
                 activeId: null,
                 combatants: []
+            },
+            map: {
+                image: '',
+                imageName: '',
+                dimensions: null,
+                zoom: 100,
+                gridSize: 50,
+                showGrid: true,
+                markers: [],
+                notes: ''
+            },
+            dm: {
+                encounters: [],
+                sessionNotes: [],
+                trackers: {
+                    torchBurn: 0,
+                    doomClock: 0,
+                    favor: 0
+                },
+                stopwatch: {
+                    running: false,
+                    startedAt: null,
+                    elapsed: 0
+                },
+                randomHistory: []
             }
         };
 
         const uiState = {
             characterSearch: '',
             characterClass: 'all',
+            characterStatus: 'all',
             characterSort: 'name',
             campaignSearch: '',
             campaignJudge: '',
-            campaignSort: 'recent'
+            campaignSort: 'recent',
+            tableSearch: ''
         };
 
         function clone(obj) {
@@ -716,6 +1020,27 @@
                         ...clone(defaultState.combat),
                         ...(parsed.combat || {}),
                         combatants: Array.isArray(parsed?.combat?.combatants) ? parsed.combat.combatants : []
+                    },
+                    map: {
+                        ...clone(defaultState.map),
+                        ...(parsed.map || {}),
+                        markers: Array.isArray(parsed?.map?.markers) ? parsed.map.markers : [],
+                        dimensions: parsed?.map?.dimensions && typeof parsed.map.dimensions.width === 'number' ? parsed.map.dimensions : null
+                    },
+                    dm: {
+                        ...clone(defaultState.dm),
+                        ...(parsed.dm || {}),
+                        encounters: Array.isArray(parsed?.dm?.encounters) ? parsed.dm.encounters : [],
+                        sessionNotes: Array.isArray(parsed?.dm?.sessionNotes) ? parsed.dm.sessionNotes : [],
+                        randomHistory: Array.isArray(parsed?.dm?.randomHistory) ? parsed.dm.randomHistory : [],
+                        trackers: {
+                            ...clone(defaultState.dm.trackers),
+                            ...(parsed?.dm?.trackers || {})
+                        },
+                        stopwatch: {
+                            ...clone(defaultState.dm.stopwatch),
+                            ...(parsed?.dm?.stopwatch || {})
+                        }
                     }
                 };
             } catch (error) {
@@ -727,6 +1052,67 @@
         let state = loadState();
         let activeCharacterDetail = null;
         let activeCampaignDetail = null;
+        let activeMapMarkerId = null;
+        let pendingMapCoords = null;
+        let mapDisplaySize = { width: 0, height: 0 };
+        let stopwatchInterval = null;
+        let referenceTableEntries = [];
+
+        const mapMarkerColors = {
+            primary: { background: '#5D5CDE', text: '#FFFFFF' },
+            emerald: { background: '#10B981', text: '#062B24' },
+            amber: { background: '#F59E0B', text: '#4C2A00' },
+            rose: { background: '#F43F5E', text: '#3B0612' }
+        };
+
+        const dmTrackerLabels = {
+            torchBurn: 'Torch Burn',
+            doomClock: 'Doom Clock',
+            favor: 'Luck Tokens'
+        };
+
+        const inspirationTables = {
+            weather: [
+                'Cold drizzle rolls in, extinguishing exposed flames in 1d4 rounds.',
+                'Sudden heat wave; Constitution checks every hour to avoid exhaustion.',
+                'Fog as thick as soup reduces visibility to 20 feet.',
+                'Distant thunder heralds a storm—lightning strikes on a natural 20 attack roll.',
+                'A gentle snowfall muffles sound, granting +2 to sneak attempts.',
+                'A rainbow arcs overhead; luck checks gain +1 for the next hour.',
+                'Howling winds impose disadvantage on ranged missile attacks.',
+                'Sky opens with meteor shower; omen favors spellcasters (+1 spell checks).'
+            ],
+            complication: [
+                'A rival faction arrives mid-scene seeking the same prize.',
+                'The floor begins to collapse in sections every round.',
+                'Arcane interference: spellcasting checks suffer -1d penalty this encounter.',
+                'An NPC ally reveals a hidden agenda that conflicts with the party.',
+                'Reinforcements arrive for the opposition on initiative 5.',
+                'A moral dilemma: the objective endangers innocents unless delayed.',
+                'Environmental hazard activates—poisonous spores fill the chamber.',
+                'Time pressure: complete the scene in 3 rounds or suffer a setback.'
+            ],
+            treasure: [
+                'A locked coffer containing a map fragment to a lost vault.',
+                'A bundle of rare reagents worth 150 gp to the right buyer.',
+                'A sentient weapon eager to guide the wielder… for a price.',
+                'An idol that whispers forgotten lore but drains 1 Luck on each answer.',
+                'A stash of marked coins linked to a notorious thieves’ guild.',
+                'A rune-etched shield granting +1 AC but attracting undead attention.',
+                'A cursed gemstone that reveals invisible creatures while held.',
+                'A ledger detailing a noble’s treason—priceless leverage.'
+            ],
+            npc: [
+                'Speaks in prophetic riddles and unconsciously sketches constellations.',
+                'Collects broken weapons as trophies; offers to trade rumors for one.',
+                'Haunted by an audible spirit that occasionally answers questions.',
+                'Obsessed with culinary perfection; bribe with exotic spices.',
+                'Wears a patchwork cloak of monster hides, each with a story.',
+                'Maintains an imaginary companion who “knows secrets”.',
+                'Writes everything in a floating journal; the quill never stops.',
+                'Carries a pocket door that opens once per day to a random location.'
+            ]
+        };
 
         function saveState() {
             try {
@@ -766,6 +1152,10 @@
             const date = new Date(isoString);
             if (Number.isNaN(date.getTime())) return '—';
             return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function escapeHtml(text) {
+            return (text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
         function openModal(id) {
@@ -886,6 +1276,11 @@
             renderCharacters();
         });
 
+        document.getElementById('character-status-filter').addEventListener('change', (event) => {
+            uiState.characterStatus = event.target.value;
+            renderCharacters();
+        });
+
         document.getElementById('character-sort').addEventListener('change', (event) => {
             uiState.characterSort = event.target.value;
             renderCharacters();
@@ -905,6 +1300,128 @@
             uiState.campaignSort = event.target.value;
             renderCampaigns();
         });
+
+        const mapUploadInput = document.getElementById('map-upload');
+        if (mapUploadInput) {
+            mapUploadInput.addEventListener('change', handleMapUpload);
+        }
+
+        const mapMarkerForm = document.getElementById('map-marker-form');
+        if (mapMarkerForm) {
+            mapMarkerForm.addEventListener('submit', submitMapMarker);
+        }
+
+        const mapNotesInput = document.getElementById('map-notes');
+        if (mapNotesInput) {
+            mapNotesInput.addEventListener('input', (event) => {
+                state.map.notes = event.target.value;
+                saveState();
+            });
+        }
+
+        const mapGridToggle = document.getElementById('map-grid-toggle');
+        if (mapGridToggle) {
+            mapGridToggle.addEventListener('change', (event) => {
+                state.map.showGrid = !!event.target.checked;
+                saveState();
+                renderMap();
+            });
+        }
+
+        const mapGridSizeInput = document.getElementById('map-grid-size');
+        if (mapGridSizeInput) {
+            mapGridSizeInput.addEventListener('input', (event) => {
+                state.map.gridSize = parseInt(event.target.value, 10) || defaultState.map.gridSize;
+                saveState();
+                renderMap();
+            });
+        }
+
+        const mapZoomInput = document.getElementById('map-zoom');
+        if (mapZoomInput) {
+            mapZoomInput.addEventListener('input', (event) => {
+                state.map.zoom = parseInt(event.target.value, 10) || defaultState.map.zoom;
+                saveState();
+                renderMap();
+            });
+        }
+
+        ['map-marker-x', 'map-marker-y'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', updateManualMarkerCoordinates);
+            }
+        });
+
+        const mapInner = document.getElementById('map-inner');
+        if (mapInner) {
+            mapInner.addEventListener('click', handleMapClick);
+        }
+
+        const dmEncounterForm = document.getElementById('dm-encounter-form');
+        if (dmEncounterForm) {
+            dmEncounterForm.addEventListener('submit', handleDMEncounterForm);
+        }
+
+        const dmNoteForm = document.getElementById('dm-note-form');
+        if (dmNoteForm) {
+            dmNoteForm.addEventListener('submit', handleDMNoteForm);
+        }
+
+        const stopwatchStart = document.getElementById('dm-stopwatch-start');
+        if (stopwatchStart) {
+            stopwatchStart.addEventListener('click', (event) => {
+                event.preventDefault();
+                startStopwatch();
+            });
+        }
+
+        const stopwatchPause = document.getElementById('dm-stopwatch-pause');
+        if (stopwatchPause) {
+            stopwatchPause.addEventListener('click', (event) => {
+                event.preventDefault();
+                pauseStopwatch();
+            });
+        }
+
+        const stopwatchReset = document.getElementById('dm-stopwatch-reset');
+        if (stopwatchReset) {
+            stopwatchReset.addEventListener('click', (event) => {
+                event.preventDefault();
+                resetStopwatch();
+            });
+        }
+
+        [
+            ['dm-random-weather', 'weather'],
+            ['dm-random-complication', 'complication'],
+            ['dm-random-treasure', 'treasure'],
+            ['dm-random-npc', 'npc']
+        ].forEach(([id, type]) => {
+            const button = document.getElementById(id);
+            if (button) {
+                button.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    triggerDMGenerator(type);
+                });
+            }
+        });
+
+        const tableSearchInput = document.getElementById('table-search');
+        if (tableSearchInput) {
+            tableSearchInput.addEventListener('input', (event) => {
+                uiState.tableSearch = event.target.value.toLowerCase();
+                renderReferenceTables();
+            });
+        }
+
+        const tableRandomButton = document.getElementById('table-random-btn');
+        if (tableRandomButton) {
+            tableRandomButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                rollReferenceInspiration();
+            });
+        }
 
         function rollDiceNTimes(count, sides) {
             const results = [];
@@ -961,7 +1478,19 @@
             const total = all.length;
             const filteredCount = filtered.length;
             const highestLevel = all.reduce((max, char) => Math.max(max, char.level || 0), 0);
-            const readyCount = all.filter(char => (char.hpCurrent || 0) > 0).length;
+            const readyCount = all.filter(char => {
+                const hpCurrent = Number.isFinite(char.hpCurrent) ? char.hpCurrent : parseInt(char.hpCurrent, 10) || 0;
+                const hpMax = Number.isFinite(char.hpMax) ? Math.max(char.hpMax, 1) : Math.max(parseInt(char.hpMax, 10) || 1, 1);
+                const hpPercent = (hpCurrent / hpMax) * 100;
+                return hpCurrent > 0 && hpPercent >= 50;
+            }).length;
+            const injuredCount = all.filter(char => {
+                const hpCurrent = Number.isFinite(char.hpCurrent) ? char.hpCurrent : parseInt(char.hpCurrent, 10) || 0;
+                const hpMax = Number.isFinite(char.hpMax) ? Math.max(char.hpMax, 1) : Math.max(parseInt(char.hpMax, 10) || 1, 1);
+                const hpPercent = (hpCurrent / hpMax) * 100;
+                return hpCurrent > 0 && hpPercent < 50;
+            }).length;
+            const downedCount = all.filter(char => (Number.isFinite(char.hpCurrent) ? char.hpCurrent : parseInt(char.hpCurrent, 10) || 0) <= 0).length;
             const averageLuck = (all.reduce((sum, char) => sum + getModifier(char.luc || 10), 0) / total).toFixed(1);
 
             const classFrequency = all.reduce((acc, char) => {
@@ -989,9 +1518,9 @@
                     <div class="text-xs text-gray-500 dark:text-gray-400">Based on ${total} heroes</div>
                 </div>
                 <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
-                    <div class="text-xs uppercase text-gray-500">Battle Ready</div>
-                    <div class="text-2xl font-bold">${readyCount}</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">Have HP above zero</div>
+                    <div class="text-xs uppercase text-gray-500">Battle Status</div>
+                    <div class="text-2xl font-bold">${readyCount} ready</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">${injuredCount} injured • ${downedCount} down</div>
                 </div>
             `;
         }
@@ -1007,7 +1536,24 @@
                         (char.notes || '').toLowerCase().includes(uiState.characterSearch)
                     );
                     const matchesClass = uiState.characterClass === 'all' || char.class.toLowerCase() === uiState.characterClass.toLowerCase();
-                    return matchesSearch && matchesClass;
+                    const hpCurrent = Number.isFinite(char.hpCurrent) ? char.hpCurrent : parseInt(char.hpCurrent, 10) || 0;
+                    const hpMax = Number.isFinite(char.hpMax) ? Math.max(char.hpMax, 1) : Math.max(parseInt(char.hpMax, 10) || 1, 1);
+                    const hpPercent = (hpCurrent / hpMax) * 100;
+                    let matchesStatus = true;
+                    switch (uiState.characterStatus) {
+                        case 'ready':
+                            matchesStatus = hpCurrent > 0 && hpPercent >= 50;
+                            break;
+                        case 'injured':
+                            matchesStatus = hpCurrent > 0 && hpPercent < 50;
+                            break;
+                        case 'down':
+                            matchesStatus = hpCurrent <= 0;
+                            break;
+                        default:
+                            matchesStatus = true;
+                    }
+                    return matchesSearch && matchesClass && matchesStatus;
                 })
                 .sort((a, b) => {
                     switch (uiState.characterSort) {
@@ -1404,6 +1950,10 @@
                 return acc;
             }, {});
             const popularFormula = Object.keys(formulaFrequency).sort((a, b) => formulaFrequency[b] - formulaFrequency[a])[0];
+            const rolls = state.diceHistory.flatMap(entry => Array.isArray(entry.rolls) ? entry.rolls : []);
+            const nat20s = rolls.filter(value => value === 20).length;
+            const nat1s = rolls.filter(value => value === 1).length;
+            const swing = nat20s - nat1s;
 
             container.innerHTML = `
                 <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
@@ -1420,6 +1970,11 @@
                     <div class="text-xs uppercase text-gray-500">High Water Mark</div>
                     <div class="text-2xl font-bold">${highest}</div>
                     <div class="text-xs text-gray-500 dark:text-gray-400">Most used: ${popularFormula} (${formulaFrequency[popularFormula]}×)</div>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Critical Moments</div>
+                    <div class="text-2xl font-bold">${nat20s} / ${nat1s}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Nat 20s vs 1s (swing: ${swing >= 0 ? '+' : ''}${swing})</div>
                 </div>
             `;
         }
@@ -1646,6 +2201,585 @@
             renderCombat();
         }
 
+        // Map room helpers
+        function getMarkerColorStyles(colorKey) {
+            return mapMarkerColors[colorKey] || mapMarkerColors.primary;
+        }
+
+        function handleMapUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (loadEvent) => {
+                const dataUrl = loadEvent.target.result;
+                const img = new Image();
+                img.onload = () => {
+                    state.map = {
+                        ...state.map,
+                        image: dataUrl,
+                        imageName: file.name,
+                        dimensions: { width: img.width, height: img.height }
+                    };
+                    pendingMapCoords = null;
+                    activeMapMarkerId = null;
+                    saveState();
+                    renderMap();
+                };
+                img.src = dataUrl;
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function renderMap() {
+            const mapData = state.map || clone(defaultState.map);
+            const placeholder = document.getElementById('map-placeholder');
+            const inner = document.getElementById('map-inner');
+            const image = document.getElementById('map-image');
+            const grid = document.getElementById('map-grid');
+            const markerLayer = document.getElementById('map-marker-layer');
+            const markerList = document.getElementById('map-marker-list');
+            const markerCount = document.getElementById('map-marker-count');
+            const notesInput = document.getElementById('map-notes');
+            const gridSizeDisplay = document.getElementById('map-grid-size-display');
+            const zoomDisplay = document.getElementById('map-zoom-display');
+            const gridToggle = document.getElementById('map-grid-toggle');
+            const gridSizeInput = document.getElementById('map-grid-size');
+            const zoomInput = document.getElementById('map-zoom');
+            const uploadName = document.getElementById('map-uploaded-name');
+
+            if (notesInput) notesInput.value = mapData.notes || '';
+            if (gridToggle) gridToggle.checked = !!mapData.showGrid;
+            if (gridSizeInput) gridSizeInput.value = mapData.gridSize;
+            if (zoomInput) zoomInput.value = mapData.zoom;
+            if (gridSizeDisplay) gridSizeDisplay.textContent = `${mapData.gridSize} px`;
+            if (zoomDisplay) zoomDisplay.textContent = `${mapData.zoom}%`;
+            if (uploadName) uploadName.textContent = mapData.imageName ? `Loaded: ${mapData.imageName}` : 'No map loaded.';
+
+            if (!mapData.image) {
+                if (placeholder) placeholder.style.display = 'flex';
+                if (inner) inner.style.display = 'none';
+                mapDisplaySize = { width: 0, height: 0 };
+                if (markerLayer) markerLayer.innerHTML = '';
+            } else {
+                let dimensions = mapData.dimensions;
+                if (image && mapData.image) {
+                    const imageSrcChanged = image.src !== mapData.image;
+                    if (imageSrcChanged) {
+                        image.onload = () => {
+                            if (image.naturalWidth && image.naturalHeight) {
+                                const current = state.map.dimensions || {};
+                                if (current.width !== image.naturalWidth || current.height !== image.naturalHeight) {
+                                    state.map.dimensions = { width: image.naturalWidth, height: image.naturalHeight };
+                                    saveState();
+                                    renderMap();
+                                }
+                            }
+                        };
+                    }
+                    image.src = mapData.image;
+                }
+                if (!dimensions || !dimensions.width || !dimensions.height) {
+                    if (image && image.naturalWidth && image.naturalHeight) {
+                        dimensions = { width: image.naturalWidth, height: image.naturalHeight };
+                    } else {
+                        dimensions = { width: 1024, height: 768 };
+                    }
+                }
+                const scale = Math.max(0.1, (mapData.zoom || 100) / 100);
+                const displayWidth = Math.max(200, dimensions.width * scale);
+                const displayHeight = Math.max(200, dimensions.height * scale);
+                if (placeholder) placeholder.style.display = 'none';
+                if (inner) {
+                    inner.style.display = 'block';
+                    inner.style.width = `${displayWidth}px`;
+                    inner.style.height = `${displayHeight}px`;
+                    const measuredWidth = inner.scrollWidth || inner.offsetWidth;
+                    const measuredHeight = inner.scrollHeight || inner.offsetHeight;
+                    mapDisplaySize = {
+                        width: measuredWidth || displayWidth,
+                        height: measuredHeight || displayHeight
+                    };
+                } else {
+                    mapDisplaySize = { width: displayWidth, height: displayHeight };
+                }
+                if (image) {
+                    image.style.width = `${displayWidth}px`;
+                    image.style.height = `${displayHeight}px`;
+                }
+                if (grid) {
+                    grid.classList.toggle('hidden', !mapData.showGrid);
+                    grid.style.opacity = mapData.showGrid ? '0.5' : '0';
+                    grid.style.backgroundSize = `${mapData.gridSize * scale}px ${mapData.gridSize * scale}px`;
+                }
+                if (markerLayer) {
+                    markerLayer.innerHTML = (mapData.markers || []).map(marker => {
+                        const color = getMarkerColorStyles(marker.color);
+                        const isActive = marker.id === activeMapMarkerId;
+                        const markerX = Number(marker.x) || 0;
+                        const markerY = Number(marker.y) || 0;
+                        return `
+                            <div class="absolute map-marker ${isActive ? 'map-marker-active' : ''}" data-map-marker="${marker.id}" style="left: ${markerX}%; top: ${markerY}%">
+                                <span class="map-marker-label" style="background:${color.background};color:${color.text};">${escapeHtml(marker.label)}</span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+
+            if (markerList) {
+                const markers = mapData.markers || [];
+                if (!markers.length) {
+                    markerList.innerHTML = '<p class="text-xs text-gray-500">No markers yet.</p>';
+                } else {
+                    markerList.innerHTML = markers.map(marker => {
+                        const isActive = marker.id === activeMapMarkerId;
+                        const markerX = Number(marker.x) || 0;
+                        const markerY = Number(marker.y) || 0;
+                        const coords = `${markerX.toFixed(1)}%, ${markerY.toFixed(1)}%`;
+                        return `
+                            <div class="border border-gray-200 dark:border-gray-700 rounded p-3 ${isActive ? 'ring-1 ring-primary/50' : ''}">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="space-y-1">
+                                        <p class="font-semibold">${escapeHtml(marker.label)}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">${coords}</p>
+                                        ${marker.note ? `<p class="text-xs text-gray-600 dark:text-gray-400">${escapeHtml(marker.note)}</p>` : ''}
+                                    </div>
+                                    <div class="flex flex-col gap-1 text-xs items-end">
+                                        <button onclick="focusMapMarker('${marker.id}')" class="px-2 py-1 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Focus</button>
+                                        <button onclick="deleteMapMarker('${marker.id}')" class="px-2 py-1 text-red-500 hover:text-red-600">Delete</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+
+            if (markerCount) {
+                markerCount.textContent = `${mapData.markers?.length || 0}`;
+            }
+
+            updateMapCoordinateDisplay();
+        }
+
+        function updateMapCoordinateDisplay() {
+            const display = document.getElementById('map-coordinates-display');
+            const hint = document.getElementById('map-coordinate-hint');
+            const activeMarker = state.map.markers?.find(marker => marker.id === activeMapMarkerId);
+            if (hint) {
+                hint.textContent = activeMarker ? `Focused marker: ${activeMarker.label} (${activeMarker.x.toFixed(1)}%, ${activeMarker.y.toFixed(1)}%)` : 'No marker selected.';
+            }
+            if (!display) return;
+            if (pendingMapCoords && Number.isFinite(pendingMapCoords.x) && Number.isFinite(pendingMapCoords.y)) {
+                display.textContent = `Next marker: ${pendingMapCoords.x.toFixed(1)}%, ${pendingMapCoords.y.toFixed(1)}%`;
+            } else {
+                display.textContent = 'Click the map to seed coordinates.';
+            }
+        }
+
+        function updateManualMarkerCoordinates() {
+            const xInput = document.getElementById('map-marker-x');
+            const yInput = document.getElementById('map-marker-y');
+            if (!xInput || !yInput) return;
+            const x = parseFloat(xInput.value);
+            const y = parseFloat(yInput.value);
+            if (Number.isFinite(x) && Number.isFinite(y)) {
+                pendingMapCoords = { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) };
+            } else {
+                pendingMapCoords = null;
+            }
+            updateMapCoordinateDisplay();
+        }
+
+        function handleMapClick(event) {
+            if (!state.map.image) return;
+            const inner = document.getElementById('map-inner');
+            if (!inner) return;
+            const rect = inner.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+            const x = ((event.clientX - rect.left) / rect.width) * 100;
+            const y = ((event.clientY - rect.top) / rect.height) * 100;
+            pendingMapCoords = {
+                x: Math.max(0, Math.min(100, x)),
+                y: Math.max(0, Math.min(100, y))
+            };
+            const xInput = document.getElementById('map-marker-x');
+            const yInput = document.getElementById('map-marker-y');
+            if (xInput) xInput.value = pendingMapCoords.x.toFixed(1);
+            if (yInput) yInput.value = pendingMapCoords.y.toFixed(1);
+            updateMapCoordinateDisplay();
+        }
+
+        function submitMapMarker(event) {
+            event.preventDefault();
+            if (!state.map.image) {
+                alert('Upload a map image before dropping markers.');
+                return false;
+            }
+            const labelInput = document.getElementById('map-marker-label');
+            const noteInput = document.getElementById('map-marker-note');
+            const xInput = document.getElementById('map-marker-x');
+            const yInput = document.getElementById('map-marker-y');
+            const colorInput = document.getElementById('map-marker-color');
+            const label = labelInput?.value.trim();
+            const note = noteInput?.value.trim();
+            const x = parseFloat(xInput?.value);
+            const y = parseFloat(yInput?.value);
+            if (!label) {
+                alert('Marker needs a label.');
+                return false;
+            }
+            if (!Number.isFinite(x) || !Number.isFinite(y)) {
+                alert('Set coordinates for the marker.');
+                return false;
+            }
+            const marker = {
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                label,
+                note,
+                x: Math.max(0, Math.min(100, Number(x.toFixed(1)))),
+                y: Math.max(0, Math.min(100, Number(y.toFixed(1)))),
+                color: colorInput?.value || 'primary'
+            };
+            state.map.markers.push(marker);
+            activeMapMarkerId = marker.id;
+            pendingMapCoords = null;
+            if (labelInput) labelInput.value = '';
+            if (noteInput) noteInput.value = '';
+            if (xInput) xInput.value = '';
+            if (yInput) yInput.value = '';
+            saveState();
+            renderMap();
+            return false;
+        }
+
+        function deleteMapMarker(id) {
+            state.map.markers = state.map.markers.filter(marker => marker.id !== id);
+            if (activeMapMarkerId === id) {
+                activeMapMarkerId = null;
+            }
+            saveState();
+            renderMap();
+        }
+
+        function focusMapMarker(id) {
+            const marker = state.map.markers.find(m => m.id === id);
+            if (!marker) return;
+            activeMapMarkerId = id;
+            renderMap();
+            const scroll = document.getElementById('map-scroll');
+            const inner = document.getElementById('map-inner');
+            if (!scroll || !inner) return;
+            const width = inner.scrollWidth || inner.offsetWidth || mapDisplaySize.width;
+            const height = inner.scrollHeight || inner.offsetHeight || mapDisplaySize.height;
+            if (!width || !height) return;
+            const markerX = Number(marker.x) || 0;
+            const markerY = Number(marker.y) || 0;
+            const targetLeft = Math.max(0, (markerX / 100) * width - scroll.clientWidth / 2);
+            const targetTop = Math.max(0, (markerY / 100) * height - scroll.clientHeight / 2);
+            scroll.scrollTo({ left: targetLeft, top: targetTop, behavior: 'smooth' });
+            const markerElement = document.querySelector(`[data-map-marker="${id}"]`);
+            if (markerElement) {
+                markerElement.classList.add('map-marker-active');
+            }
+        }
+
+        function clearMap() {
+            if (!state.map.image && !state.map.markers.length && !state.map.notes) return;
+            if (!confirm('Remove the current map image, markers, and notes?')) return;
+            state.map = clone(defaultState.map);
+            activeMapMarkerId = null;
+            pendingMapCoords = null;
+            mapDisplaySize = { width: 0, height: 0 };
+            saveState();
+            renderMap();
+        }
+
+        // DM tools helpers
+        function renderDMTools() {
+            renderDMEncounters();
+            renderDMNotes();
+            renderDMTrackers();
+            renderDMRandomHistory();
+            updateStopwatchDisplay();
+            ensureStopwatchInterval();
+        }
+
+        function handleDMEncounterForm(event) {
+            event.preventDefault();
+            const form = event.target;
+            const name = form['encounter-name'].value.trim();
+            if (!name) return false;
+            const quantity = parseInt(form['encounter-quantity'].value, 10) || 1;
+            const threat = form['encounter-threat'].value || 'Moderate';
+            const environment = form['encounter-environment'].value.trim();
+            const notes = form['encounter-notes'].value.trim();
+            state.dm.encounters.unshift({
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                name,
+                quantity,
+                threat,
+                environment,
+                notes,
+                resolved: false,
+                createdAt: new Date().toISOString()
+            });
+            saveState();
+            renderDMTools();
+            form.reset();
+            form['encounter-quantity'].value = 1;
+            return false;
+        }
+
+        function toggleEncounterStatus(id) {
+            const encounter = state.dm.encounters.find(enc => enc.id === id);
+            if (!encounter) return;
+            encounter.resolved = !encounter.resolved;
+            saveState();
+            renderDMEncounters();
+        }
+
+        function deleteEncounter(id) {
+            state.dm.encounters = state.dm.encounters.filter(enc => enc.id !== id);
+            saveState();
+            renderDMEncounters();
+        }
+
+        function renderDMEncounters() {
+            const list = document.getElementById('dm-encounter-list');
+            const count = document.getElementById('dm-encounter-count');
+            if (!list) return;
+            const encounters = state.dm.encounters || [];
+            if (count) count.textContent = `${encounters.length} prepped`;
+            if (!encounters.length) {
+                list.innerHTML = '<p class="text-xs text-gray-500">No encounters prepped yet.</p>';
+                return;
+            }
+            list.innerHTML = encounters.map(encounter => {
+                const statusLabel = encounter.resolved ? 'Spent' : 'Ready';
+                return `
+                    <div class="border border-gray-200 dark:border-gray-700 rounded p-3 ${encounter.resolved ? 'opacity-70' : ''}">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="space-y-1">
+                                <p class="font-semibold">${escapeHtml(encounter.name)}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">${encounter.quantity} creatures • ${escapeHtml(encounter.threat)}${encounter.environment ? ' • ' + escapeHtml(encounter.environment) : ''}</p>
+                                ${encounter.notes ? `<p class="text-xs text-gray-600 dark:text-gray-400">${escapeHtml(encounter.notes)}</p>` : ''}
+                            </div>
+                            <div class="flex flex-col gap-1 text-xs items-end">
+                                <button onclick="toggleEncounterStatus('${encounter.id}')" class="px-2 py-1 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">${statusLabel}</button>
+                                <button onclick="deleteEncounter('${encounter.id}')" class="px-2 py-1 text-red-500 hover:text-red-600">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function handleDMNoteForm(event) {
+            event.preventDefault();
+            const input = document.getElementById('dm-note-input');
+            if (!input) return false;
+            const text = input.value.trim();
+            if (!text) return false;
+            const spotlight = document.getElementById('dm-note-spotlight')?.checked || false;
+            state.dm.sessionNotes.unshift({
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                text,
+                spotlight,
+                timestamp: new Date().toISOString()
+            });
+            saveState();
+            renderDMTools();
+            input.value = '';
+            const spotlightBox = document.getElementById('dm-note-spotlight');
+            if (spotlightBox) spotlightBox.checked = false;
+            return false;
+        }
+
+        function deleteDMNote(id) {
+            state.dm.sessionNotes = state.dm.sessionNotes.filter(note => note.id !== id);
+            saveState();
+            renderDMNotes();
+        }
+
+        function renderDMNotes() {
+            const list = document.getElementById('dm-note-list');
+            const count = document.getElementById('dm-note-count');
+            if (!list) return;
+            const notes = state.dm.sessionNotes || [];
+            if (count) count.textContent = `${notes.length} captured`;
+            if (!notes.length) {
+                list.innerHTML = '<p class="text-xs text-gray-500">No notes logged yet.</p>';
+                return;
+            }
+            list.innerHTML = notes.map(note => {
+                const timestamp = escapeHtml(formatTimestamp(note.timestamp));
+                const previewRaw = (note.text || '').replace(/\s+/g, ' ').trim();
+                const previewFallback = previewRaw || 'No details provided.';
+                const preview = escapeHtml(previewFallback.length > 160 ? `${previewFallback.slice(0, 157)}…` : previewFallback);
+                const markdown = marked.parse(note.text || '');
+                return `
+                    <div class="dm-log-entry bg-white/60 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 rounded p-3 space-y-2">
+                        <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                            <span>${timestamp}</span>
+                            <div class="flex items-center gap-2">
+                                ${note.spotlight ? '<span class="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[0.65rem] uppercase">Spotlight</span>' : ''}
+                                <button onclick="deleteDMNote('${note.id}')" class="text-red-500 hover:text-red-600">Delete</button>
+                            </div>
+                        </div>
+                        <details class="group dm-note-details space-y-2">
+                            <summary class="dm-note-summary cursor-pointer text-sm text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                                <span class="dm-note-preview flex-1">${preview}</span>
+                                <span class="text-xs text-primary flex-shrink-0 group-open:hidden">Expand</span>
+                                <span class="text-xs text-primary flex-shrink-0 hidden group-open:inline">Collapse</span>
+                            </summary>
+                            <div class="prose prose-sm max-w-none dark:prose-invert">${markdown}</div>
+                        </details>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderDMTrackers() {
+            const container = document.getElementById('dm-trackers');
+            if (!container) return;
+            const trackers = state.dm.trackers || {};
+            container.innerHTML = Object.entries(dmTrackerLabels).map(([key, label]) => {
+                const value = trackers[key] || 0;
+                return `
+                    <div class="border border-gray-200 dark:border-gray-700 rounded p-3 space-y-2">
+                        <div class="text-xs uppercase text-gray-500">${label}</div>
+                        <div class="text-2xl font-bold">${value}</div>
+                        <div class="flex gap-2">
+                            <button onclick="adjustDMTracker('${key}', -1)" class="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm">-</button>
+                            <button onclick="adjustDMTracker('${key}', 1)" class="flex-1 px-2 py-1 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm">+</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function adjustDMTracker(key, delta) {
+            if (!state.dm.trackers) {
+                state.dm.trackers = clone(defaultState.dm.trackers);
+            }
+            const current = state.dm.trackers[key] || 0;
+            state.dm.trackers[key] = Math.max(0, current + delta);
+            saveState();
+            renderDMTrackers();
+        }
+
+        function renderDMRandomHistory() {
+            const container = document.getElementById('dm-random-history');
+            if (!container) return;
+            const history = state.dm.randomHistory || [];
+            if (!history.length) {
+                container.innerHTML = '<p class="text-xs text-gray-500">Roll the inspiration engine to populate this log.</p>';
+                return;
+            }
+            const labels = { weather: 'Weather', complication: 'Complication', treasure: 'Treasure Hook', npc: 'NPC Quirk' };
+            container.innerHTML = history.map(entry => `
+                <div class="dm-log-entry bg-white/60 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 rounded p-3 space-y-1">
+                    <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                        <span>${escapeHtml(labels[entry.type] || 'Prompt')}</span>
+                        <span>${escapeHtml(entry.timestamp || '')}</span>
+                    </div>
+                    <div class="text-sm text-gray-700 dark:text-gray-200">${escapeHtml(entry.result)}</div>
+                </div>
+            `).join('');
+        }
+
+        function triggerDMGenerator(type) {
+            const options = inspirationTables[type];
+            if (!options || !options.length) return;
+            const result = options[Math.floor(Math.random() * options.length)];
+            state.dm.randomHistory.unshift({
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                type,
+                result,
+                timestamp: new Date().toLocaleTimeString()
+            });
+            if (state.dm.randomHistory.length > 12) {
+                state.dm.randomHistory.pop();
+            }
+            saveState();
+            renderDMRandomHistory();
+        }
+
+        function resetDMTools() {
+            if (!confirm('Reset DM tools? This clears encounters, notes, trackers, and the session clock.')) return;
+            state.dm = clone(defaultState.dm);
+            saveState();
+            renderDMTools();
+        }
+
+        function formatDuration(milliseconds) {
+            const totalSeconds = Math.max(0, Math.floor((milliseconds || 0) / 1000));
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            return [hours, minutes, seconds].map(value => String(value).padStart(2, '0')).join(':');
+        }
+
+        function updateStopwatchDisplay() {
+            const display = document.getElementById('dm-stopwatch-display');
+            const status = document.getElementById('dm-stopwatch-status');
+            if (!display || !status) return;
+            const stopwatch = state.dm.stopwatch || clone(defaultState.dm.stopwatch);
+            let elapsed = stopwatch.elapsed || 0;
+            if (stopwatch.running && stopwatch.startedAt) {
+                const diff = Date.now() - stopwatch.startedAt;
+                if (!Number.isNaN(diff) && diff >= 0) {
+                    elapsed = diff;
+                }
+            }
+            display.textContent = formatDuration(elapsed);
+            status.textContent = stopwatch.running ? 'Running' : elapsed > 0 ? 'Paused' : 'Idle';
+        }
+
+        function ensureStopwatchInterval() {
+            if (stopwatchInterval) {
+                clearInterval(stopwatchInterval);
+                stopwatchInterval = null;
+            }
+            if (state.dm.stopwatch?.running) {
+                stopwatchInterval = setInterval(updateStopwatchDisplay, 1000);
+            }
+        }
+
+        function startStopwatch() {
+            const stopwatch = state.dm.stopwatch;
+            const now = Date.now();
+            const elapsed = stopwatch.running && stopwatch.startedAt ? now - stopwatch.startedAt : stopwatch.elapsed || 0;
+            stopwatch.running = true;
+            stopwatch.startedAt = now - (stopwatch.elapsed || 0);
+            stopwatch.elapsed = elapsed || 0;
+            saveState();
+            ensureStopwatchInterval();
+            updateStopwatchDisplay();
+        }
+
+        function pauseStopwatch() {
+            const stopwatch = state.dm.stopwatch;
+            if (!stopwatch.running) return;
+            const now = Date.now();
+            const startedAt = stopwatch.startedAt || now;
+            stopwatch.elapsed = Math.max(0, now - startedAt);
+            stopwatch.running = false;
+            stopwatch.startedAt = null;
+            saveState();
+            ensureStopwatchInterval();
+            updateStopwatchDisplay();
+        }
+
+        function resetStopwatch() {
+            state.dm.stopwatch = clone(defaultState.dm.stopwatch);
+            saveState();
+            ensureStopwatchInterval();
+            updateStopwatchDisplay();
+        }
+
         // Campaign management
         function showCampaignForm(id = null) {
             const form = document.getElementById('campaign-form');
@@ -1712,6 +2846,42 @@
                 showCampaignDetail(id);
             }
         });
+
+        function renderCampaignTimeline(campaigns) {
+            const container = document.getElementById('campaign-timeline');
+            if (!container) return;
+            const entries = [];
+            (campaigns || []).forEach(campaign => {
+                (campaign.sessions || []).forEach(session => {
+                    entries.push({
+                        id: session.id,
+                        campaign: campaign.name,
+                        date: session.date,
+                        log: session.log || ''
+                    });
+                });
+            });
+            if (!entries.length) {
+                container.innerHTML = '<p class="text-xs text-gray-500 dark:text-gray-400">Log sessions to populate the shared timeline.</p>';
+                return;
+            }
+            entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const recent = entries.slice(0, 4);
+            container.innerHTML = recent.map(entry => {
+                const timestamp = formatTimestamp(entry.date);
+                const previewRaw = (entry.log || '').replace(/\n+/g, ' ').trim();
+                const preview = escapeHtml(previewRaw.length > 160 ? `${previewRaw.slice(0, 157)}…` : previewRaw);
+                return `
+                    <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4 space-y-2 text-sm">
+                        <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                            <span>${timestamp}</span>
+                            <span class="font-semibold text-primary">${escapeHtml(entry.campaign || 'Campaign')}</span>
+                        </div>
+                        <div>${preview || '—'}</div>
+                    </div>
+                `;
+            }).join('');
+        }
 
         function renderCampaignSummary(filtered, all) {
             const container = document.getElementById('campaign-summary');
@@ -1825,6 +2995,7 @@
                 });
 
             renderCampaignSummary(filtered, allCampaigns);
+            renderCampaignTimeline(filtered);
 
             if (!filtered.length) {
                 container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-12">No campaigns match your filters. Adjust search terms to continue.</p>';
@@ -1984,6 +3155,64 @@
             showCampaignDetail(campaignId);
         }
 
+        function setupReferenceTables() {
+            referenceTableEntries = Array.from(document.querySelectorAll('[data-table-entry]')).map(entry => ({
+                element: entry,
+                card: entry.closest('[data-table-card]'),
+                text: entry.textContent.toLowerCase()
+            }));
+            renderReferenceTables();
+        }
+
+        function renderReferenceTables() {
+            const query = (uiState.tableSearch || '').trim().toLowerCase();
+            const cards = Array.from(document.querySelectorAll('[data-table-card]'));
+            const emptyState = document.getElementById('table-search-empty');
+            let visibleCards = 0;
+            cards.forEach(card => {
+                const entries = Array.from(card.querySelectorAll('[data-table-entry]'));
+                let matches = 0;
+                entries.forEach(entry => {
+                    const match = !query || entry.textContent.toLowerCase().includes(query);
+                    entry.classList.toggle('hidden', !!query && !match);
+                    if (match) matches += 1;
+                });
+                const showCard = !query || matches > 0;
+                card.classList.toggle('hidden', !showCard);
+                if (showCard) {
+                    visibleCards += 1;
+                    if (query) {
+                        card.classList.add('ring-1', 'ring-primary/30');
+                    } else {
+                        card.classList.remove('ring-1', 'ring-primary/30');
+                    }
+                } else {
+                    card.classList.remove('ring-1', 'ring-primary/30');
+                }
+            });
+            if (emptyState) {
+                emptyState.classList.toggle('hidden', visibleCards > 0 || !query);
+            }
+        }
+
+        function rollReferenceInspiration() {
+            if (!referenceTableEntries.length) return;
+            const query = (uiState.tableSearch || '').trim().toLowerCase();
+            const pool = referenceTableEntries.filter(entry => {
+                if (!entry.card) return false;
+                if (entry.card.classList.contains('hidden') && !query) return false;
+                if (!query) return true;
+                return entry.text.includes(query);
+            });
+            const candidates = pool.length ? pool : referenceTableEntries;
+            const choice = candidates[Math.floor(Math.random() * candidates.length)];
+            const panel = document.getElementById('table-random-panel');
+            if (!panel || !choice) return;
+            const tableName = choice.card?.dataset.tableName || 'Reference';
+            panel.classList.remove('hidden');
+            panel.innerHTML = `<span class="font-semibold">${tableName}:</span> ${choice.element.textContent.trim()}`;
+        }
+
         function exportState() {
             const data = JSON.stringify(state, null, 2);
             const blob = new Blob([data], { type: 'application/json' });
@@ -1998,12 +3227,18 @@
         function resetState() {
             if (!confirm('Reset all stored data? This will remove characters, combatants, and campaigns.')) return;
             state = clone(defaultState);
+            activeMapMarkerId = null;
+            pendingMapCoords = null;
+            mapDisplaySize = { width: 0, height: 0 };
             saveState();
             renderCharacters();
             renderCombat();
             renderCampaigns();
             renderSavedRolls();
             displayRollResults();
+            renderMap();
+            renderDMTools();
+            renderReferenceTables();
         }
 
         document.getElementById('state-import-input').addEventListener('change', async (event) => {
@@ -2023,14 +3258,41 @@
                         ...clone(defaultState.combat),
                         ...(imported.combat || {}),
                         combatants: Array.isArray(imported?.combat?.combatants) ? imported.combat.combatants : []
+                    },
+                    map: {
+                        ...clone(defaultState.map),
+                        ...(imported.map || {}),
+                        markers: Array.isArray(imported?.map?.markers) ? imported.map.markers : [],
+                        dimensions: imported?.map?.dimensions && typeof imported.map.dimensions.width === 'number' ? imported.map.dimensions : null
+                    },
+                    dm: {
+                        ...clone(defaultState.dm),
+                        ...(imported.dm || {}),
+                        encounters: Array.isArray(imported?.dm?.encounters) ? imported.dm.encounters : [],
+                        sessionNotes: Array.isArray(imported?.dm?.sessionNotes) ? imported.dm.sessionNotes : [],
+                        randomHistory: Array.isArray(imported?.dm?.randomHistory) ? imported.dm.randomHistory : [],
+                        trackers: {
+                            ...clone(defaultState.dm.trackers),
+                            ...(imported?.dm?.trackers || {})
+                        },
+                        stopwatch: {
+                            ...clone(defaultState.dm.stopwatch),
+                            ...(imported?.dm?.stopwatch || {})
+                        }
                     }
                 };
+                activeMapMarkerId = null;
+                pendingMapCoords = null;
+                mapDisplaySize = { width: 0, height: 0 };
                 saveState();
                 renderCharacters();
                 renderCombat();
                 renderCampaigns();
                 renderSavedRolls();
                 displayRollResults();
+                renderMap();
+                renderDMTools();
+                renderReferenceTables();
             } catch (error) {
                 alert('Failed to import data. Make sure the file is a valid export.');
             }
@@ -2038,6 +3300,7 @@
         });
 
         function init() {
+            setupReferenceTables();
             const initialTab = localStorage.getItem(tabKey) || 'characters';
             switchTab(initialTab);
             renderCharacters();
@@ -2045,6 +3308,9 @@
             renderCampaigns();
             renderSavedRolls();
             displayRollResults();
+            renderMap();
+            renderDMTools();
+            renderReferenceTables();
         }
 
         init();
