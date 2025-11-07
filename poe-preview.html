@@ -42,6 +42,36 @@
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(4px);
         }
+        .map-grid {
+            display: grid;
+            gap: 0.5rem;
+        }
+        .map-cell {
+            background: rgba(93, 92, 222, 0.08);
+            border: 1px solid rgba(93, 92, 222, 0.2);
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .map-cell:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(93, 92, 222, 0.2);
+        }
+        .map-cell .cell-label {
+            font-size: 0.7rem;
+            margin-top: 0.25rem;
+            opacity: 0.85;
+        }
+        .chat-bubble {
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+        }
     </style>
 <script src="https://puc.poecdn.net/authenticated_preview_page/syncedState.3f7572448765332f3047.js"></script></head>
 <body class="bg-white dark:bg-[#181818] text-gray-900 dark:text-gray-100 min-h-screen transition-colors">
@@ -69,6 +99,9 @@
                 </li>
                 <li class="mr-2">
                     <button onclick="switchTab('campaigns')" id="tab-campaigns" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Campaigns</button>
+                </li>
+                <li class="mr-2">
+                    <button onclick="switchTab('ai-tools')" id="tab-ai-tools" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">AI Tools</button>
                 </li>
             </ul>
         </nav>
@@ -252,6 +285,194 @@
                 <!-- Campaigns will be added here -->
             </div>
         </div>
+
+        <div id="content-ai-tools" class="tab-content hidden">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">AI Tools & Collaboration</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Combine creative prompts, procedural aids, and table chatter in one command center.</p>
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400 max-w-xl">
+                    <span class="font-semibold">Tip:</span> Loop in the whole group—curate prompts, draft characters, sketch encounters, and keep everyone informed.
+                </div>
+            </div>
+            <div class="space-y-8">
+                <section class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow-sm">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold">Prompt Library</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Collect, refine, and annotate AI prompts for quick reuse.</p>
+                        </div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">Click “Use Prompt” to drop text straight into the session chat.</div>
+                    </div>
+                    <form id="ai-prompt-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block mb-2 font-semibold">Prompt Title</label>
+                            <input type="text" id="ai-prompt-title" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                        </div>
+                        <div>
+                            <label class="block mb-2 font-semibold">Best For</label>
+                            <select id="ai-prompt-role" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                                <option value="DM">DM Guidance</option>
+                                <option value="Player">Player Inspiration</option>
+                                <option value="Worldbuilding">Worldbuilding</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block mb-2 font-semibold">Prompt Text</label>
+                            <textarea id="ai-prompt-text" rows="3" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base"></textarea>
+                        </div>
+                        <div class="md:col-span-2 flex justify-end">
+                            <button type="submit" class="px-6 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-base">Save Prompt</button>
+                        </div>
+                    </form>
+                    <div id="ai-prompt-list" class="space-y-4">
+                        <p class="text-gray-500 dark:text-gray-400 text-sm">Start by adding a custom prompt above or explore the built-in examples.</p>
+                    </div>
+                </section>
+
+                <section class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow-sm">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold">AI Character Assistant</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Draft a concept with a natural-language prompt, then import it into your roster.</p>
+                        </div>
+                        <button id="ai-character-generate" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-base">Generate Character</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block mb-2 font-semibold">Concept Prompt</label>
+                            <textarea id="ai-character-prompt" rows="4" placeholder="Example: Level 2 halfling thief who relies on luck and clever tricks." class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base"></textarea>
+                        </div>
+                        <div class="md:col-span-1 bg-white dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-4 text-sm text-gray-600 dark:text-gray-400">
+                            <h4 class="font-semibold mb-2 text-gray-700 dark:text-gray-200">Generation Tips</h4>
+                            <ul class="list-disc ml-4 space-y-1">
+                                <li>Keywords like “wizard” or “warrior” steer the class.</li>
+                                <li>Mention a level to set the starting power.</li>
+                                <li>Import to tweak stats alongside other characters.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div id="ai-character-output" class="mt-6 text-sm text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        Provide a prompt and click “Generate Character” to see a preview.
+                    </div>
+                </section>
+
+                <section class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow-sm">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold">DM Map & Encounter Planner</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Sketch rooms, log clues, and spin up AI-powered map hooks.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="map-generate" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-base">Generate Map Idea</button>
+                            <button id="map-reset" class="px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-700 transition text-base">Clear Grid</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="lg:col-span-1 space-y-4">
+                            <div>
+                                <label class="block mb-2 font-semibold">Grid Size</label>
+                                <div class="flex gap-3">
+                                    <div class="flex-1">
+                                        <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-1">Rows</span>
+                                        <input type="number" id="map-rows" min="3" max="12" value="6" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                                    </div>
+                                    <div class="flex-1">
+                                        <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-1">Columns</span>
+                                        <input type="number" id="map-cols" min="3" max="12" value="6" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold">Terrain Palette</label>
+                                <select id="map-terrain-select" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                                    <option value="Empty">Empty</option>
+                                    <option value="Room">Room</option>
+                                    <option value="Corridor">Corridor</option>
+                                    <option value="Hazard">Hazard</option>
+                                    <option value="Treasure">Treasure</option>
+                                    <option value="Guardian">Guardian</option>
+                                    <option value="Puzzle">Puzzle</option>
+                                    <option value="Lore">Lore</option>
+                                    <option value="Rest">Rest</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold">Quick Label</label>
+                                <input type="text" id="map-label-input" placeholder="Trapdoor, shrine, clue..." class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Click a cell to apply the terrain and optional label.</p>
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold">Latest Idea</label>
+                                <textarea id="map-idea-output" rows="6" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base" placeholder="Generated map ideas will appear here."></textarea>
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold">Idea History</label>
+                                <div id="map-idea-history" class="space-y-2 text-sm text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 max-h-48 overflow-y-auto">
+                                    <p class="text-xs text-gray-500 dark:text-gray-500">No generated ideas yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-3 space-y-4">
+                            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h4 class="font-semibold">Editable Grid</h4>
+                                    <button id="map-summary-btn" class="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition">Summarize Map</button>
+                                </div>
+                                <div id="map-grid" class="map-grid"></div>
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold">Map Summary</label>
+                                <textarea id="map-summary" rows="4" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base" placeholder="Summaries help players visualize key beats or highlight prep notes."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 shadow-sm">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold">Session Chat</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Keep players and the DM aligned with a shared, filterable log.</p>
+                        </div>
+                        <div class="flex gap-3 text-sm text-gray-600 dark:text-gray-400">
+                            <label class="flex items-center gap-1"><input type="checkbox" class="chat-filter" data-role="DM" checked> DM</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" class="chat-filter" data-role="Player" checked> Players</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" class="chat-filter" data-role="AI" checked> AI Notes</label>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block mb-2 font-semibold">Send As</label>
+                                <select id="chat-sender" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                                    <option value="DM">DM</option>
+                                    <option value="Player">Player</option>
+                                    <option value="AI">AI Note</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block mb-2 font-semibold">Quick Prompts</label>
+                                <select id="chat-quick-prompts" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                                    <option value="">Select a quick prompt...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block mb-2 font-semibold">Message</label>
+                            <textarea id="chat-message" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base" placeholder="Type a scene description, a player request, or AI reminder..."></textarea>
+                        </div>
+                        <div class="flex justify-end">
+                            <button id="chat-send" class="px-6 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-base">Send Message</button>
+                        </div>
+                        <div id="chat-log" class="space-y-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 max-h-96 overflow-y-auto">
+                            <p class="text-sm text-gray-500 dark:text-gray-500 text-center py-6">No messages yet. Craft a quick scene or share guidance above.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
     </div>
 
     <!-- Create Campaign Modal -->
@@ -428,6 +649,126 @@
         let combatants = [];
         let combatRound = 1;
         let rollHistory = [];
+        let aiPrompts = [
+            {
+                id: 1,
+                title: 'Scene Framing',
+                role: 'DM',
+                prompt: 'Describe the party entering a forgotten subterranean temple. Highlight sensory details, hidden dangers, and one mysterious object that hints at future lore.',
+                notes: ''
+            },
+            {
+                id: 2,
+                title: 'Quick NPC',
+                role: 'Worldbuilding',
+                prompt: 'Create a memorable NPC who can guide adventurers through a dangerous swamp. Include name, personality, useful knowledge, and a secret.',
+                notes: ''
+            },
+            {
+                id: 3,
+                title: 'Player Inspiration',
+                role: 'Player',
+                prompt: 'Offer three hooks a hesitant player character might pursue when confronted with a moral dilemma involving an ancient artifact.',
+                notes: ''
+            }
+        ];
+        let aiPromptCounter = aiPrompts.length + 1;
+        let aiCharacterDraft = null;
+        let mapState = {
+            rows: 6,
+            cols: 6,
+            cells: [],
+            ideaHistory: []
+        };
+        let chatMessages = [];
+        const chatFilters = { DM: true, Player: true, AI: true };
+        const quickChatPrompts = [
+            { id: 1, text: 'The torchlight flickers as a cold breeze rushes past—what do you do?', role: 'DM' },
+            { id: 2, text: 'Can someone recap what our goal is before we descend?', role: 'Player' },
+            { id: 3, text: 'AI idea: escalate tension with a distant scream echoing through the halls.', role: 'AI' },
+            { id: 4, text: 'The corridor ahead splits three ways. Left smells of ozone, right of damp earth, center of old parchment.', role: 'DM' }
+        ];
+
+        function escapeHtml(text) {
+            if (typeof text !== 'string') return '';
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function randomChoice(items) {
+            if (!Array.isArray(items) || items.length === 0) return '';
+            return items[Math.floor(Math.random() * items.length)];
+        }
+
+        function inferClassFromPrompt(promptText) {
+            if (!promptText) return 'Warrior';
+            const mappings = [
+                { regex: /(wizard|mage|sorcerer|warlock)/i, value: 'Wizard' },
+                { regex: /(cleric|priest|acolyte|saint)/i, value: 'Cleric' },
+                { regex: /(thief|rogue|assassin|cutpurse)/i, value: 'Thief' },
+                { regex: /(dwarf)/i, value: 'Dwarf' },
+                { regex: /(elf)/i, value: 'Elf' },
+                { regex: /(halfling)/i, value: 'Halfling' },
+                { regex: /(ranger|scout|hunter)/i, value: 'Warrior' },
+                { regex: /(warrior|fighter|soldier|barbarian|paladin)/i, value: 'Warrior' }
+            ];
+
+            for (const mapping of mappings) {
+                if (mapping.regex.test(promptText)) {
+                    return mapping.value;
+                }
+            }
+
+            return randomChoice(['Warrior', 'Wizard', 'Cleric', 'Thief']);
+        }
+
+        function parseLevelFromPrompt(promptText) {
+            if (!promptText) return 1;
+            const match = promptText.match(/level\s*([0-9]+)/i);
+            if (match && match[1]) {
+                return Math.min(10, Math.max(0, parseInt(match[1], 10)));
+            }
+            return Math.floor(Math.random() * 3) + 1;
+        }
+
+        function rollAbilityScore() {
+            return Array.from({ length: 3 }, () => Math.floor(Math.random() * 6) + 1).reduce((total, roll) => total + roll, 0);
+        }
+
+        function generateCharacterName(characterClass) {
+            const names = {
+                Warrior: ['Brom', 'Kara', 'Tharin', 'Mira', 'Garrick', 'Elira'],
+                Wizard: ['Selwyn', 'Lyra', 'Eldren', 'Nimue', 'Orin', 'Vesper'],
+                Cleric: ['Aela', 'Toren', 'Seraph', 'Idris', 'Mariel', 'Gavrin'],
+                Thief: ['Pip', 'Shade', 'Kestrel', 'Nyx', 'Rook', 'Silas'],
+                Dwarf: ['Borin', 'Hilda', 'Krag', 'Svela', 'Durik', 'Magda'],
+                Elf: ['Faelar', 'Sylrie', 'Theren', 'Aeris', 'Lethariel', 'Quelenna'],
+                Halfling: ['Penny', 'Tobin', 'Merrit', 'Bree', 'Fen', 'Lidda']
+            };
+            const pool = names[characterClass] || names.Warrior;
+            return randomChoice(pool);
+        }
+
+        function createEquipmentList(characterClass, promptText) {
+            const baseKits = {
+                Warrior: ['longsword', 'shield', 'chain armor'],
+                Wizard: ['staff', 'spellbook', 'mystic focus'],
+                Cleric: ['mace', 'holy symbol', 'blessed water'],
+                Thief: ['dagger set', 'lock picks', 'dark cloak'],
+                Dwarf: ['warhammer', 'sturdy armor', "miner's lantern"],
+                Elf: ['elven blade', 'rune-etched bow', 'silverleaf cloak'],
+                Halfling: ['sling', 'lucky charm', 'pouch of tricks']
+            };
+            const kit = baseKits[characterClass] || baseKits.Warrior;
+            const promptExtras = promptText && /artifact|relic|curse|secret/i.test(promptText)
+                ? 'Carries a curious relic tied to the adventure.'
+                : 'Keeps a journal of noteworthy encounters.';
+            return `${kit.map(item => item.charAt(0).toUpperCase() + item.slice(1)).join(', ')}. ${promptExtras}`;
+        }
 
         // Tab switching
         function switchTab(tab) {
@@ -850,6 +1191,623 @@
             }
         }
 
+        // AI Prompt Library
+        function renderAiPrompts() {
+            const container = document.getElementById('ai-prompt-list');
+            if (!container) return;
+
+            if (aiPrompts.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-sm">No saved prompts yet. Add one using the form above.</p>';
+                return;
+            }
+
+            container.innerHTML = aiPrompts.map(prompt => `
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-100">${escapeHtml(prompt.title)}</h4>
+                            <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">${escapeHtml(prompt.role)}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="use-prompt-btn px-3 py-1 bg-primary text-white rounded text-sm hover:bg-opacity-90 transition" data-id="${prompt.id}">Use Prompt</button>
+                            <button class="delete-prompt-btn px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600 transition" data-id="${prompt.id}">Remove</button>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${escapeHtml(prompt.prompt)}</div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Favorite Response or Notes</label>
+                        <textarea class="prompt-response w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" rows="2" data-id="${prompt.id}">${escapeHtml(prompt.notes || '')}</textarea>
+                    </div>
+                </div>
+            `).join('');
+
+            container.querySelectorAll('.prompt-response').forEach(textarea => {
+                textarea.addEventListener('input', event => {
+                    const id = parseInt(event.target.getAttribute('data-id'), 10);
+                    const prompt = aiPrompts.find(p => p.id === id);
+                    if (prompt) {
+                        prompt.notes = event.target.value;
+                    }
+                });
+            });
+
+            container.querySelectorAll('.use-prompt-btn').forEach(button => {
+                button.addEventListener('click', event => {
+                    const id = parseInt(event.target.getAttribute('data-id'), 10);
+                    const prompt = aiPrompts.find(p => p.id === id);
+                    if (!prompt) return;
+                    usePromptInChat(prompt);
+                });
+            });
+
+            container.querySelectorAll('.delete-prompt-btn').forEach(button => {
+                button.addEventListener('click', event => {
+                    const id = parseInt(event.target.getAttribute('data-id'), 10);
+                    aiPrompts = aiPrompts.filter(p => p.id !== id);
+                    renderAiPrompts();
+                });
+            });
+        }
+
+        function handlePromptForm(event) {
+            event.preventDefault();
+            const titleEl = document.getElementById('ai-prompt-title');
+            const roleEl = document.getElementById('ai-prompt-role');
+            const textEl = document.getElementById('ai-prompt-text');
+            if (!titleEl || !roleEl || !textEl) return;
+
+            const title = titleEl.value.trim();
+            const role = roleEl.value || 'DM';
+            const promptText = textEl.value.trim();
+            if (!title || !promptText) return;
+
+            aiPrompts.unshift({
+                id: aiPromptCounter++,
+                title,
+                role,
+                prompt: promptText,
+                notes: ''
+            });
+
+            event.target.reset();
+            renderAiPrompts();
+        }
+
+        function usePromptInChat(prompt) {
+            const messageBox = document.getElementById('chat-message');
+            const senderSelect = document.getElementById('chat-sender');
+            if (messageBox) {
+                messageBox.value = prompt.prompt;
+                messageBox.focus();
+            }
+            if (senderSelect && prompt.role) {
+                if (['DM', 'Player', 'AI'].includes(prompt.role)) {
+                    senderSelect.value = prompt.role;
+                } else if (prompt.role === 'Worldbuilding') {
+                    senderSelect.value = 'AI';
+                }
+            }
+        }
+
+        // AI Character Assistant
+        function handleAiCharacterGeneration() {
+            const promptInput = document.getElementById('ai-character-prompt');
+            const output = document.getElementById('ai-character-output');
+            if (!promptInput || !output) return;
+
+            const promptText = promptInput.value.trim();
+            if (!promptText) {
+                output.innerHTML = '<p class="text-red-500">Add a prompt to generate a character concept.</p>';
+                return;
+            }
+
+            const characterClass = inferClassFromPrompt(promptText);
+            const level = parseLevelFromPrompt(promptText);
+            const name = generateCharacterName(characterClass);
+
+            const stats = {
+                str: rollAbilityScore(),
+                agi: rollAbilityScore(),
+                sta: rollAbilityScore(),
+                per: rollAbilityScore(),
+                int: rollAbilityScore(),
+                luc: rollAbilityScore()
+            };
+
+            const hpMax = Math.max(1, Math.round(6 + getModifier(stats.sta) + Math.random() * 4));
+            const ac = 10 + Math.max(0, getModifier(stats.agi));
+
+            aiCharacterDraft = {
+                id: Date.now(),
+                name,
+                class: characterClass,
+                level,
+                str: stats.str,
+                agi: stats.agi,
+                sta: stats.sta,
+                per: stats.per,
+                int: stats.int,
+                luc: stats.luc,
+                hpMax,
+                hpCurrent: hpMax,
+                ac,
+                speed: 30,
+                equipment: createEquipmentList(characterClass, promptText)
+            };
+
+            renderAiCharacterPreview();
+        }
+
+        function renderAiCharacterPreview() {
+            const container = document.getElementById('ai-character-output');
+            if (!container) return;
+
+            if (!aiCharacterDraft) {
+                container.innerHTML = '<p class="text-sm text-gray-600 dark:text-gray-400">Provide a prompt and click “Generate Character” to see a preview.</p>';
+                return;
+            }
+
+            const char = aiCharacterDraft;
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div>
+                            <h4 class="text-xl font-bold">${escapeHtml(char.name)}</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">Level ${char.level} ${escapeHtml(char.class)}</p>
+                        </div>
+                        <button id="ai-character-import" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition text-base">Import Character</button>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center">
+                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">HP</div>
+                            <div class="text-lg font-bold">${char.hpCurrent}/${char.hpMax}</div>
+                        </div>
+                        <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center">
+                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">AC</div>
+                            <div class="text-lg font-bold">${char.ac}</div>
+                        </div>
+                        <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center">
+                            <div class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Speed</div>
+                            <div class="text-lg font-bold">${char.speed} ft</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 text-sm">
+                        <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center"><div class="font-semibold">STR</div><div>${char.str}</div><div class="text-xs text-gray-500">${getModifier(char.str) >= 0 ? '+' : ''}${getModifier(char.str)}</div></div>
+                        <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center"><div class="font-semibold">AGI</div><div>${char.agi}</div><div class="text-xs text-gray-500">${getModifier(char.agi) >= 0 ? '+' : ''}${getModifier(char.agi)}</div></div>
+                        <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center"><div class="font-semibold">STA</div><div>${char.sta}</div><div class="text-xs text-gray-500">${getModifier(char.sta) >= 0 ? '+' : ''}${getModifier(char.sta)}</div></div>
+                        <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center"><div class="font-semibold">PER</div><div>${char.per}</div><div class="text-xs text-gray-500">${getModifier(char.per) >= 0 ? '+' : ''}${getModifier(char.per)}</div></div>
+                        <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center"><div class="font-semibold">INT</div><div>${char.int}</div><div class="text-xs text-gray-500">${getModifier(char.int) >= 0 ? '+' : ''}${getModifier(char.int)}</div></div>
+                        <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center"><div class="font-semibold">LUC</div><div>${char.luc}</div><div class="text-xs text-gray-500">${getModifier(char.luc) >= 0 ? '+' : ''}${getModifier(char.luc)}</div></div>
+                    </div>
+                    <div>
+                        <h5 class="font-semibold mb-2">Equipment & Notes</h5>
+                        <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${escapeHtml(char.equipment)}</p>
+                    </div>
+                </div>
+            `;
+
+            const importBtn = document.getElementById('ai-character-import');
+            if (importBtn) {
+                importBtn.addEventListener('click', importAiCharacter);
+            }
+        }
+
+        function importAiCharacter() {
+            if (!aiCharacterDraft) return;
+            const imported = { ...aiCharacterDraft, id: Date.now() };
+            characters.push(imported);
+            renderCharacters();
+            aiCharacterDraft = null;
+
+            const output = document.getElementById('ai-character-output');
+            if (output) {
+                output.innerHTML = '<p class="text-green-600">Character imported! Switch to the Characters tab to review and edit.</p>';
+            }
+
+            switchTab('characters');
+        }
+
+        // Map Planner
+        function initializeMapCells() {
+            mapState.cells = Array.from({ length: mapState.rows * mapState.cols }, () => ({ type: 'Empty', note: '' }));
+        }
+
+        function ensureMapCells() {
+            if (!Array.isArray(mapState.cells) || mapState.cells.length !== mapState.rows * mapState.cols) {
+                initializeMapCells();
+            }
+        }
+
+        function getMapCellTheme(type) {
+            const themes = {
+                Empty: { bg: 'rgba(148, 163, 184, 0.15)', border: 'rgba(148, 163, 184, 0.35)', color: '#334155' },
+                Room: { bg: 'rgba(93, 92, 222, 0.2)', border: 'rgba(93, 92, 222, 0.5)', color: '#1f1c4f' },
+                Corridor: { bg: 'rgba(96, 165, 250, 0.18)', border: 'rgba(59, 130, 246, 0.45)', color: '#1e3a8a' },
+                Hazard: { bg: 'rgba(248, 113, 113, 0.18)', border: 'rgba(248, 113, 113, 0.4)', color: '#7f1d1d' },
+                Treasure: { bg: 'rgba(250, 204, 21, 0.2)', border: 'rgba(234, 179, 8, 0.45)', color: '#78350f' },
+                Guardian: { bg: 'rgba(248, 153, 180, 0.2)', border: 'rgba(244, 114, 182, 0.45)', color: '#701a75' },
+                Puzzle: { bg: 'rgba(129, 140, 248, 0.2)', border: 'rgba(99, 102, 241, 0.45)', color: '#312e81' },
+                Lore: { bg: 'rgba(165, 243, 252, 0.2)', border: 'rgba(34, 211, 238, 0.45)', color: '#0f766e' },
+                Rest: { bg: 'rgba(134, 239, 172, 0.2)', border: 'rgba(52, 211, 153, 0.45)', color: '#065f46' }
+            };
+            return themes[type] || themes.Empty;
+        }
+
+        function renderMapGrid() {
+            const grid = document.getElementById('map-grid');
+            if (!grid) return;
+
+            ensureMapCells();
+
+            grid.style.gridTemplateColumns = `repeat(${mapState.cols}, minmax(0, 1fr))`;
+            grid.innerHTML = mapState.cells.map((cell, index) => {
+                const theme = getMapCellTheme(cell.type);
+                return `
+                    <button class="map-cell" data-index="${index}" style="background:${theme.bg};border-color:${theme.border};color:${theme.color};">
+                        <div class="font-semibold">${escapeHtml(cell.type)}</div>
+                        ${cell.note ? `<div class='cell-label'>${escapeHtml(cell.note)}</div>` : ''}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function handleMapGridClick(event) {
+            const button = event.target.closest('.map-cell');
+            if (!button) return;
+            const index = parseInt(button.getAttribute('data-index'), 10);
+            if (Number.isNaN(index)) return;
+            const terrainSelect = document.getElementById('map-terrain-select');
+            const labelInput = document.getElementById('map-label-input');
+            const type = terrainSelect ? terrainSelect.value : 'Empty';
+            const note = labelInput ? labelInput.value.trim() : '';
+
+            mapState.cells[index] = { type, note };
+            if (labelInput) {
+                labelInput.value = '';
+            }
+
+            renderMapGrid();
+        }
+
+        function updateMapDimensions() {
+            const rowsInput = document.getElementById('map-rows');
+            const colsInput = document.getElementById('map-cols');
+            if (!rowsInput || !colsInput) return;
+
+            let rows = parseInt(rowsInput.value, 10);
+            let cols = parseInt(colsInput.value, 10);
+            if (Number.isNaN(rows)) rows = mapState.rows;
+            if (Number.isNaN(cols)) cols = mapState.cols;
+            rows = Math.max(3, Math.min(12, rows));
+            cols = Math.max(3, Math.min(12, cols));
+
+            mapState.rows = rows;
+            mapState.cols = cols;
+            rowsInput.value = rows;
+            colsInput.value = cols;
+
+            initializeMapCells();
+            renderMapGrid();
+        }
+
+        function resetMap() {
+            initializeMapCells();
+            renderMapGrid();
+            const summaryField = document.getElementById('map-summary');
+            if (summaryField) {
+                summaryField.value = '';
+            }
+        }
+
+        function generateMapIdea() {
+            ensureMapCells();
+
+            const themes = [
+                'Forgotten Undercrypt',
+                'Crystal Caverns',
+                'Sunken Observatory',
+                'Living Maze',
+                'Shadow Market',
+                'Ancient War Machine'
+            ];
+            const objectives = [
+                'Rescue a captive sage who knows the ritual to seal a planar rift.',
+                'Recover a relic that can sway the politics of the nearest city-state.',
+                'Disrupt an infernal bargain before midnight bells toll.',
+                'Secure an alliance with a proud elemental guardian.',
+                'Decode murals that reveal the next leg of the campaign.'
+            ];
+            const complications = [
+                'A rival adventuring band is two rooms ahead and willing to bargain or betray.',
+                'Reality is unstable—each round a random room shifts position.',
+                'Whispers from the dark tempt heroes to accept cursed power for quick gains.',
+                'A celestial countdown triggers environmental hazards at set intervals.',
+                'Sentient mold records every spoken secret and trades it to unknown patrons.'
+            ];
+            const rewards = [
+                'Vault of spell-etched coins that fund future expeditions.',
+                'Blessing of an ancient spirit, granting a boon to a deserving hero.',
+                'Runic map leading to a legendary patron or patron-slaying weapon.',
+                'Invitation to a clandestine cabal of Judges watching from afar.',
+                'Key to bypass a later dungeon’s deadliest trap.'
+            ];
+            const setPieces = [
+                'A gravity-inverted hall with floating debris.',
+                'An echo chamber where spoken lies manifest as phantoms.',
+                'A spiral staircase guarded by animated statues of past heroes.',
+                'An underground lake reflecting possible futures.',
+                'A council chamber frozen mid-negotiation in temporal stasis.'
+            ];
+
+            const idea = `Theme: ${randomChoice(themes)}
+Primary Objective: ${randomChoice(objectives)}
+Signature Set Piece: ${randomChoice(setPieces)}
+Complication: ${randomChoice(complications)}
+Reward or Hook: ${randomChoice(rewards)}`;
+
+            const ideaOutput = document.getElementById('map-idea-output');
+            if (ideaOutput) {
+                ideaOutput.value = idea;
+            }
+
+            mapState.ideaHistory.unshift({
+                id: Date.now(),
+                idea,
+                timestamp: new Date().toLocaleTimeString()
+            });
+            if (mapState.ideaHistory.length > 6) {
+                mapState.ideaHistory.pop();
+            }
+            renderMapIdeaHistory();
+
+            const autoTypes = ['Room', 'Corridor', 'Hazard', 'Treasure', 'Guardian', 'Puzzle', 'Lore', 'Rest', 'Empty', 'Empty'];
+            mapState.cells = mapState.cells.map(() => {
+                const type = randomChoice(autoTypes);
+                return { type, note: '' };
+            });
+            if (mapState.cells.length > 0) {
+                mapState.cells[0] = { type: 'Room', note: 'Entrance' };
+                mapState.cells[Math.floor(mapState.cells.length / 2)] = { type: 'Guardian', note: randomChoice(['Echo Knight', 'Rune Sentinel', 'Clockwork Hydra']) };
+                mapState.cells[mapState.cells.length - 1] = { type: 'Treasure', note: 'Objective' };
+            }
+
+            renderMapGrid();
+            updateMapSummary();
+        }
+
+        function renderMapIdeaHistory() {
+            const container = document.getElementById('map-idea-history');
+            if (!container) return;
+
+            if (!mapState.ideaHistory || mapState.ideaHistory.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-500 dark:text-gray-500">No generated ideas yet.</p>';
+                return;
+            }
+
+            container.innerHTML = mapState.ideaHistory.map(entry => `
+                <div class="border border-gray-200 dark:border-gray-700 rounded-md p-2">
+                    <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        <span>Idea ${entry.id}</span>
+                        <span>${entry.timestamp}</span>
+                    </div>
+                    <div class="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${escapeHtml(entry.idea)}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateMapSummary() {
+            const summaryField = document.getElementById('map-summary');
+            if (!summaryField) return;
+
+            ensureMapCells();
+
+            const counts = mapState.cells.reduce((acc, cell) => {
+                acc[cell.type] = (acc[cell.type] || 0) + 1;
+                return acc;
+            }, {});
+
+            const highlights = Object.entries(counts)
+                .filter(([type]) => type !== 'Empty')
+                .map(([type, count]) => `${type}: ${count}`);
+
+            const notes = mapState.cells
+                .map((cell, index) => cell.note ? `${formatCellCoordinate(index)} - ${cell.type}: ${cell.note}` : null)
+                .filter(Boolean);
+
+            const summaryLines = [
+                `Grid: ${mapState.rows} x ${mapState.cols}`,
+                highlights.length ? `Highlights: ${highlights.join(', ')}` : 'Highlights: None yet—mark rooms to get started.',
+                ''
+            ];
+
+            if (notes.length) {
+                summaryLines.push('Notable Locations:');
+                notes.forEach(note => summaryLines.push(`- ${note}`));
+            } else {
+                summaryLines.push('Add labels to cells to call out clues, traps, or treasures.');
+            }
+
+            summaryField.value = summaryLines.join('\n');
+        }
+
+        function formatCellCoordinate(index) {
+            const row = Math.floor(index / mapState.cols) + 1;
+            const col = (index % mapState.cols) + 1;
+            return `R${row}C${col}`;
+        }
+
+        // Session Chat
+        function populateQuickPrompts() {
+            const select = document.getElementById('chat-quick-prompts');
+            if (!select) return;
+
+            quickChatPrompts.forEach(prompt => {
+                const option = document.createElement('option');
+                option.value = String(prompt.id);
+                option.textContent = prompt.text;
+                select.appendChild(option);
+            });
+        }
+
+        function getChatRoleClasses(role) {
+            if (role === 'DM') {
+                return 'chat-bubble bg-indigo-100 text-indigo-900 dark:bg-indigo-900/40 dark:text-indigo-100 border border-indigo-200 dark:border-indigo-500/40';
+            }
+            if (role === 'Player') {
+                return 'chat-bubble bg-sky-100 text-sky-900 dark:bg-sky-900/40 dark:text-sky-100 border border-sky-200 dark:border-sky-500/40';
+            }
+            return 'chat-bubble bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100 border border-emerald-200 dark:border-emerald-500/40';
+        }
+
+        function renderChatLog() {
+            const container = document.getElementById('chat-log');
+            if (!container) return;
+
+            if (chatMessages.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-500 text-center py-6">No messages yet. Craft a quick scene or share guidance above.</p>';
+                return;
+            }
+
+            const visible = chatMessages.filter(message => chatFilters[message.role]);
+
+            if (visible.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-500 text-center py-6">No messages match the current filters.</p>';
+                return;
+            }
+
+            container.innerHTML = visible.map(message => {
+                const safeMessage = escapeHtml(message.message).replace(/\n/g, '<br>');
+                const classes = getChatRoleClasses(message.role);
+                return `
+                    <div class="${classes}">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-semibold">${message.role}</span>
+                            <span class="text-xs text-gray-600 dark:text-gray-400">${message.timestamp}</span>
+                        </div>
+                        <div class="text-sm leading-relaxed">${safeMessage}</div>
+                    </div>
+                `;
+            }).join('');
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const senderSelect = document.getElementById('chat-sender');
+            const messageBox = document.getElementById('chat-message');
+            if (!senderSelect || !messageBox) return;
+
+            const role = senderSelect.value || 'DM';
+            const text = messageBox.value.trim();
+            if (!text) return;
+
+            chatMessages.push({
+                id: Date.now(),
+                role,
+                message: text,
+                timestamp: new Date().toLocaleTimeString()
+            });
+            if (chatMessages.length > 200) {
+                chatMessages.shift();
+            }
+
+            messageBox.value = '';
+            const quickSelect = document.getElementById('chat-quick-prompts');
+            if (quickSelect) {
+                quickSelect.value = '';
+            }
+
+            renderChatLog();
+        }
+
+        function updateChatFilters(event) {
+            const role = event.target.getAttribute('data-role');
+            if (!role) return;
+            chatFilters[role] = event.target.checked;
+            renderChatLog();
+        }
+
+        function handleQuickPromptChange(event) {
+            const id = parseInt(event.target.value, 10);
+            if (!id) return;
+            const prompt = quickChatPrompts.find(item => item.id === id);
+            if (!prompt) return;
+
+            const messageBox = document.getElementById('chat-message');
+            const senderSelect = document.getElementById('chat-sender');
+            if (messageBox) {
+                messageBox.value = prompt.text;
+                messageBox.focus();
+            }
+            if (senderSelect && prompt.role) {
+                senderSelect.value = prompt.role;
+            }
+        }
+
+        // Event listeners for AI tools
+        const promptFormEl = document.getElementById('ai-prompt-form');
+        if (promptFormEl) {
+            promptFormEl.addEventListener('submit', handlePromptForm);
+        }
+
+        const aiGenerateButton = document.getElementById('ai-character-generate');
+        if (aiGenerateButton) {
+            aiGenerateButton.addEventListener('click', handleAiCharacterGeneration);
+        }
+
+        const mapRowsInput = document.getElementById('map-rows');
+        const mapColsInput = document.getElementById('map-cols');
+        if (mapRowsInput) {
+            mapRowsInput.addEventListener('change', updateMapDimensions);
+        }
+        if (mapColsInput) {
+            mapColsInput.addEventListener('change', updateMapDimensions);
+        }
+
+        const mapGridEl = document.getElementById('map-grid');
+        if (mapGridEl) {
+            mapGridEl.addEventListener('click', handleMapGridClick);
+        }
+
+        const mapGenerateBtn = document.getElementById('map-generate');
+        if (mapGenerateBtn) {
+            mapGenerateBtn.addEventListener('click', generateMapIdea);
+        }
+
+        const mapResetBtn = document.getElementById('map-reset');
+        if (mapResetBtn) {
+            mapResetBtn.addEventListener('click', resetMap);
+        }
+
+        const mapSummaryBtn = document.getElementById('map-summary-btn');
+        if (mapSummaryBtn) {
+            mapSummaryBtn.addEventListener('click', updateMapSummary);
+        }
+
+        const chatSendBtn = document.getElementById('chat-send');
+        if (chatSendBtn) {
+            chatSendBtn.addEventListener('click', sendChatMessage);
+        }
+
+        const chatMessageBox = document.getElementById('chat-message');
+        if (chatMessageBox) {
+            chatMessageBox.addEventListener('keydown', event => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    sendChatMessage();
+                }
+            });
+        }
+
+        const quickPromptSelect = document.getElementById('chat-quick-prompts');
+        if (quickPromptSelect) {
+            quickPromptSelect.addEventListener('change', handleQuickPromptChange);
+        }
+
+        document.querySelectorAll('.chat-filter').forEach(filter => {
+            filter.addEventListener('change', updateChatFilters);
+        });
+
         // Custom dialog functions
         function showCustomConfirm(message, onConfirm) {
             const modal = document.createElement('div');
@@ -917,6 +1875,13 @@
         // Initialize
         renderCharacters();
         renderCombat();
+        renderAiPrompts();
+        populateQuickPrompts();
+        initializeMapCells();
+        renderMapGrid();
+        renderMapIdeaHistory();
+        renderChatLog();
+        renderAiCharacterPreview();
     </script>
 
 
