@@ -63,6 +63,7 @@
         .map-marker {
             transform: translate(-50%, -50%);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            pointer-events: auto;
         }
         .map-marker:hover {
             transform: translate(-50%, -50%) scale(1.1);
@@ -70,6 +71,9 @@
         .map-marker-active {
             box-shadow: 0 0 0 4px rgba(93, 92, 222, 0.35);
             z-index: 30;
+        }
+        .map-marker-dim {
+            opacity: 0.35;
         }
         .map-marker-label {
             white-space: nowrap;
@@ -124,8 +128,8 @@
                     <h2 class="text-2xl font-bold">DM Control Panel</h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400">Track prep, pace sessions, and surface inspiration without shuffling paper behind the screen.</p>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="resetDMTools()" class="px-4 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition text-sm">Reset Panel</button>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="resetDMTools()" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm">Reset Panel</button>
                 </div>
             </div>
 
@@ -166,6 +170,10 @@
                                 <button type="submit" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm">Save Encounter</button>
                             </div>
                         </form>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <input type="search" id="dm-encounter-search" placeholder="Search prepped encounters" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                            <button type="button" id="dm-encounter-clear-search" class="px-3 py-2 border border-gray-300 dark:border-gray-700 text-xs rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition">Clear</button>
+                        </div>
                         <div id="dm-encounter-list" class="space-y-3 text-sm text-gray-700 dark:text-gray-300">
                             <p class="text-xs text-gray-500">No encounters prepped yet.</p>
                         </div>
@@ -175,6 +183,13 @@
                         <div class="flex items-center justify-between">
                             <h3 class="text-xl font-semibold">Session Notes</h3>
                             <span class="text-xs text-gray-500" id="dm-note-count">0 captured</span>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <input type="search" id="dm-note-search" placeholder="Search notes" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                            <label class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                <input type="checkbox" id="dm-note-spotlight-filter" class="h-4 w-4 text-primary">
+                                Spotlight only
+                            </label>
                         </div>
                         <form id="dm-note-form" class="space-y-3">
                             <textarea id="dm-note-input" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="Summaries, secrets revealed, NPC goals..." required></textarea>
@@ -559,12 +574,20 @@
                             </div>
                             <button type="submit" class="w-full px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm">Drop Marker</button>
                         </form>
+                        <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            <p id="map-marker-mode-hint" class="flex-1 text-gray-500 dark:text-gray-400">Drop a new marker anywhere on the map.</p>
+                            <button type="button" id="map-marker-cancel-edit" class="text-red-500 hover:text-red-600 hidden">Cancel edit</button>
+                        </div>
                         <p class="text-xs text-gray-500" id="map-coordinates-display">Click the map to seed coordinates.</p>
                     </div>
                     <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-3">
                         <div class="flex items-center justify-between">
                             <h3 class="text-lg font-semibold">Markers</h3>
                             <span class="text-xs text-gray-500" id="map-marker-count">0</span>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <input type="search" id="map-marker-search" placeholder="Search markers" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                            <button type="button" id="map-marker-clear-search" class="px-3 py-2 border border-gray-300 dark:border-gray-700 text-xs rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition">Clear</button>
                         </div>
                         <div id="map-marker-list" class="space-y-2 max-h-64 overflow-y-auto text-sm text-gray-700 dark:text-gray-300">
                             <p class="text-xs text-gray-500">No markers yet.</p>
@@ -997,7 +1020,11 @@
             campaignSearch: '',
             campaignJudge: '',
             campaignSort: 'recent',
-            tableSearch: ''
+            tableSearch: '',
+            mapMarkerSearch: '',
+            dmEncounterSearch: '',
+            dmNoteSearch: '',
+            dmNoteSpotlightOnly: false
         };
 
         function clone(obj) {
@@ -1053,6 +1080,7 @@
         let activeCharacterDetail = null;
         let activeCampaignDetail = null;
         let activeMapMarkerId = null;
+        let editingMapMarkerId = null;
         let pendingMapCoords = null;
         let mapDisplaySize = { width: 0, height: 0 };
         let stopwatchInterval = null;
@@ -1311,6 +1339,35 @@
             mapMarkerForm.addEventListener('submit', submitMapMarker);
         }
 
+        const mapMarkerCancelButton = document.getElementById('map-marker-cancel-edit');
+        if (mapMarkerCancelButton) {
+            mapMarkerCancelButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                cancelMapMarkerEdit();
+            });
+        }
+
+        const mapMarkerSearchInput = document.getElementById('map-marker-search');
+        if (mapMarkerSearchInput) {
+            mapMarkerSearchInput.addEventListener('input', (event) => {
+                uiState.mapMarkerSearch = event.target.value || '';
+                renderMap();
+            });
+        }
+
+        const mapMarkerClearSearch = document.getElementById('map-marker-clear-search');
+        if (mapMarkerClearSearch) {
+            mapMarkerClearSearch.addEventListener('click', (event) => {
+                event.preventDefault();
+                if (!uiState.mapMarkerSearch) return;
+                uiState.mapMarkerSearch = '';
+                if (mapMarkerSearchInput) {
+                    mapMarkerSearchInput.value = '';
+                }
+                renderMap();
+            });
+        }
+
         const mapNotesInput = document.getElementById('map-notes');
         if (mapNotesInput) {
             mapNotesInput.addEventListener('input', (event) => {
@@ -1363,9 +1420,46 @@
             dmEncounterForm.addEventListener('submit', handleDMEncounterForm);
         }
 
+        const dmEncounterSearchInput = document.getElementById('dm-encounter-search');
+        if (dmEncounterSearchInput) {
+            dmEncounterSearchInput.addEventListener('input', (event) => {
+                uiState.dmEncounterSearch = event.target.value || '';
+                renderDMEncounters();
+            });
+        }
+
+        const dmEncounterClearSearch = document.getElementById('dm-encounter-clear-search');
+        if (dmEncounterClearSearch) {
+            dmEncounterClearSearch.addEventListener('click', (event) => {
+                event.preventDefault();
+                if (!uiState.dmEncounterSearch) return;
+                uiState.dmEncounterSearch = '';
+                if (dmEncounterSearchInput) {
+                    dmEncounterSearchInput.value = '';
+                }
+                renderDMEncounters();
+            });
+        }
+
         const dmNoteForm = document.getElementById('dm-note-form');
         if (dmNoteForm) {
             dmNoteForm.addEventListener('submit', handleDMNoteForm);
+        }
+
+        const dmNoteSearchInput = document.getElementById('dm-note-search');
+        if (dmNoteSearchInput) {
+            dmNoteSearchInput.addEventListener('input', (event) => {
+                uiState.dmNoteSearch = event.target.value || '';
+                renderDMNotes();
+            });
+        }
+
+        const dmNoteSpotlightFilter = document.getElementById('dm-note-spotlight-filter');
+        if (dmNoteSpotlightFilter) {
+            dmNoteSpotlightFilter.addEventListener('change', (event) => {
+                uiState.dmNoteSpotlightOnly = !!event.target.checked;
+                renderDMNotes();
+            });
         }
 
         const stopwatchStart = document.getElementById('dm-stopwatch-start');
@@ -2206,6 +2300,17 @@
             return mapMarkerColors[colorKey] || mapMarkerColors.primary;
         }
 
+        function markerMatchesSearch(marker, searchTerm) {
+            if (!searchTerm) return true;
+            const haystack = [marker.label, marker.note, marker.color]
+                .map(value => (value || '').toString().toLowerCase())
+                .join(' ');
+            const x = Number(marker.x);
+            const y = Number(marker.y);
+            const coordText = `${Number.isFinite(x) ? x.toFixed(1) : (marker.x || '')} ${Number.isFinite(y) ? y.toFixed(1) : (marker.y || '')}`;
+            return haystack.includes(searchTerm) || coordText.toLowerCase().includes(searchTerm);
+        }
+
         function handleMapUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -2233,6 +2338,10 @@
 
         function renderMap() {
             const mapData = state.map || clone(defaultState.map);
+            const markers = Array.isArray(mapData.markers) ? mapData.markers : [];
+            const searchRaw = uiState.mapMarkerSearch || '';
+            const searchTerm = searchRaw.trim().toLowerCase();
+            const filteredMarkers = searchTerm ? markers.filter(marker => markerMatchesSearch(marker, searchTerm)) : markers;
             const placeholder = document.getElementById('map-placeholder');
             const inner = document.getElementById('map-inner');
             const image = document.getElementById('map-image');
@@ -2247,6 +2356,8 @@
             const gridSizeInput = document.getElementById('map-grid-size');
             const zoomInput = document.getElementById('map-zoom');
             const uploadName = document.getElementById('map-uploaded-name');
+            const markerSearchInput = document.getElementById('map-marker-search');
+            const markerClearButton = document.getElementById('map-marker-clear-search');
 
             if (notesInput) notesInput.value = mapData.notes || '';
             if (gridToggle) gridToggle.checked = !!mapData.showGrid;
@@ -2255,6 +2366,20 @@
             if (gridSizeDisplay) gridSizeDisplay.textContent = `${mapData.gridSize} px`;
             if (zoomDisplay) zoomDisplay.textContent = `${mapData.zoom}%`;
             if (uploadName) uploadName.textContent = mapData.imageName ? `Loaded: ${mapData.imageName}` : 'No map loaded.';
+            if (markerSearchInput && markerSearchInput.value !== searchRaw) {
+                markerSearchInput.value = searchRaw;
+            }
+            if (markerClearButton) {
+                const hasSearch = !!searchTerm;
+                markerClearButton.disabled = !hasSearch;
+                markerClearButton.classList.toggle('opacity-50', !hasSearch);
+                markerClearButton.classList.toggle('cursor-not-allowed', !hasSearch);
+                markerClearButton.setAttribute('aria-disabled', String(!hasSearch));
+            }
+
+            if (editingMapMarkerId && !markers.some(marker => marker.id === editingMapMarkerId)) {
+                setMapMarkerFormCreateMode({ preserveCoords: true });
+            }
 
             if (!mapData.image) {
                 if (placeholder) placeholder.style.display = 'flex';
@@ -2313,13 +2438,15 @@
                     grid.style.backgroundSize = `${mapData.gridSize * scale}px ${mapData.gridSize * scale}px`;
                 }
                 if (markerLayer) {
-                    markerLayer.innerHTML = (mapData.markers || []).map(marker => {
+                    markerLayer.innerHTML = markers.map(marker => {
                         const color = getMarkerColorStyles(marker.color);
                         const isActive = marker.id === activeMapMarkerId;
+                        const matches = markerMatchesSearch(marker, searchTerm);
+                        const dimClass = searchTerm && !matches ? 'map-marker-dim' : '';
                         const markerX = Number(marker.x) || 0;
                         const markerY = Number(marker.y) || 0;
                         return `
-                            <div class="absolute map-marker ${isActive ? 'map-marker-active' : ''}" data-map-marker="${marker.id}" style="left: ${markerX}%; top: ${markerY}%">
+                            <div class="absolute map-marker ${isActive ? 'map-marker-active' : ''} ${dimClass}" data-map-marker="${marker.id}" style="left: ${markerX}%; top: ${markerY}%" onclick="focusMapMarker('${marker.id}')">
                                 <span class="map-marker-label" style="background:${color.background};color:${color.text};">${escapeHtml(marker.label)}</span>
                             </div>
                         `;
@@ -2328,11 +2455,12 @@
             }
 
             if (markerList) {
-                const markers = mapData.markers || [];
                 if (!markers.length) {
                     markerList.innerHTML = '<p class="text-xs text-gray-500">No markers yet.</p>';
+                } else if (!filteredMarkers.length) {
+                    markerList.innerHTML = '<p class="text-xs text-gray-500">No markers match the current search.</p>';
                 } else {
-                    markerList.innerHTML = markers.map(marker => {
+                    markerList.innerHTML = filteredMarkers.map(marker => {
                         const isActive = marker.id === activeMapMarkerId;
                         const markerX = Number(marker.x) || 0;
                         const markerY = Number(marker.y) || 0;
@@ -2347,6 +2475,7 @@
                                     </div>
                                     <div class="flex flex-col gap-1 text-xs items-end">
                                         <button onclick="focusMapMarker('${marker.id}')" class="px-2 py-1 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Focus</button>
+                                        <button onclick="beginEditMapMarker('${marker.id}')" class="px-2 py-1 border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">Edit</button>
                                         <button onclick="deleteMapMarker('${marker.id}')" class="px-2 py-1 text-red-500 hover:text-red-600">Delete</button>
                                     </div>
                                 </div>
@@ -2357,7 +2486,9 @@
             }
 
             if (markerCount) {
-                markerCount.textContent = `${mapData.markers?.length || 0}`;
+                const total = markers.length;
+                const visible = filteredMarkers.length;
+                markerCount.textContent = total === visible ? `${total}` : `${visible} of ${total}`;
             }
 
             updateMapCoordinateDisplay();
@@ -2417,6 +2548,9 @@
                 alert('Upload a map image before dropping markers.');
                 return false;
             }
+            const form = event.target;
+            const mode = form.dataset.mode || 'create';
+            const editingId = form.dataset.editingId;
             const labelInput = document.getElementById('map-marker-label');
             const noteInput = document.getElementById('map-marker-note');
             const xInput = document.getElementById('map-marker-x');
@@ -2434,22 +2568,50 @@
                 alert('Set coordinates for the marker.');
                 return false;
             }
-            const marker = {
-                id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                label,
-                note,
-                x: Math.max(0, Math.min(100, Number(x.toFixed(1)))),
-                y: Math.max(0, Math.min(100, Number(y.toFixed(1)))),
-                color: colorInput?.value || 'primary'
-            };
-            state.map.markers.push(marker);
-            activeMapMarkerId = marker.id;
+            const normalizedX = Math.max(0, Math.min(100, Number(x.toFixed(1))));
+            const normalizedY = Math.max(0, Math.min(100, Number(y.toFixed(1))));
+            const color = colorInput?.value || 'primary';
+
+            if (mode === 'edit' && editingId) {
+                const index = state.map.markers.findIndex(marker => marker.id === editingId);
+                if (index === -1) {
+                    alert('The marker you were editing no longer exists. A new marker will be created instead.');
+                    const newMarker = {
+                        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                        label,
+                        note,
+                        x: normalizedX,
+                        y: normalizedY,
+                        color
+                    };
+                    state.map.markers.push(newMarker);
+                    activeMapMarkerId = newMarker.id;
+                } else {
+                    state.map.markers[index] = {
+                        ...state.map.markers[index],
+                        label,
+                        note,
+                        x: normalizedX,
+                        y: normalizedY,
+                        color
+                    };
+                    activeMapMarkerId = editingId;
+                }
+            } else {
+                const marker = {
+                    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                    label,
+                    note,
+                    x: normalizedX,
+                    y: normalizedY,
+                    color
+                };
+                state.map.markers.push(marker);
+                activeMapMarkerId = marker.id;
+            }
             pendingMapCoords = null;
-            if (labelInput) labelInput.value = '';
-            if (noteInput) noteInput.value = '';
-            if (xInput) xInput.value = '';
-            if (yInput) yInput.value = '';
             saveState();
+            setMapMarkerFormCreateMode();
             renderMap();
             return false;
         }
@@ -2459,6 +2621,9 @@
             if (activeMapMarkerId === id) {
                 activeMapMarkerId = null;
             }
+            if (editingMapMarkerId === id) {
+                setMapMarkerFormCreateMode();
+            }
             saveState();
             renderMap();
         }
@@ -2467,6 +2632,9 @@
             const marker = state.map.markers.find(m => m.id === id);
             if (!marker) return;
             activeMapMarkerId = id;
+            if (editingMapMarkerId && editingMapMarkerId !== id) {
+                setMapMarkerFormCreateMode({ preserveCoords: true });
+            }
             renderMap();
             const scroll = document.getElementById('map-scroll');
             const inner = document.getElementById('map-inner');
@@ -2485,6 +2653,92 @@
             }
         }
 
+        function setMapMarkerFormCreateMode({ preserveCoords = false } = {}) {
+            const form = document.getElementById('map-marker-form');
+            if (!form) return;
+            form.dataset.mode = 'create';
+            delete form.dataset.editingId;
+            editingMapMarkerId = null;
+            const labelInput = document.getElementById('map-marker-label');
+            const noteInput = document.getElementById('map-marker-note');
+            const xInput = document.getElementById('map-marker-x');
+            const yInput = document.getElementById('map-marker-y');
+            if (labelInput) labelInput.value = '';
+            if (noteInput) noteInput.value = '';
+            if (!preserveCoords) {
+                pendingMapCoords = null;
+                if (xInput) xInput.value = '';
+                if (yInput) yInput.value = '';
+            }
+            const modeHint = document.getElementById('map-marker-mode-hint');
+            if (modeHint) {
+                modeHint.textContent = 'Drop a new marker anywhere on the map.';
+                modeHint.classList.remove('text-amber-500', 'dark:text-amber-300');
+                modeHint.classList.add('text-gray-500', 'dark:text-gray-400');
+            }
+            const cancelButton = document.getElementById('map-marker-cancel-edit');
+            if (cancelButton) {
+                cancelButton.classList.add('hidden');
+            }
+            updateMapCoordinateDisplay();
+        }
+
+        function setMapMarkerFormEditMode(marker) {
+            const form = document.getElementById('map-marker-form');
+            if (!form || !marker) return;
+            form.dataset.mode = 'edit';
+            form.dataset.editingId = marker.id;
+            editingMapMarkerId = marker.id;
+            activeMapMarkerId = marker.id;
+            const labelInput = document.getElementById('map-marker-label');
+            const noteInput = document.getElementById('map-marker-note');
+            const xInput = document.getElementById('map-marker-x');
+            const yInput = document.getElementById('map-marker-y');
+            const colorInput = document.getElementById('map-marker-color');
+            const xValue = Number(marker.x);
+            const yValue = Number(marker.y);
+            if (labelInput) {
+                labelInput.value = marker.label || '';
+                labelInput.focus();
+                labelInput.select();
+            }
+            if (noteInput) noteInput.value = marker.note || '';
+            if (xInput) xInput.value = Number.isFinite(xValue) ? xValue.toFixed(1) : '';
+            if (yInput) yInput.value = Number.isFinite(yValue) ? yValue.toFixed(1) : '';
+            if (colorInput && marker.color) colorInput.value = marker.color;
+            if (Number.isFinite(xValue) && Number.isFinite(yValue)) {
+                pendingMapCoords = {
+                    x: Math.max(0, Math.min(100, xValue)),
+                    y: Math.max(0, Math.min(100, yValue))
+                };
+            } else {
+                pendingMapCoords = null;
+            }
+            const modeHint = document.getElementById('map-marker-mode-hint');
+            if (modeHint) {
+                modeHint.textContent = 'Editing marker. Update the details and save to apply.';
+                modeHint.classList.remove('text-gray-500', 'dark:text-gray-400');
+                modeHint.classList.add('text-amber-500', 'dark:text-amber-300');
+            }
+            const cancelButton = document.getElementById('map-marker-cancel-edit');
+            if (cancelButton) {
+                cancelButton.classList.remove('hidden');
+            }
+            updateMapCoordinateDisplay();
+            renderMap();
+        }
+
+        function beginEditMapMarker(id) {
+            const marker = state.map.markers.find(m => m.id === id);
+            if (!marker) return;
+            setMapMarkerFormEditMode(marker);
+        }
+
+        function cancelMapMarkerEdit() {
+            setMapMarkerFormCreateMode({ preserveCoords: true });
+            renderMap();
+        }
+
         function clearMap() {
             if (!state.map.image && !state.map.markers.length && !state.map.notes) return;
             if (!confirm('Remove the current map image, markers, and notes?')) return;
@@ -2492,7 +2746,10 @@
             activeMapMarkerId = null;
             pendingMapCoords = null;
             mapDisplaySize = { width: 0, height: 0 };
+            editingMapMarkerId = null;
+            uiState.mapMarkerSearch = '';
             saveState();
+            setMapMarkerFormCreateMode();
             renderMap();
         }
 
@@ -2550,13 +2807,45 @@
             const list = document.getElementById('dm-encounter-list');
             const count = document.getElementById('dm-encounter-count');
             if (!list) return;
+            const searchInput = document.getElementById('dm-encounter-search');
+            const clearButton = document.getElementById('dm-encounter-clear-search');
             const encounters = state.dm.encounters || [];
-            if (count) count.textContent = `${encounters.length} prepped`;
+            const searchRaw = uiState.dmEncounterSearch || '';
+            const searchTerm = searchRaw.trim().toLowerCase();
+            if (searchInput && searchInput.value !== searchRaw) {
+                searchInput.value = searchRaw;
+            }
+            if (clearButton) {
+                const hasSearch = !!searchTerm;
+                clearButton.disabled = !hasSearch;
+                clearButton.classList.toggle('opacity-50', !hasSearch);
+                clearButton.classList.toggle('cursor-not-allowed', !hasSearch);
+                clearButton.setAttribute('aria-disabled', String(!hasSearch));
+            }
+            const filtered = searchTerm ? encounters.filter(encounter => {
+                const haystack = [
+                    encounter.name,
+                    encounter.threat,
+                    encounter.environment,
+                    encounter.notes,
+                    encounter.quantity
+                ].map(value => (value ?? '').toString().toLowerCase());
+                return haystack.some(value => value.includes(searchTerm));
+            }) : encounters;
+            if (count) {
+                const total = encounters.length;
+                const visible = filtered.length;
+                count.textContent = total === visible ? `${total} prepped` : `${visible} of ${total} prepped`;
+            }
             if (!encounters.length) {
                 list.innerHTML = '<p class="text-xs text-gray-500">No encounters prepped yet.</p>';
                 return;
             }
-            list.innerHTML = encounters.map(encounter => {
+            if (!filtered.length) {
+                list.innerHTML = '<p class="text-xs text-gray-500">No encounters match the current search.</p>';
+                return;
+            }
+            list.innerHTML = filtered.map(encounter => {
                 const statusLabel = encounter.resolved ? 'Spent' : 'Ready';
                 return `
                     <div class="border border-gray-200 dark:border-gray-700 rounded p-3 ${encounter.resolved ? 'opacity-70' : ''}">
@@ -2583,11 +2872,13 @@
             const text = input.value.trim();
             if (!text) return false;
             const spotlight = document.getElementById('dm-note-spotlight')?.checked || false;
+            const elapsedAt = getStopwatchElapsed();
             state.dm.sessionNotes.unshift({
                 id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
                 text,
                 spotlight,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                elapsedAt
             });
             saveState();
             renderDMTools();
@@ -2607,24 +2898,52 @@
             const list = document.getElementById('dm-note-list');
             const count = document.getElementById('dm-note-count');
             if (!list) return;
+            const searchInput = document.getElementById('dm-note-search');
+            const spotlightFilter = document.getElementById('dm-note-spotlight-filter');
             const notes = state.dm.sessionNotes || [];
-            if (count) count.textContent = `${notes.length} captured`;
+            const searchRaw = uiState.dmNoteSearch || '';
+            const searchTerm = searchRaw.trim().toLowerCase();
+            const spotlightOnly = !!uiState.dmNoteSpotlightOnly;
+            if (searchInput && searchInput.value !== searchRaw) {
+                searchInput.value = searchRaw;
+            }
+            if (spotlightFilter) {
+                spotlightFilter.checked = spotlightOnly;
+            }
+            const filtered = notes.filter(note => {
+                if (spotlightOnly && !note.spotlight) return false;
+                if (!searchTerm) return true;
+                return (note.text || '').toLowerCase().includes(searchTerm);
+            });
+            if (count) {
+                const total = notes.length;
+                const visible = filtered.length;
+                count.textContent = total === visible ? `${total} captured` : `${visible} of ${total} captured`;
+            }
             if (!notes.length) {
                 list.innerHTML = '<p class="text-xs text-gray-500">No notes logged yet.</p>';
                 return;
             }
-            list.innerHTML = notes.map(note => {
+            if (!filtered.length) {
+                list.innerHTML = '<p class="text-xs text-gray-500">No notes match the current filters.</p>';
+                return;
+            }
+            list.innerHTML = filtered.map(note => {
                 const timestamp = escapeHtml(formatTimestamp(note.timestamp));
                 const previewRaw = (note.text || '').replace(/\s+/g, ' ').trim();
                 const previewFallback = previewRaw || 'No details provided.';
                 const preview = escapeHtml(previewFallback.length > 160 ? `${previewFallback.slice(0, 157)}…` : previewFallback);
                 const markdown = marked.parse(note.text || '');
+                const hasElapsed = Number.isFinite(note.elapsedAt);
+                const sessionBadge = hasElapsed ? `<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 rounded-full text-[0.65rem] uppercase">T+${formatDuration(note.elapsedAt)}</span>` : '';
+                const spotlightBadge = note.spotlight ? '<span class="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[0.65rem] uppercase">Spotlight</span>' : '';
                 return `
                     <div class="dm-log-entry bg-white/60 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 rounded p-3 space-y-2">
                         <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                             <span>${timestamp}</span>
                             <div class="flex items-center gap-2">
-                                ${note.spotlight ? '<span class="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[0.65rem] uppercase">Spotlight</span>' : ''}
+                                ${sessionBadge}
+                                ${spotlightBadge}
                                 <button onclick="deleteDMNote('${note.id}')" class="text-red-500 hover:text-red-600">Delete</button>
                             </div>
                         </div>
@@ -2710,8 +3029,22 @@
         function resetDMTools() {
             if (!confirm('Reset DM tools? This clears encounters, notes, trackers, and the session clock.')) return;
             state.dm = clone(defaultState.dm);
+            uiState.dmEncounterSearch = '';
+            uiState.dmNoteSearch = '';
+            uiState.dmNoteSpotlightOnly = false;
             saveState();
             renderDMTools();
+        }
+
+        function getStopwatchElapsed() {
+            const stopwatch = state?.dm?.stopwatch || clone(defaultState.dm.stopwatch);
+            if (stopwatch.running && stopwatch.startedAt) {
+                const diff = Date.now() - stopwatch.startedAt;
+                if (!Number.isNaN(diff) && diff >= 0) {
+                    return diff;
+                }
+            }
+            return stopwatch.elapsed || 0;
         }
 
         function formatDuration(milliseconds) {
