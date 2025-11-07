@@ -264,6 +264,82 @@
                             <p class="text-xs text-gray-500">Roll the inspiration engine to populate this log.</p>
                         </div>
                     </div>
+
+                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h3 class="text-xl font-semibold">AI Assistants</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Lightweight generators synthesize prep notes without leaving the table.</p>
+                            </div>
+                            <button id="dm-ai-history-clear" class="text-xs px-3 py-1 border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition">Clear</button>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div>
+                                <label for="dm-ai-brief" class="block text-sm font-semibold mb-1">Creative Brief</label>
+                                <textarea id="dm-ai-brief" rows="2" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="Key beats to include: villain motive, dungeon feature, player quest..."></textarea>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label for="dm-ai-focus" class="block text-sm font-semibold mb-1">Focus</label>
+                                    <select id="dm-ai-focus" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                                        <option value="quest">Quest Hook</option>
+                                        <option value="location">Location Detail</option>
+                                        <option value="faction">Faction Plot</option>
+                                        <option value="relic">Arcane Relic</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="dm-ai-tone" class="block text-sm font-semibold mb-1">Tone</label>
+                                    <select id="dm-ai-tone" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                                        <option value="neutral">Even-Keeled</option>
+                                        <option value="hopeful">Hopeful</option>
+                                        <option value="grim">Grimdark</option>
+                                        <option value="whimsical">Weird &amp; Whimsical</option>
+                                        <option value="urgent">Urgent</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button id="dm-ai-generate" class="w-full px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm">Generate Prep Idea</button>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label for="dm-ai-role" class="block text-sm font-semibold mb-1">NPC Role</label>
+                                    <select id="dm-ai-role" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                                        <option value="seer">Cryptic Seer</option>
+                                        <option value="captain">Battle-Worn Captain</option>
+                                        <option value="trickster">Gleeful Trickster</option>
+                                        <option value="scribe">Obsessive Scribe</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="dm-ai-mood" class="block text-sm font-semibold mb-1">Mood</label>
+                                    <select id="dm-ai-mood" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                                        <option value="calm">Measured</option>
+                                        <option value="tense">Tense</option>
+                                        <option value="eager">Eager</option>
+                                        <option value="ominous">Ominous</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="dm-ai-topic" class="block text-sm font-semibold mb-1">Prompt</label>
+                                    <select id="dm-ai-topic" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                                        <option value="warning">Dire Warning</option>
+                                        <option value="clue">Cryptic Clue</option>
+                                        <option value="bargain">Risky Bargain</option>
+                                        <option value="boon">Unusual Boon</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button id="dm-ai-dialogue" class="w-full px-4 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition text-sm">Draft NPC Line</button>
+                        </div>
+
+                        <div id="dm-ai-history" class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                            <p class="text-xs text-gray-500">Generate an idea or NPC line to build a quick-reference log.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -1008,7 +1084,8 @@
                     startedAt: null,
                     elapsed: 0
                 },
-                randomHistory: []
+                randomHistory: [],
+                aiHistory: []
             }
         };
 
@@ -1059,6 +1136,7 @@
                         ...(parsed.dm || {}),
                         encounters: Array.isArray(parsed?.dm?.encounters) ? parsed.dm.encounters : [],
                         sessionNotes: Array.isArray(parsed?.dm?.sessionNotes) ? parsed.dm.sessionNotes : [],
+                        aiHistory: Array.isArray(parsed?.dm?.aiHistory) ? parsed.dm.aiHistory : [],
                         randomHistory: Array.isArray(parsed?.dm?.randomHistory) ? parsed.dm.randomHistory : [],
                         trackers: {
                             ...clone(defaultState.dm.trackers),
@@ -1142,6 +1220,337 @@
             ]
         };
 
+        const aiIdeaTables = {
+            quest: {
+                label: 'Quest Hook',
+                seeds: [
+                    'Villagers vanish whenever the blood moon reflects off the swamp gate.',
+                    'A caravan of pilgrims never reached the star-metal shrine.',
+                    'A rival wizard publicly challenges the party to retrieve a relic first.',
+                    'The local baron offers pardons if someone ends the midnight bells.',
+                    'A prophetic dream insists the heroes escort a troublesome minstrel.',
+                    'An old map reveals a funnel survivor’s lost dungeon key.'
+                ],
+                complications: [
+                    'A rival troupe is already on the job and spreads rumors about the party.',
+                    'The location only appears when a forgotten song is performed flawlessly.',
+                    'Accepting the hook brands each hero with a visible sigil of fate.',
+                    'An ancient guardian demands the heroes sacrifice valued gear to proceed.',
+                    'The quest patron conceals that the mission destabilizes local faith.',
+                    'Clockwork hunters track anyone who speaks the quest aloud.'
+                ],
+                rewards: [
+                    'A luck-infused relic that lets the bearer reroll a failed save once.',
+                    'Exclusive membership in a planar explorers lodge.',
+                    'A deed to a dilapidated keep that hides a deeper vault.',
+                    'A favor owed by the Three Judges of Balance.',
+                    'A spellbook containing a legendary mercurial spell variant.',
+                    'A mysterious patron willing to sponsor future expeditions.'
+                ],
+                twists: [
+                    'The true villain seeks redemption and begs the heroes for protection.',
+                    'The treasure is sentient and chooses a champion mid-scene.',
+                    'Completing the quest accelerates an apocalyptic omen by one month.',
+                    'The quest location shifts across planes every hour.',
+                    'The party’s oldest ally is secretly orchestrating the danger.',
+                    'A captured foe becomes an invaluable guide if treated kindly.'
+                ]
+            },
+            location: {
+                label: 'Location Detail',
+                seeds: [
+                    'A canyon-sized fossil whose ribcage shelters a forgotten bazaar.',
+                    'Glowing fungal terraces cascade beneath a fractured moonwell.',
+                    'An inverted tower dangling from chains above a bottomless void.',
+                    'A drowned chapel reachable only during the lowest tide.',
+                    'A labyrinth carved inside a slumbering colossus.',
+                    'A nomad camp drifting atop sentient tumbleweeds.'
+                ],
+                complications: [
+                    'Gravity flows sideways in sporadic waves.',
+                    'Local spirits demand respectful offerings before revealing safe paths.',
+                    'Echoing chants trigger wandering monster checks twice as often.',
+                    'Time dilates—short rests last an in-game day unless resisted.',
+                    'The area is contested by rival explorers using experimental gear.',
+                    'Ancient runes rewrite prepared spells every dawn.'
+                ],
+                rewards: [
+                    'Rare reagents infused with planar resonance.',
+                    'Detailed charts revealing ley line intersections.',
+                    'A portal key attuned to another dungeon layer.',
+                    'An NPC contact who trades rumors for escort services.',
+                    'A cache of living armor plating that reshapes itself each night.',
+                    'Blueprints for constructing a siege-sized spell engine.'
+                ],
+                twists: [
+                    'The map rearranges whenever a party member levels up.',
+                    'Inhabitants believe the heroes fulfill an ancient prophecy.',
+                    'A dormant deity awakens mid-exploration demanding parley.',
+                    'The location itself is migrating toward the capital city.',
+                    'A cursed weather pattern follows the party until they make amends.',
+                    'The terrain mirrors a PC’s recurring nightmare exactly.'
+                ]
+            },
+            faction: {
+                label: 'Faction Plot',
+                seeds: [
+                    'The Rat Court seeks alliances against the encroaching Sun Priests.',
+                    'A guild of soul-binders auctions impossible favors each solstice.',
+                    'Rebel peasants build siege trebuchets out of arcane scrap.',
+                    'A cult of probability manipulates gambling halls to sway destiny.',
+                    'River pirates stockpile relics that silence divine magic.',
+                    'A conclave of druids negotiates with a nascent machine intelligence.'
+                ],
+                complications: [
+                    'The faction leader is missing, replaced by an ambitious lieutenant.',
+                    'Allies demand the heroes sabotage a rival they actually admire.',
+                    'The faction’s symbol now brands the party, attracting unwanted attention.',
+                    'Negotiations occur during a volatile truce that can end at any insult.',
+                    'An undercover informant feeds conflicting intel to every side.',
+                    'A sentient contract enforces any promise spoken aloud.'
+                ],
+                rewards: [
+                    'Shared access to a secret safehouse network.',
+                    'Political leverage that sways upcoming town council votes.',
+                    'A squad of loyal hirelings ready for desperate missions.',
+                    'A letter of marque legitimizing the party’s more dubious deeds.',
+                    'An oathbound guardian spirit for one adventure.',
+                    'A vault of faction secrets valuable as blackmail.'
+                ],
+                twists: [
+                    'Two factions merge unexpectedly, changing the stakes overnight.',
+                    'The apparent villain is a scapegoat shielding innocents.',
+                    'A prophetic ledger reveals the heroes become faction leaders.',
+                    'A demon broker offers peace in exchange for a hero’s shadow.',
+                    'The faction’s triumph awakens an older, worse adversary.',
+                    'All signatures disappear from contracts at midnight, nullifying deals.'
+                ]
+            },
+            relic: {
+                label: 'Arcane Relic',
+                seeds: [
+                    'An obsidian astrolabe that hums when planar doors align.',
+                    'A living grimoire eager to trade spells for memories.',
+                    'A crown forged from lightning that resists any wearer.',
+                    'A chalice that brews potions from moonlight and shadow.',
+                    'An animated cloak stitched from dragonfly wings.',
+                    'A bone flute that commands echoes to become illusions.'
+                ],
+                complications: [
+                    'The relic chooses who can touch it without taking Luck damage.',
+                    'It constantly broadcasts dreams to anyone nearby.',
+                    'Each use briefly summons its jealous previous owner.',
+                    'It must be bathed in elemental energy weekly to remain stable.',
+                    'Using it adds a new strange mutation to the wielder.',
+                    'It was promised to a powerful patron who now wants it returned.'
+                ],
+                rewards: [
+                    'Legendary spell augments etched within the relic.',
+                    'Access to a demi-plane workshop for one night per month.',
+                    'A reputation boon among arcane circles.',
+                    'Hidden compartments containing maps to lost hoards.',
+                    'A spectral mentor bound to instruct the relic bearer.',
+                    'Stored memories revealing the relic’s original catastrophe.'
+                ],
+                twists: [
+                    'The relic is a component of a greater, dangerous machine.',
+                    'Its power waxes when a specific constellation rises.',
+                    'The relic splits into shards reflecting party alignments.',
+                    'It awakens an ancient rival artifact seeking reassembly.',
+                    'The relic demands a deed of kindness before each use.',
+                    'Destroying it averts a calamity, but unlocks another quest.'
+                ]
+            }
+        };
+
+        const aiToneProfiles = {
+            neutral: {
+                title: 'Grounded delivery',
+                prompt: 'Keep narration focused on actionable details and table-ready cues.'
+            },
+            hopeful: {
+                title: 'Hopeful cadence',
+                prompt: 'Highlight opportunities for heroism, redemption, and player agency.'
+            },
+            grim: {
+                title: 'Grim urgency',
+                prompt: 'Lean into risk, scarcity, and the cost of failure at every turn.'
+            },
+            whimsical: {
+                title: 'Weird whimsy',
+                prompt: 'Embrace the odd, the wondrous, and the unexpected tonal shifts.'
+            },
+            urgent: {
+                title: 'On-the-clock pacing',
+                prompt: 'Stress ticking clocks, rival actors, and the pressure of immediate choices.'
+            }
+        };
+
+        const aiDialogueData = {
+            roles: {
+                seer: {
+                    label: 'Cryptic Seer',
+                    openers: [
+                        '"I watched the omens dance upon the void and saw this,"',
+                        '"The constellations stitched a whisper for you,"',
+                        '"In the mirror of futures, one reflection screamed your names,"'
+                    ],
+                    mannerisms: [
+                        'speaks in half-sung cadence while drawing sigils mid-air',
+                        'keeps eyes closed, trusting unseen spirits to guide gestures',
+                        'lets sentences trail off as if listening to another voice'
+                    ],
+                    closers: [
+                        '"Decide swiftly, or the stars choose for you."',
+                        '"Remember, fate rewards those who bargain with it."',
+                        '"When the third bell tolls, follow the raven."'
+                    ]
+                },
+                captain: {
+                    label: 'Battle-Worn Captain',
+                    openers: [
+                        '"Listen close—steel and scars taught me this,"',
+                        '"By the scars on my shield, hear this warning,"',
+                        '"I’ve seen more comrades fall than suns rise, so trust me,"'
+                    ],
+                    mannerisms: [
+                        'adjusts battered armor before every sentence',
+                        'keeps voice low to avoid attracting unwanted ears',
+                        'presses a chalk map into the heroes’ hands as they speak'
+                    ],
+                    closers: [
+                        '"If you live, buy the first round."',
+                        '"No shame in retreat—only in ignoring the odds."',
+                        '"Signal me with a blue flare when it’s done."'
+                    ]
+                },
+                trickster: {
+                    label: 'Gleeful Trickster',
+                    openers: [
+                        '"Oh, you’re going to adore this little secret,"',
+                        '"I shouldn’t tell you this, which is why I must,"',
+                        '"Care for a jest that might save your hides?"'
+                    ],
+                    mannerisms: [
+                        'punctuates words with card flourishes and coin flips',
+                        'leans in conspiratorially, eyes glittering with mischief',
+                        'never stops moving, pacing and gesturing dramatically'
+                    ],
+                    closers: [
+                        '"Bring me something shiny if you survive."',
+                        '"Tell them the Laughing Fox sent you—then duck."',
+                        '"Oh, and never trust a statue that blinks."'
+                    ]
+                },
+                scribe: {
+                    label: 'Obsessive Scribe',
+                    openers: [
+                        '"Allow me to cite the relevant passage,"',
+                        '"According to the seventh revision of my notes,"',
+                        '"I cross-referenced three grimoires and discovered this,"'
+                    ],
+                    mannerisms: [
+                        'scribbles shorthand as they speak, quill never pausing',
+                        'adjusts stacks of parchment to match the conversation’s mood',
+                        'pauses to confirm the correct pronunciation of every name'
+                    ],
+                    closers: [
+                        '"Return with annotations, please."',
+                        '"Do sign here acknowledging receipt of this wisdom."',
+                        '"I expect a detailed report by dawn."'
+                    ]
+                }
+            },
+            moods: {
+                calm: {
+                    label: 'Measured',
+                    advice: [
+                        'Keep the delivery steady; reward players who slow down and listen.',
+                        'Let pauses linger to heighten curiosity.',
+                        'Offer gentle reassurance even when delivering bad news.'
+                    ]
+                },
+                tense: {
+                    label: 'Tense',
+                    advice: [
+                        'Clip sentences short to show urgency.',
+                        'Drop hints that time is slipping away.',
+                        'Make eye contact with each player before finishing the line.'
+                    ]
+                },
+                eager: {
+                    label: 'Eager',
+                    advice: [
+                        'Lean forward and speak quickly to convey excitement.',
+                        'Offer a tangible incentive if the party acts now.',
+                        'Laugh or smile mid-sentence to sell the enthusiasm.'
+                    ]
+                },
+                ominous: {
+                    label: 'Ominous',
+                    advice: [
+                        'Lower your voice and add a slow cadence.',
+                        'Describe subtle sensory changes that foreshadow doom.',
+                        'Leave one detail unsaid so players ask follow-up questions.'
+                    ]
+                }
+            },
+            topics: {
+                warning: {
+                    label: 'Dire Warning',
+                    lines: [
+                        '"The next door you open will bleed, unless you honor the chained saint."',
+                        '"Every torch will sputter when the doom clock strikes thirteen."',
+                        '"The dungeon rewinds itself if you slay the wrong sentinel."'
+                    ],
+                    followUps: [
+                        'They caution the heroes to mark their path or become lost in repeating halls.',
+                        'They urge the party to carry salt and bells to disrupt the omen.',
+                        'They insist someone must volunteer to bear a cursed sigil temporarily.'
+                    ]
+                },
+                clue: {
+                    label: 'Cryptic Clue',
+                    lines: [
+                        '"Beneath the third stair, a whisper answers any true name."',
+                        '"The statue's shadow points to the secret door only at moonrise."',
+                        '"Spell runes invert if you read them reflected in mercury."'
+                    ],
+                    followUps: [
+                        'They hint that an NPC rival already solved half the riddle.',
+                        'They suggest the clue ties back to a rumor the party ignored.',
+                        'They offer to trade a diagram in exchange for a favor later.'
+                    ]
+                },
+                bargain: {
+                    label: 'Risky Bargain',
+                    lines: [
+                        '"I’ll loan you my shadow blade, but it eats a memory each dawn."',
+                        '"Sign this pact and the vault opens—your handwriting seals it."',
+                        '"Carry this cursed idol; it draws traps away from you... mostly."'
+                    ],
+                    followUps: [
+                        'They demand collateral: a treasured item or oath.',
+                        'They reveal the bargain angers a mutual ally.',
+                        'They promise to share spoils if the party honors the deal.'
+                    ]
+                },
+                boon: {
+                    label: 'Unusual Boon',
+                    lines: [
+                        '"Accept this bottled sunrise—uncork it when hope runs thin."',
+                        '"This rune brands the bravest among you with borrowed luck."',
+                        '"Wear this ragged sash; dungeon doors misread you as caretakers."'
+                    ],
+                    followUps: [
+                        'They explain the boon works only if shared with an NPC ally.',
+                        'They warn that using the boon summons curious patrons.',
+                        'They ask for a story in return when the deed is done.'
+                    ]
+                }
+            }
+        };
+
         function saveState() {
             try {
                 localStorage.setItem(storageKey, JSON.stringify(state));
@@ -1184,6 +1593,12 @@
 
         function escapeHtml(text) {
             return (text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function pickRandom(list) {
+            if (!Array.isArray(list) || list.length === 0) return '';
+            const index = Math.floor(Math.random() * list.length);
+            return list[index];
         }
 
         function openModal(id) {
@@ -1500,6 +1915,30 @@
                 });
             }
         });
+
+        const dmAIIdeaButton = document.getElementById('dm-ai-generate');
+        if (dmAIIdeaButton) {
+            dmAIIdeaButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                generateDMAIPrepIdea();
+            });
+        }
+
+        const dmAIDialogueButton = document.getElementById('dm-ai-dialogue');
+        if (dmAIDialogueButton) {
+            dmAIDialogueButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                generateDMAIDialogue();
+            });
+        }
+
+        const dmAIClearButton = document.getElementById('dm-ai-history-clear');
+        if (dmAIClearButton) {
+            dmAIClearButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                clearDMAIHistory();
+            });
+        }
 
         const tableSearchInput = document.getElementById('table-search');
         if (tableSearchInput) {
@@ -2759,6 +3198,7 @@
             renderDMNotes();
             renderDMTrackers();
             renderDMRandomHistory();
+            renderDMAIHistory();
             updateStopwatchDisplay();
             ensureStopwatchInterval();
         }
@@ -3007,6 +3447,122 @@
                     <div class="text-sm text-gray-700 dark:text-gray-200">${escapeHtml(entry.result)}</div>
                 </div>
             `).join('');
+        }
+
+        function renderDMAIHistory() {
+            const container = document.getElementById('dm-ai-history');
+            if (!container) return;
+            const history = state.dm.aiHistory || [];
+            if (!history.length) {
+                container.innerHTML = '<p class="text-xs text-gray-500">Generate an idea or NPC line to build a quick-reference log.</p>';
+                return;
+            }
+            const typeLabels = { idea: 'Prep Idea', dialogue: 'NPC Line' };
+            container.innerHTML = history.slice(0, 10).map(entry => {
+                const badgeClass = entry.type === 'dialogue'
+                    ? 'bg-amber-500/20 text-amber-500'
+                    : 'bg-primary/20 text-primary';
+                const timestamp = formatTimestamp(entry.createdAt);
+                const title = escapeHtml(entry.title || typeLabels[entry.type] || 'Prompt');
+                const body = escapeHtml(entry.body || '').replace(/\n/g, '<br>');
+                const label = escapeHtml(typeLabels[entry.type] || 'Prompt');
+                return `
+                    <div class="dm-log-entry bg-white/60 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 rounded p-3 space-y-2">
+                        <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                            <span class="chip ${badgeClass}">${label}</span>
+                            <span>${escapeHtml(timestamp)}</span>
+                        </div>
+                        <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">${title}</div>
+                        <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">${body}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function clearDMAIHistory() {
+            if (!state.dm.aiHistory || !state.dm.aiHistory.length) {
+                renderDMAIHistory();
+                return;
+            }
+            if (!confirm('Clear AI helper log?')) return;
+            state.dm.aiHistory = [];
+            saveState();
+            renderDMAIHistory();
+        }
+
+        function pushDMAIHistory(type, title, body) {
+            if (!state.dm.aiHistory) {
+                state.dm.aiHistory = [];
+            }
+            state.dm.aiHistory.unshift({
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                type,
+                title,
+                body,
+                createdAt: new Date().toISOString()
+            });
+            if (state.dm.aiHistory.length > 10) {
+                state.dm.aiHistory = state.dm.aiHistory.slice(0, 10);
+            }
+            saveState();
+            renderDMAIHistory();
+        }
+
+        function generateDMAIPrepIdea() {
+            const focus = document.getElementById('dm-ai-focus')?.value || 'quest';
+            const tone = document.getElementById('dm-ai-tone')?.value || 'neutral';
+            const briefRaw = document.getElementById('dm-ai-brief')?.value || '';
+            const brief = briefRaw.trim();
+            const focusConfig = aiIdeaTables[focus] || aiIdeaTables.quest;
+            const toneConfig = aiToneProfiles[tone] || aiToneProfiles.neutral;
+            const segments = [];
+            if (brief) {
+                segments.push(`Incorporate: ${brief}`);
+            }
+            const spark = pickRandom(focusConfig.seeds);
+            if (spark) segments.push(`Spark: ${spark}`);
+            const complication = pickRandom(focusConfig.complications);
+            if (complication) segments.push(`Complication: ${complication}`);
+            const reward = pickRandom(focusConfig.rewards);
+            if (reward) segments.push(`Reward: ${reward}`);
+            const twist = pickRandom(focusConfig.twists);
+            if (twist) segments.push(`Twist: ${twist}`);
+            if (toneConfig?.prompt) {
+                segments.push(`Tone: ${toneConfig.prompt}`);
+            }
+            const toneTitle = toneConfig?.title || 'Guidance';
+            const title = `${focusConfig.label} • ${toneTitle}`;
+            const body = segments.join('\n');
+            pushDMAIHistory('idea', title, body);
+        }
+
+        function generateDMAIDialogue() {
+            const role = document.getElementById('dm-ai-role')?.value || 'seer';
+            const mood = document.getElementById('dm-ai-mood')?.value || 'calm';
+            const topic = document.getElementById('dm-ai-topic')?.value || 'warning';
+            const briefRaw = document.getElementById('dm-ai-brief')?.value || '';
+            const brief = briefRaw.trim();
+            const roleConfig = aiDialogueData.roles[role] || aiDialogueData.roles.seer;
+            const moodConfig = aiDialogueData.moods[mood] || aiDialogueData.moods.calm;
+            const topicConfig = aiDialogueData.topics[topic] || aiDialogueData.topics.warning;
+            const opener = pickRandom(roleConfig.openers);
+            const mainLine = pickRandom(topicConfig.lines);
+            const closer = pickRandom(roleConfig.closers);
+            const mannerism = pickRandom(roleConfig.mannerisms);
+            const followUp = pickRandom(topicConfig.followUps);
+            const advice = pickRandom(moodConfig.advice);
+            const spokenLine = [opener, mainLine, closer].filter(Boolean).join(' ');
+            const segments = [];
+            segments.push(`Delivery: ${roleConfig.label} (${moodConfig.label})`);
+            if (mannerism) segments.push(`Mannerism: ${mannerism}`);
+            if (spokenLine) segments.push(`Line: ${spokenLine}`);
+            if (followUp) segments.push(`Follow-up: ${followUp}`);
+            if (brief) segments.push(`Incorporate table brief: ${brief}`);
+            if (advice) segments.push(`GM Tip: ${advice}`);
+            const topicLabel = topicConfig?.label || 'Prompt';
+            const title = `NPC Line • ${topicLabel}`;
+            const body = segments.join('\n');
+            pushDMAIHistory('dialogue', title, body);
         }
 
         function triggerDMGenerator(type) {
