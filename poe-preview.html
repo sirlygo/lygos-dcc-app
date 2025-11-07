@@ -70,6 +70,9 @@
                 <li class="mr-2">
                     <button onclick="switchTab('campaigns')" id="tab-campaigns" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Campaigns</button>
                 </li>
+                <li class="mr-2">
+                    <button onclick="switchTab('ai')" id="tab-ai" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">AI Tools</button>
+                </li>
             </ul>
         </nav>
 
@@ -252,6 +255,138 @@
                 <!-- Campaigns will be added here -->
             </div>
         </div>
+
+        <div id="content-ai" class="tab-content hidden">
+            <h2 class="text-2xl font-bold mb-4">AI Tools</h2>
+            <div class="space-y-6">
+                <section class="bg-gray-50 dark:bg-gray-900 rounded-lg p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xl font-bold">AI Dungeon Master</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Describe a situation and get dynamic narration ideas.</p>
+                    </div>
+                    <textarea id="ai-dm-prompt" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base mb-3" placeholder="The party enters a forgotten temple..."></textarea>
+                    <div class="flex justify-end">
+                        <button onclick="generateAIDMResponse()" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Ask the AI Judge</button>
+                    </div>
+                    <div id="ai-dm-response" class="mt-4 text-sm text-gray-700 dark:text-gray-300 space-y-2">
+                        <p class="text-gray-500 dark:text-gray-400">Prompt the AI Judge to receive scene framing, complications, and sensory details.</p>
+                    </div>
+                </section>
+
+                <section class="bg-gray-50 dark:bg-gray-900 rounded-lg p-5">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+                        <h3 class="text-xl font-bold">AI Campaign Builder</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Generate a mini-campaign outline tailored to your table.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        <div>
+                            <label class="block mb-1 font-semibold">Theme</label>
+                            <input id="ai-campaign-theme" type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base" placeholder="Sword & sorcery heist">
+                        </div>
+                        <div>
+                            <label class="block mb-1 font-semibold">Tone</label>
+                            <select id="ai-campaign-tone" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                                <option value="">Surprise me</option>
+                                <option>Gritty</option>
+                                <option>Heroic</option>
+                                <option>Whimsical</option>
+                                <option>Weird</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block mb-1 font-semibold">Length</label>
+                            <select id="ai-campaign-length" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                                <option value="Short">Short (3 sessions)</option>
+                                <option value="Medium">Medium (5 sessions)</option>
+                                <option value="Long">Long (8+ sessions)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block mb-1 font-semibold">Signature Twist</label>
+                            <input id="ai-campaign-twist" type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base" placeholder="The patron is possessed">
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button onclick="generateAICampaign()" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Generate Campaign</button>
+                    </div>
+                    <div id="ai-campaign-output" class="mt-4 text-sm text-gray-700 dark:text-gray-300 space-y-2">
+                        <p class="text-gray-500 dark:text-gray-400">Use the builder to quickly scaffold arcs, patrons, and threats unique to your campaign.</p>
+                    </div>
+                </section>
+
+                <section class="bg-gray-50 dark:bg-gray-900 rounded-lg p-5">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+                        <h3 class="text-xl font-bold">AI DM Helper</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Grab instant prompts for encounters, NPCs, twists, and rewards.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <button onclick="generateDMHelper('encounter')" class="bg-primary text-white px-3 py-2 rounded hover:bg-opacity-90 transition text-sm">Encounter Idea</button>
+                        <button onclick="generateDMHelper('npc')" class="bg-primary text-white px-3 py-2 rounded hover:bg-opacity-90 transition text-sm">NPC Spotlight</button>
+                        <button onclick="generateDMHelper('twist')" class="bg-primary text-white px-3 py-2 rounded hover:bg-opacity-90 transition text-sm">Plot Twist</button>
+                        <button onclick="generateDMHelper('challenge')" class="bg-primary text-white px-3 py-2 rounded hover:bg-opacity-90 transition text-sm">Skill Challenge</button>
+                        <button onclick="generateDMHelper('treasure')" class="bg-primary text-white px-3 py-2 rounded hover:bg-opacity-90 transition text-sm">Treasure Drop</button>
+                    </div>
+                    <div id="ai-helper-output" class="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+                        <p class="text-gray-500 dark:text-gray-400">Select a category to let the AI helper fill in flavorful details.</p>
+                    </div>
+                </section>
+
+                <section class="bg-gray-50 dark:bg-gray-900 rounded-lg p-5">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+                        <h3 class="text-xl font-bold">AI Character Forge</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Generate balanced characters tuned to level, class, or ancestry.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <div>
+                            <label class="block mb-1 font-semibold">Target Level</label>
+                            <input id="ai-character-level" type="number" min="0" max="10" value="1" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                        </div>
+                        <div>
+                            <label class="block mb-1 font-semibold">Preferred Class</label>
+                            <select id="ai-character-class" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                                <option value="Random">Random</option>
+                                <option value="Peasant">0-Level (Peasant)</option>
+                                <option value="Warrior">Warrior</option>
+                                <option value="Wizard">Wizard</option>
+                                <option value="Cleric">Cleric</option>
+                                <option value="Thief">Thief</option>
+                                <option value="Dwarf">Dwarf</option>
+                                <option value="Elf">Elf</option>
+                                <option value="Halfling">Halfling</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block mb-1 font-semibold">Preferred Ancestry</label>
+                            <select id="ai-character-race" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                                <option value="Random">Random</option>
+                                <option>Human</option>
+                                <option>Dwarf</option>
+                                <option>Elf</option>
+                                <option>Halfling</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block mb-1 font-semibold">Play Style Focus</label>
+                            <select id="ai-character-focus" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                                <option value="Balanced">Balanced</option>
+                                <option value="Combat">Combat</option>
+                                <option value="Magic">Magic</option>
+                                <option value="Skills">Skills</option>
+                                <option value="Survival">Survival</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-3">
+                        <button onclick="generateAICharacter()" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Generate Character</button>
+                        <button id="ai-character-save-btn" onclick="saveGeneratedCharacter()" class="hidden bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition text-base">Add to Character Roster</button>
+                    </div>
+                    <div id="ai-character-message" class="hidden mt-2 text-sm text-green-600 dark:text-green-400 font-semibold"></div>
+                    <div id="ai-character-output" class="mt-4 text-sm text-gray-700 dark:text-gray-300 space-y-2">
+                        <p class="text-gray-500 dark:text-gray-400">Configure preferences, then let the forge craft a ready-to-play hero.</p>
+                    </div>
+                </section>
+            </div>
+        </div>
     </div>
 
     <!-- Create Campaign Modal -->
@@ -428,6 +563,530 @@
         let combatants = [];
         let combatRound = 1;
         let rollHistory = [];
+        let lastGeneratedCharacter = null;
+
+        const aiContent = {
+            dm: {
+                openings: [
+                    'A chill wind coils through the chamber as',
+                    'Under the watchful gaze of forgotten idols,',
+                    'Warped torchlight paints jagged shadows while',
+                    'The scent of ozone mingles with damp stone when',
+                    'An otherworldly chant echoes faintly as'
+                ],
+                complications: [
+                    'a rival faction interrupts with their own agenda',
+                    'the environment begins to collapse around the heroes',
+                    'an ancient ward awakens and demands a sacrifice',
+                    'the party\'s patron contacts them with urgent, conflicting orders',
+                    'a latent corruption flares, mutating the nearest creature'
+                ],
+                sensory: [
+                    'Crystalline motes drift in the air, humming softly at each footstep.',
+                    'A distant drumbeat syncs with the heartbeat of anyone who listens.',
+                    'Every metallic surface is rimed with frost despite the sweltering heat.',
+                    'Whispers in an unknown tongue spill from cracks in the walls.',
+                    'An invisible current tugs at loose clothing toward a sealed archway.'
+                ],
+                twists: [
+                    'The supposed villain is a bound guardian begging for release.',
+                    'An artifact the party carries reacts violently, unlocking a new chamber.',
+                    'The scene is a memory echo that can be altered with bold actions.',
+                    'Time fractures, letting glimpses of future consequences bleed in.',
+                    'A long-lost ally appears—changed, empowered, and unsure of the party.'
+                ]
+            },
+            campaign: {
+                patrons: [
+                    'a repentant demon seeking redemption',
+                    'an ambitious guild of alchemists',
+                    'the spectral council of a ruined city',
+                    'a cabal of star-sailors marooned planeside',
+                    'an oracle whose visions are fragmenting reality'
+                ],
+                villains: [
+                    'a sorcerer stitching monsters from planar echoes',
+                    'a cult of dreamers weaponizing nightmares',
+                    'a tyrant king wearing the Crown of Voices',
+                    'a sentient dungeon expanding beneath the realm',
+                    'an arch-lich composing a dirge to end the sun'
+                ],
+                locations: [
+                    'the Veiled Expanse of mirage-ridden dunes',
+                    'the Storm Loom, a floating fortress caught in a lightning gyre',
+                    'the roots of the World Tree hollowed into labyrinthine halls',
+                    'a chain of volcanic islands linked by living bridges',
+                    'the submerged cathedral of a forgotten moon cult'
+                ],
+                setPieces: [
+                    'negotiating with a sentient portal for safe passage',
+                    'racing a collapsing ziggurat that rearranges itself each round',
+                    'piloting bone skiffs through a river of spectral memories',
+                    'performing a ritual duel while gravity constantly shifts',
+                    'decoding a living spell that speaks in riddles'
+                ],
+                rewards: [
+                    'a relic that lets its bearer rewrite a single past decision',
+                    'boons from a grateful patron deity',
+                    'a keep that exists simultaneously in two locations',
+                    'ancestral weapons that level up with heroic deeds',
+                    'knowledge of a hidden leyline network'
+                ],
+                arcs: [
+                    'Secure a tenuous alliance with a rival faction.',
+                    'Disrupt the villain\'s supply of eldritch resources.',
+                    'Unravel the mystery surrounding a prophetic omen.',
+                    'Escort an unstable artifact to its place of origin.',
+                    'Seal a planar rift before it consumes a settlement.'
+                ]
+            },
+            helper: {
+                encounter: [
+                    'A ghostly procession marches through town. Interacting respectfully earns blessings; disrupting it triggers spectral combat.',
+                    'Bandits astride giant dragonflies swoop in, seeking a runaway noble hiding with the party.',
+                    'A stone titan rises mid-river, demanding a riddle toll while water levels surge dangerously.',
+                    'A rival adventuring band challenges the heroes to non-lethal contests for bragging rights.',
+                    'A living storm lashes the area, forcing the party to navigate chaotic hazards to reach shelter.'
+                ],
+                npc: [
+                    'Zerla Quickstep, halfling mapmancer who tattooed every route she has ever walked.',
+                    'Brother Caldus, warrior-priest whose holy symbol glows brighter near lies.',
+                    'Ivory Nyx, elf diplomat who speaks with mirror reflections instead of mouths.',
+                    'Torren Blackbriar, dwarf brewer crafting ales from distilled elemental essences.',
+                    'Seraphine Vell, human astrologer haunted by constellations only she can see.'
+                ],
+                twist: [
+                    'The true villain is a future version of an ally trying to avert disaster.',
+                    'Every treasure recovered is a prison cell for a benevolent spirit.',
+                    'The dungeon is an elaborate test orchestrated by the party\'s patron.',
+                    'An eclipse locks the world in twilight until a forgotten oath is spoken.',
+                    'Magic begins to fail unless fueled by personal memories.'
+                ],
+                challenge: [
+                    'Navigate a hall of living glyphs that drain abilities unless deciphered collaboratively.',
+                    'Calm a rampaging elemental by reenacting the lullaby of its creator.',
+                    'Cross a chasm using improvised rope bridges before the winds shift.',
+                    'Convince a council of spirits to release the soul of a fallen companion.',
+                    'Repair a cursed artifact mid-battle to turn it against its master.'
+                ],
+                treasure: [
+                    'The Echo Key: once per session, repeat the result of a previously rolled die.',
+                    'Boots of the Meteor Step: leap thrice your height and leave blazing footprints.',
+                    'Lantern of Lost Paths: reveals hidden doorways, but extinguishes mundane lights nearby.',
+                    'Charm of Stolen Hours: regain a spent ability by sacrificing a memory.',
+                    'Farsight Compass: points toward the nearest significant secret, not true north.'
+                ]
+            },
+            character: {
+                backgrounds: [
+                    'Escaped bondservant turned treasure scout.',
+                    'Former courtier seeking redemption for past intrigues.',
+                    'Wandering scholar obsessed with lost dialects.',
+                    'Survivor of a cult uprising bearing cryptic tattoos.',
+                    'Beast tamer who hears the whispers of ancient spirits.',
+                    'Reluctant heir to a cursed bloodline.',
+                    'Planar refugee mapping the strange new realm.'
+                ],
+                motivations: [
+                    'Prove their worth to a skeptical mentor.',
+                    'Acquire enough gold to rebuild a fallen village.',
+                    'Unlock the secret behind recurring prophetic dreams.',
+                    'Protect companions at all costs after losing their last band.',
+                    'Amass relics to barter for a loved one\'s freedom from the afterlife.'
+                ],
+                gear: [
+                    'Rune-etched dagger that vibrates near sorcery.',
+                    'Bundle of well-worn maps tied with red twine.',
+                    'Totem charm carved from meteor iron.',
+                    'Hooded lantern with stained-glass panels.',
+                    'Journal of enemy weaknesses compiled meticulously.',
+                    'Curio satchel filled with bones, herbs, and polished stones.'
+                ],
+                quirks: [
+                    'Keeps a tally of debts owed and favors granted.',
+                    'Collects last words of fallen foes in a leather-bound book.',
+                    'Always hums sea shanties before battle.',
+                    'Throws knucklebones to consult fate each dawn.',
+                    'Refuses to eat rations unless they are toasted over open flame.'
+                ],
+                names: {
+                    Human: ['Arlen', 'Mira', 'Joren', 'Selise', 'Thane', 'Lysa', 'Corin', 'Velra'],
+                    Dwarf: ['Bromm', 'Korga', 'Durin', 'Helga', 'Marn', 'Sigrid'],
+                    Elf: ['Aerith', 'Lorian', 'Sylvar', 'Thalindra', 'Vorenn', 'Eliara'],
+                    Halfling: ['Pipkin', 'Briala', 'Tucker', 'Meri', 'Lottie', 'Finnan']
+                }
+            }
+        };
+
+        const classBlueprints = {
+            Peasant: {
+                hitDie: 4,
+                baseAC: 10,
+                speed: 30,
+                specialties: ['Improvised weapons', 'Sheer luck'],
+                equipment: ['Pitchfork or club', 'Sling with 10 stones', 'Worn satchel of keepsakes']
+            },
+            Warrior: {
+                hitDie: 12,
+                baseAC: 14,
+                speed: 30,
+                specialties: ['Mighty deed of arms', 'Battlefield presence'],
+                equipment: ['Chain hauberk', 'Shield emblazoned with personal heraldry', 'Trusted melee weapon']
+            },
+            Wizard: {
+                hitDie: 4,
+                baseAC: 10,
+                speed: 30,
+                specialties: ['Mercurial magic', 'Spell dueling'],
+                equipment: ['Spellbook of volatile glyphs', 'Crystal focus rod', 'Pouch of alchemical reagents']
+            },
+            Cleric: {
+                hitDie: 8,
+                baseAC: 13,
+                speed: 30,
+                specialties: ['Turn unholy', 'Lay on hands'],
+                equipment: ['Sanctified weapon', 'Holy symbol reliquary', 'Traveling prayer mat']
+            },
+            Thief: {
+                hitDie: 6,
+                baseAC: 12,
+                speed: 30,
+                specialties: ['Backstab', 'Luck manipulation'],
+                equipment: ['Shadowweave cloak', 'Lockpick assortment', 'Throwing knives']
+            },
+            Dwarf: {
+                hitDie: 10,
+                baseAC: 15,
+                speed: 20,
+                specialties: ['Stonecunning', 'Shield wall'],
+                equipment: ['Warhammer', 'Shield of clan sigils', 'Belt of artisan tools']
+            },
+            Elf: {
+                hitDie: 6,
+                baseAC: 13,
+                speed: 30,
+                specialties: ['Spellblade techniques', 'Keen senses'],
+                equipment: ['Runic longsword', 'Spell-stitched cloak', 'Fey-crafted bow']
+            },
+            Halfling: {
+                hitDie: 6,
+                baseAC: 14,
+                speed: 20,
+                specialties: ['Two-weapon trickery', 'Luck sharing'],
+                equipment: ['Paired daggers', 'Pocketful of calming herbs', 'Slingshot with lucky stones']
+            }
+        };
+
+        const focusAdjustments = {
+            Balanced: {},
+            Combat: { str: 2, sta: 1 },
+            Magic: { int: 2, per: 1, str: -1 },
+            Skills: { agi: 2, per: 1 },
+            Survival: { sta: 2, luc: 1 }
+        };
+
+        const raceAdjustments = {
+            Human: { speed: 30 },
+            Dwarf: { str: 1, sta: 2, speed: 20 },
+            Elf: { agi: 1, int: 1, sta: -1, speed: 30 },
+            Halfling: { agi: 2, luc: 1, str: -1, speed: 20 }
+        };
+
+        function sample(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        function roll3d6() {
+            return Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1;
+        }
+
+        function clampAbility(score) {
+            return Math.max(3, Math.min(18, score));
+        }
+
+        function generateAIDMResponse() {
+            const promptInput = document.getElementById('ai-dm-prompt');
+            const output = document.getElementById('ai-dm-response');
+            const rawPrompt = promptInput.value.trim();
+
+            if (!rawPrompt) {
+                output.innerHTML = '<p class="text-red-600 dark:text-red-400">Provide a situation for the AI Judge to elaborate on.</p>';
+                return;
+            }
+
+            const normalized = rawPrompt.replace(/\s+/g, ' ').trim();
+            const lowered = normalized.charAt(0).toLowerCase() + normalized.slice(1);
+            const sceneIntro = `${sample(aiContent.dm.openings)} ${lowered}`.replace(/\s+([,.!?])/g, '$1');
+            const complication = sample(aiContent.dm.complications);
+            const sensory = sample(aiContent.dm.sensory);
+            const twist = sample(aiContent.dm.twists);
+
+            output.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
+                    <div>
+                        <h4 class="font-semibold text-base mb-1">Scene Framing</h4>
+                        <p>${sceneIntro.endsWith('.') ? sceneIntro : sceneIntro + '.'}</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-base mb-1">Immediate Complication</h4>
+                        <p>${complication.charAt(0).toUpperCase() + complication.slice(1)}.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-base mb-1">Sensory Details</h4>
+                        <p>${sensory}</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-base mb-1">Dynamic Twist</h4>
+                        <p>${twist}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateAICampaign() {
+            const themeInput = document.getElementById('ai-campaign-theme').value.trim();
+            const toneInput = document.getElementById('ai-campaign-tone').value;
+            const lengthInput = document.getElementById('ai-campaign-length').value || 'Short';
+            const twistInput = document.getElementById('ai-campaign-twist').value.trim();
+            const output = document.getElementById('ai-campaign-output');
+
+            const tone = toneInput || sample(['Gritty', 'Heroic', 'Weird', 'Whimsical']);
+            const theme = themeInput || sample(['forbidden magic heist', 'desperate planar rescue', 'siege of a haunted keep', 'political intrigue among warlords']);
+            const twist = twistInput || sample(aiContent.dm.twists);
+
+            const patron = sample(aiContent.campaign.patrons);
+            const villain = sample(aiContent.campaign.villains);
+            const location = sample(aiContent.campaign.locations);
+            const setPiece = sample(aiContent.campaign.setPieces);
+            const reward = sample(aiContent.campaign.rewards);
+
+            const arcTarget = { Short: 3, Medium: 4, Long: 5 }[lengthInput] || 3;
+            const arcPool = [...aiContent.campaign.arcs];
+            const arcs = [];
+            for (let i = 0; i < arcTarget; i++) {
+                if (arcPool.length === 0) break;
+                const index = Math.floor(Math.random() * arcPool.length);
+                arcs.push(arcPool.splice(index, 1)[0]);
+            }
+
+            output.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
+                    <div>
+                        <h4 class="font-semibold text-base mb-1">Campaign Pitch (${tone} tone)</h4>
+                        <p>The heroes embark on a ${theme} set amid ${location}. Their patron is ${patron}, but opposition gathers in the form of ${villain}.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-base mb-1">Signature Set Piece</h4>
+                        <p>${setPiece.charAt(0).toUpperCase() + setPiece.slice(1)}.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-base mb-1">Story Arcs</h4>
+                        <ol class="list-decimal ml-5 space-y-1">
+                            ${arcs.map(arc => `<li>${arc}</li>`).join('')}
+                        </ol>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-base mb-1">Campaign Twist</h4>
+                        <p>${twist}</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-base mb-1">Long-Term Reward</h4>
+                        <p>${reward}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateDMHelper(type) {
+            const output = document.getElementById('ai-helper-output');
+            const entries = aiContent.helper[type];
+
+            if (!entries) {
+                output.innerHTML = '<p class="text-red-600 dark:text-red-400">No generator found for that category.</p>';
+                return;
+            }
+
+            const idea = sample(entries);
+            output.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <p>${idea}</p>
+                </div>
+            `;
+        }
+
+        function buildAbilityGrid(stats) {
+            const keys = [
+                ['STR', stats.str],
+                ['AGI', stats.agi],
+                ['STA', stats.sta],
+                ['PER', stats.per],
+                ['INT', stats.int],
+                ['LUC', stats.luc]
+            ];
+
+            return keys.map(([label, value]) => {
+                const mod = getModifier(value);
+                const modText = `${mod >= 0 ? '+' : ''}${mod}`;
+                return `
+                    <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center">
+                        <div class="font-semibold">${label}</div>
+                        <div class="text-xl">${value}</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">${modText}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function generateAICharacter() {
+            const level = Math.max(0, Math.min(10, parseInt(document.getElementById('ai-character-level').value, 10) || 0));
+            const classPreference = document.getElementById('ai-character-class').value;
+            const racePreference = document.getElementById('ai-character-race').value;
+            const focus = document.getElementById('ai-character-focus').value || 'Balanced';
+            const output = document.getElementById('ai-character-output');
+            const message = document.getElementById('ai-character-message');
+            const saveButton = document.getElementById('ai-character-save-btn');
+
+            const availableClasses = Object.keys(classBlueprints);
+            let chosenClass = classPreference === 'Random' ? sample(availableClasses.filter(cls => level === 0 ? cls === 'Peasant' : cls !== 'Peasant')) : classPreference;
+            if (level === 0) {
+                chosenClass = 'Peasant';
+            }
+
+            let chosenRace = racePreference === 'Random' ? sample(Object.keys(aiContent.character.names)) : racePreference;
+            if (!aiContent.character.names[chosenRace]) {
+                chosenRace = 'Human';
+            }
+
+            const baseStats = {
+                str: roll3d6(),
+                agi: roll3d6(),
+                sta: roll3d6(),
+                per: roll3d6(),
+                int: roll3d6(),
+                luc: roll3d6()
+            };
+
+            const focusAdjust = focusAdjustments[focus] || {};
+            Object.entries(focusAdjust).forEach(([key, delta]) => {
+                if (baseStats[key] !== undefined) {
+                    baseStats[key] = clampAbility(baseStats[key] + delta);
+                }
+            });
+
+            const raceAdjust = raceAdjustments[chosenRace] || {};
+            Object.entries(raceAdjust).forEach(([key, delta]) => {
+                if (key === 'speed') return;
+                if (baseStats[key] !== undefined) {
+                    baseStats[key] = clampAbility(baseStats[key] + delta);
+                }
+            });
+
+            const classInfo = classBlueprints[chosenClass] || classBlueprints.Peasant;
+            const staminaMod = getModifier(baseStats.sta);
+            const effectiveLevel = Math.max(level, chosenClass === 'Peasant' ? level : Math.max(level, 1));
+
+            let hpMax = classInfo.hitDie + staminaMod;
+            if (effectiveLevel > 1) {
+                for (let i = 2; i <= effectiveLevel; i++) {
+                    hpMax += Math.max(1, Math.ceil(classInfo.hitDie / 2) + staminaMod);
+                }
+            }
+            hpMax = Math.max(1, hpMax);
+
+            const agilityMod = Math.max(0, getModifier(baseStats.agi));
+            const baseSpeed = raceAdjust.speed || classInfo.speed || 30;
+            const speed = focus === 'Survival' ? baseSpeed + 5 : baseSpeed;
+            const ac = classInfo.baseAC + agilityMod;
+
+            const namePool = aiContent.character.names[chosenRace] || aiContent.character.names.Human;
+            const name = sample(namePool);
+            const background = sample(aiContent.character.backgrounds);
+            const motivation = sample(aiContent.character.motivations);
+            const extraGear = sample(aiContent.character.gear);
+            const quirk = sample(aiContent.character.quirks);
+
+            const equipmentNotes = `${classInfo.equipment.join(', ')}; ${extraGear}. Quirk: ${quirk}`;
+            const storyNotes = `${background} ${motivation}`;
+
+            lastGeneratedCharacter = {
+                name,
+                level,
+                class: chosenClass,
+                str: baseStats.str,
+                agi: baseStats.agi,
+                sta: baseStats.sta,
+                per: baseStats.per,
+                int: baseStats.int,
+                luc: baseStats.luc,
+                hpMax,
+                hpCurrent: hpMax,
+                ac,
+                speed,
+                equipment: `${storyNotes}\n\nSignature gear: ${equipmentNotes}`
+            };
+
+            message.classList.add('hidden');
+            saveButton.classList.remove('hidden');
+            saveButton.disabled = false;
+            saveButton.textContent = 'Add to Character Roster';
+
+            output.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                        <div>
+                            <h4 class="text-xl font-bold">${name}, Level ${level} ${chosenRace} ${chosenClass}</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">${storyNotes}</p>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3 text-center">
+                            <div>
+                                <div class="text-xs uppercase text-gray-500 dark:text-gray-400">HP</div>
+                                <div class="text-lg font-semibold">${hpMax}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs uppercase text-gray-500 dark:text-gray-400">AC</div>
+                                <div class="text-lg font-semibold">${ac}</div>
+                            </div>
+                            <div>
+                                <div class="text-xs uppercase text-gray-500 dark:text-gray-400">Speed</div>
+                                <div class="text-lg font-semibold">${speed} ft</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        ${buildAbilityGrid(baseStats)}
+                    </div>
+                    <div>
+                        <h5 class="font-semibold mb-1">Class Highlights</h5>
+                        <ul class="list-disc ml-5 space-y-1 text-sm">
+                            ${classInfo.specialties.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 class="font-semibold mb-1">Equipment & Traits</h5>
+                        <p>${equipmentNotes}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function saveGeneratedCharacter() {
+            if (!lastGeneratedCharacter) return;
+
+            const character = {
+                ...lastGeneratedCharacter,
+                id: Date.now()
+            };
+
+            characters.push(character);
+            renderCharacters();
+
+            const message = document.getElementById('ai-character-message');
+            const saveButton = document.getElementById('ai-character-save-btn');
+            message.textContent = `${character.name} added to your character roster.`;
+            message.classList.remove('hidden');
+            saveButton.textContent = 'Character Added!';
+            saveButton.disabled = true;
+        }
 
         // Tab switching
         function switchTab(tab) {
