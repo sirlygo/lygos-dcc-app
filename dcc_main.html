@@ -121,6 +121,32 @@
             </div>
         </section>
 
+        <nav class="border-b border-gray-300 dark:border-gray-800">
+            <ul class="flex flex-wrap -mb-px text-sm md:text-base">
+                <li class="mr-2">
+                    <button data-tab="characters" onclick="switchTab('characters')" id="tab-characters" class="tab-active inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Characters</button>
+                </li>
+                <li class="mr-2">
+                    <button data-tab="dice" onclick="switchTab('dice')" id="tab-dice" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Dice Roller</button>
+                </li>
+                <li class="mr-2">
+                    <button data-tab="combat" onclick="switchTab('combat')" id="tab-combat" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Combat Tracker</button>
+                </li>
+                <li class="mr-2">
+                    <button data-tab="map" onclick="switchTab('map')" id="tab-map" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Maps</button>
+                </li>
+                <li class="mr-2">
+                    <button data-tab="tables" onclick="switchTab('tables')" id="tab-tables" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Reference Tables</button>
+                </li>
+                <li class="mr-2">
+                    <button data-tab="campaigns" onclick="switchTab('campaigns')" id="tab-campaigns" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Campaigns</button>
+                </li>
+                <li class="mr-2">
+                    <button data-tab="dm" onclick="switchTab('dm')" id="tab-dm" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">DM Tools</button>
+                </li>
+            </ul>
+        </nav>
+
         <!-- DM Tools Tab -->
         <section id="content-dm" class="tab-content hidden space-y-4">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -241,32 +267,6 @@
                 </div>
             </div>
         </section>
-
-        <nav class="border-b border-gray-300 dark:border-gray-800">
-            <ul class="flex flex-wrap -mb-px text-sm md:text-base">
-                <li class="mr-2">
-                    <button data-tab="characters" onclick="switchTab('characters')" id="tab-characters" class="tab-active inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Characters</button>
-                </li>
-                <li class="mr-2">
-                    <button data-tab="dice" onclick="switchTab('dice')" id="tab-dice" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Dice Roller</button>
-                </li>
-                <li class="mr-2">
-                    <button data-tab="combat" onclick="switchTab('combat')" id="tab-combat" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Combat Tracker</button>
-                </li>
-                <li class="mr-2">
-                    <button data-tab="map" onclick="switchTab('map')" id="tab-map" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Maps</button>
-                </li>
-                <li class="mr-2">
-                    <button data-tab="tables" onclick="switchTab('tables')" id="tab-tables" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Reference Tables</button>
-                </li>
-                <li class="mr-2">
-                    <button data-tab="campaigns" onclick="switchTab('campaigns')" id="tab-campaigns" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Campaigns</button>
-                </li>
-                <li class="mr-2">
-                    <button data-tab="dm" onclick="switchTab('dm')" id="tab-dm" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">DM Tools</button>
-                </li>
-            </ul>
-        </nav>
 
         <!-- Characters Tab -->
         <section id="content-characters" class="tab-content space-y-4">
