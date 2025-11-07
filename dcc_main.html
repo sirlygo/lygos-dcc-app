@@ -114,6 +114,24 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Roster Size</p>
+                    <p class="text-2xl font-bold" id="character-count">0</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Includes all saved heroes, henchfolk, and notable NPCs.</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Average Level</p>
+                    <p class="text-2xl font-bold" id="character-average-level">0</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tracks how battle-tested your table has become.</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Most Common Class</p>
+                    <p class="text-2xl font-bold" id="character-top-class">—</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Use this to spot gaps in your party composition.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 space-y-3 border border-gray-200 dark:border-gray-800">
                     <div>
                         <label class="block text-sm font-semibold mb-1">Search</label>
@@ -214,6 +232,29 @@
                 </div>
             </div>
 
+            <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-6">
+                <h3 class="text-xl font-bold mb-4">Roll Insights</h3>
+                <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                    <div>
+                        <dt class="uppercase text-xs tracking-wide text-gray-500 dark:text-gray-400">Rolls Logged</dt>
+                        <dd class="mt-1 text-xl font-semibold" id="dice-roll-count">0</dd>
+                    </div>
+                    <div>
+                        <dt class="uppercase text-xs tracking-wide text-gray-500 dark:text-gray-400">Average Total</dt>
+                        <dd class="mt-1 text-xl font-semibold" id="dice-average-total">0</dd>
+                    </div>
+                    <div>
+                        <dt class="uppercase text-xs tracking-wide text-gray-500 dark:text-gray-400">Highest Result</dt>
+                        <dd class="mt-1 text-xl font-semibold" id="dice-highest-total">0</dd>
+                    </div>
+                    <div>
+                        <dt class="uppercase text-xs tracking-wide text-gray-500 dark:text-gray-400">Most Used Formula</dt>
+                        <dd class="mt-1 text-xl font-semibold" id="dice-popular-formula">—</dd>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" id="dice-last-roll">No rolls yet.</p>
+                    </div>
+                </dl>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div class="lg:col-span-2 bg-gray-50 dark:bg-surface rounded-lg p-6 border border-gray-200 dark:border-gray-800">
                     <div class="flex items-center justify-between mb-4">
@@ -298,6 +339,29 @@
                     <button onclick="updateCombatRound(-1)" class="px-3 py-1 border border-primary text-primary rounded hover:bg-primary hover:text-white transition text-sm">-</button>
                     <button onclick="updateCombatRound(1)" class="px-3 py-1 border border-primary text-primary rounded hover:bg-primary hover:text-white transition text-sm">+</button>
                     <button onclick="resetCombatRound()" class="px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-primary">Reset</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Combatants</p>
+                    <p class="text-2xl font-bold" id="combat-total">0</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Total creatures currently tracked in the encounter.</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Ready Adventurers</p>
+                    <p class="text-2xl font-bold" id="combat-pc-count">0</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">PCs or allied retainers ready to act.</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Hostile Foes</p>
+                    <p class="text-2xl font-bold" id="combat-hostile-count">0</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">NPCs and monsters opposing the party.</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Downed Combatants</p>
+                    <p class="text-2xl font-bold" id="combat-downed-count">0</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" id="combat-next-actor">No initiative set.</p>
                 </div>
             </div>
 
@@ -391,6 +455,26 @@
                         <li><span class="font-semibold">10:</span> Runes scar across skin</li>
                     </ul>
                 </div>
+                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800">
+                    <h3 class="text-xl font-bold mb-3">Common Difficulty Checks</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><span class="font-semibold">DC 5:</span> Simple task anyone trained could attempt.</li>
+                        <li><span class="font-semibold">DC 10:</span> Challenging but routine for an adventurer.</li>
+                        <li><span class="font-semibold">DC 15:</span> Tough obstacle requiring planning or aid.</li>
+                        <li><span class="font-semibold">DC 20:</span> Heroic feat; expect setbacks without luck.</li>
+                        <li><span class="font-semibold">DC 25+:</span> Legendary difficulty suited for epic moments.</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800">
+                    <h3 class="text-xl font-bold mb-3">Quick NPC Prompts</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><span class="font-semibold">Quirks:</span> Nervous stutter, booming laugh, unsettling calm.</li>
+                        <li><span class="font-semibold">Motives:</span> Seeking relics, protecting kin, chasing fame.</li>
+                        <li><span class="font-semibold">Hooks:</span> Owes the party a favor, holds a dangerous secret, desperate for coin.</li>
+                        <li><span class="font-semibold">Complications:</span> Rival adventurers, cursed heirloom, cult entanglements.</li>
+                        <li class="italic text-xs">Use one from each line to improvise colorful encounters.</li>
+                    </ul>
+                </div>
             </div>
         </section>
 
@@ -402,6 +486,23 @@
                     <p class="text-sm text-gray-600 dark:text-gray-400">Organize adventures, track session notes, and keep a living world bible.</p>
                 </div>
                 <button onclick="showCampaignForm()" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-sm">+ New Campaign</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Active Campaigns</p>
+                    <p class="text-2xl font-bold" id="campaign-count">0</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Worlds you are currently shepherding at the table.</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Adventures Logged</p>
+                    <p class="text-2xl font-bold" id="campaign-adventure-count">0</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Total adventure modules or scenarios recorded.</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Latest Session</p>
+                    <p class="text-2xl font-bold leading-snug" id="campaign-latest-session">No sessions logged</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Helps you remember when the party last delved the dungeon.</p>
+                </div>
             </div>
             <div id="campaign-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </section>
@@ -858,7 +959,38 @@
             openModal('character-form-modal');
         }
 
+        function updateCharacterSummary() {
+            const countEl = document.getElementById('character-count');
+            const avgEl = document.getElementById('character-average-level');
+            const topClassEl = document.getElementById('character-top-class');
+            if (!countEl || !avgEl || !topClassEl) return;
+
+            const total = state.characters.length;
+            countEl.textContent = total;
+
+            const averageLevel = total
+                ? (state.characters.reduce((sum, char) => sum + (parseInt(char.level, 10) || 0), 0) / total)
+                : 0;
+            avgEl.textContent = averageLevel.toFixed(1);
+
+            if (!total) {
+                topClassEl.textContent = '—';
+                return;
+            }
+
+            const classCounts = state.characters.reduce((acc, char) => {
+                const key = (char.class || 'Untrained').trim() || 'Untrained';
+                acc[key] = (acc[key] || 0) + 1;
+                return acc;
+            }, {});
+
+            const [topClass, topCount] = Object.entries(classCounts)
+                .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+            topClassEl.textContent = `${topClass} (${topCount})`;
+        }
+
         function renderCharacters() {
+            updateCharacterSummary();
             const container = document.getElementById('character-list');
             if (!container) return;
 
@@ -1231,6 +1363,41 @@
             renderSavedRolls();
         }
 
+        function updateDiceSummary() {
+            const countEl = document.getElementById('dice-roll-count');
+            const avgEl = document.getElementById('dice-average-total');
+            const highEl = document.getElementById('dice-highest-total');
+            const formulaEl = document.getElementById('dice-popular-formula');
+            const lastEl = document.getElementById('dice-last-roll');
+            if (!countEl || !avgEl || !highEl || !formulaEl || !lastEl) return;
+
+            const totalRolls = state.diceHistory.length;
+            countEl.textContent = totalRolls;
+
+            if (!totalRolls) {
+                avgEl.textContent = '0.0';
+                highEl.textContent = '0';
+                formulaEl.textContent = '—';
+                lastEl.textContent = 'No rolls yet.';
+                return;
+            }
+
+            const totalSum = state.diceHistory.reduce((sum, entry) => sum + (entry.total || 0), 0);
+            avgEl.textContent = (totalSum / totalRolls).toFixed(1);
+            highEl.textContent = Math.max(...state.diceHistory.map(entry => entry.total || 0));
+
+            const formulaCounts = state.diceHistory.reduce((acc, entry) => {
+                const key = entry.formula || 'Unknown';
+                acc[key] = (acc[key] || 0) + 1;
+                return acc;
+            }, {});
+            const [popularFormula] = Object.entries(formulaCounts)
+                .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+            formulaEl.textContent = `${popularFormula} (${formulaCounts[popularFormula]})`;
+            const mostRecent = state.diceHistory[0]?.timestamp;
+            lastEl.textContent = mostRecent ? `Last roll at ${mostRecent}` : 'Recent roll time unavailable';
+        }
+
         function clearRollHistory() {
             if (!state.diceHistory.length) return;
             if (!confirm('Clear the dice history?')) return;
@@ -1240,6 +1407,7 @@
         }
 
         function displayRollResults() {
+            updateDiceSummary();
             const container = document.getElementById('dice-results');
             if (!container) return;
             if (state.diceHistory.length === 0) {
@@ -1296,7 +1464,49 @@
             document.getElementById('combat-init-mod').value = 0;
         });
 
+        function updateCombatSummary() {
+            const totalEl = document.getElementById('combat-total');
+            const pcEl = document.getElementById('combat-pc-count');
+            const hostileEl = document.getElementById('combat-hostile-count');
+            const downedEl = document.getElementById('combat-downed-count');
+            const nextEl = document.getElementById('combat-next-actor');
+            if (!totalEl || !pcEl || !hostileEl || !downedEl || !nextEl) return;
+
+            const combatants = state.combat.combatants;
+            totalEl.textContent = combatants.length;
+
+            const isPC = (combatant) => {
+                const tags = combatant.tags || [];
+                return combatant.type === 'pc' || tags.some(tag => /pc|ally|retainer/i.test(tag));
+            };
+            const isHostile = (combatant) => {
+                const tags = combatant.tags || [];
+                if (combatant.type === 'monster') return true;
+                if (combatant.type === 'npc' && !isPC(combatant)) return true;
+                return tags.some(tag => /enemy|foe|hostile/i.test(tag));
+            };
+
+            pcEl.textContent = combatants.filter(isPC).length;
+            hostileEl.textContent = combatants.filter(isHostile).length;
+            downedEl.textContent = combatants.filter(c => (c.hp || 0) <= 0).length;
+
+            if (!combatants.length) {
+                nextEl.textContent = 'No initiative set.';
+                return;
+            }
+
+            const active = state.combat.activeId
+                ? combatants.find(c => c.id === state.combat.activeId)
+                : combatants[0];
+            if (active) {
+                nextEl.textContent = `Next up: ${active.name} (Init ${active.initiative})`;
+            } else {
+                nextEl.textContent = 'Set initiative order to spotlight the next actor.';
+            }
+        }
+
         function renderCombat() {
+            updateCombatSummary();
             document.getElementById('combat-round').textContent = state.combat.round;
             const container = document.getElementById('combat-list');
             if (!container) return;
@@ -1481,7 +1691,34 @@
             }
         });
 
+        function updateCampaignSummary() {
+            const countEl = document.getElementById('campaign-count');
+            const adventureEl = document.getElementById('campaign-adventure-count');
+            const latestEl = document.getElementById('campaign-latest-session');
+            if (!countEl || !adventureEl || !latestEl) return;
+
+            const campaigns = state.campaigns;
+            countEl.textContent = campaigns.length;
+
+            const totalAdventures = campaigns.reduce((sum, campaign) => sum + ((campaign.adventures || []).length), 0);
+            adventureEl.textContent = totalAdventures;
+
+            const sessions = campaigns.flatMap(campaign => (campaign.sessions || []).map(session => ({
+                ...session,
+                date: new Date(session.date)
+            })).filter(entry => !isNaN(entry.date)));
+
+            if (!sessions.length) {
+                latestEl.textContent = 'No sessions logged';
+                return;
+            }
+
+            const latestSession = sessions.sort((a, b) => b.date - a.date)[0];
+            latestEl.textContent = latestSession.date.toLocaleString();
+        }
+
         function renderCampaigns() {
+            updateCampaignSummary();
             const container = document.getElementById('campaign-list');
             if (!container) return;
             if (!state.campaigns.length) {
