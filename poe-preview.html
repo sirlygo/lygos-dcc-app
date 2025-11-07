@@ -1,4 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="x-poe-datastore-behavior" content="local_only">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DCC Virtual Tabletop</title>
@@ -10,7 +14,11 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#5D5CDE'
+                        primary: '#5D5CDE',
+                        night: '#181818'
+                    },
+                    boxShadow: {
+                        glow: '0 10px 30px -10px rgba(93, 92, 222, 0.45)'
                     }
                 }
             }
@@ -18,14 +26,14 @@
     </script>
     <style>
         .dice-result {
-            animation: rollIn 0.3s ease-out;
+            animation: rollIn 0.35s ease-out;
         }
         @keyframes rollIn {
-            from {
-                transform: scale(0.5) rotate(180deg);
+            0% {
+                transform: scale(0.75) rotate(-8deg);
                 opacity: 0;
             }
-            to {
+            100% {
                 transform: scale(1) rotate(0deg);
                 opacity: 1;
             }
@@ -34,414 +42,596 @@
             border-bottom: 3px solid #5D5CDE;
             color: #5D5CDE;
         }
-        .stat-modifier {
-            font-size: 0.75rem;
-            opacity: 0.8;
-        }
         .modal-backdrop {
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.55);
             backdrop-filter: blur(4px);
         }
     </style>
-<script src="https://puc.poecdn.net/authenticated_preview_page/syncedState.3f7572448765332f3047.js"></script></head>
-<body class="bg-white dark:bg-[#181818] text-gray-900 dark:text-gray-100 min-h-screen transition-colors">
-    <div class="max-w-7xl mx-auto p-4">
-        <!-- Header -->
-        <header class="mb-6">
-            <h1 class="text-3xl md:text-4xl font-bold text-center mb-2">DCC Virtual Tabletop</h1>
-            <p class="text-center text-gray-600 dark:text-gray-400">Dungeon Crawl Classics RPG</p>
+    <script src="https://puc.poecdn.net/authenticated_preview_page/syncedState.3f7572448765332f3047.js"></script>
+</head>
+<body class="bg-white dark:bg-night text-gray-900 dark:text-gray-100 min-h-screen transition-colors">
+    <div class="max-w-7xl mx-auto p-4 md:p-6">
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-extrabold tracking-tight mb-2">Dungeon Crawl Classics Companion</h1>
+            <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">A light-weight virtual tabletop helper for running gritty, gonzo adventures. Track characters, manage combats, plan campaigns, and keep table references at your fingertips.</p>
         </header>
 
-        <!-- Navigation Tabs -->
         <nav class="border-b border-gray-300 dark:border-gray-700 mb-6">
             <ul class="flex flex-wrap -mb-px text-sm md:text-base">
                 <li class="mr-2">
-                    <button onclick="switchTab('characters')" id="tab-characters" class="tab-active inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Characters</button>
+                    <button id="tab-characters" class="tab-active inline-block p-4 border-b-2 border-transparent hover:text-primary transition" data-tab="characters">Characters</button>
                 </li>
                 <li class="mr-2">
-                    <button onclick="switchTab('dice')" id="tab-dice" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Dice Roller</button>
+                    <button id="tab-dice" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition" data-tab="dice">Dice Roller</button>
                 </li>
                 <li class="mr-2">
-                    <button onclick="switchTab('combat')" id="tab-combat" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Combat Tracker</button>
+                    <button id="tab-combat" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition" data-tab="combat">Combat Tracker</button>
                 </li>
                 <li class="mr-2">
-                    <button onclick="switchTab('tables')" id="tab-tables" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Reference Tables</button>
+                    <button id="tab-tables" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition" data-tab="tables">Reference</button>
                 </li>
                 <li class="mr-2">
-                    <button onclick="switchTab('campaigns')" id="tab-campaigns" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Campaigns</button>
+                    <button id="tab-campaigns" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition" data-tab="campaigns">Campaign Planner</button>
+                </li>
+                <li class="mr-2">
+                    <button id="tab-tools" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition" data-tab="tools">Tools</button>
                 </li>
             </ul>
         </nav>
 
-        <!-- Tab Content -->
-        <div id="content-characters" class="tab-content">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">Characters</h2>
-                <button onclick="showCreateCharacter()" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">+ New Character</button>
-            </div>
-            <div id="character-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Characters will be added here -->
-            </div>
-        </div>
-
-        <div id="content-dice" class="tab-content hidden">
-            <h2 class="text-2xl font-bold mb-4">Dice Roller</h2>
-            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 mb-6">
-                <div class="grid grid-cols-4 md:grid-cols-7 gap-2 mb-4">
-                    <button onclick="rollDice(3)" class="dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold">d3</button>
-                    <button onclick="rollDice(4)" class="dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold">d4</button>
-                    <button onclick="rollDice(5)" class="dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold">d5</button>
-                    <button onclick="rollDice(6)" class="dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold">d6</button>
-                    <button onclick="rollDice(7)" class="dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold">d7</button>
-                    <button onclick="rollDice(8)" class="dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold">d8</button>
-                    <button onclick="rollDice(10)" class="dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold">d10</button>
-                    <button onclick="rollDice(12)" class="dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold">d12</button>
-                    <button onclick="rollDice(14)" class="dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold">d14</button>
-                    <button onclick="rollDice(16)" class="dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold">d16</button>
-                    <button onclick="rollDice(20)" class="dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold">d20</button>
-                    <button onclick="rollDice(24)" class="dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold">d24</button>
-                    <button onclick="rollDice(30)" class="dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold">d30</button>
-                    <button onclick="rollDice(100)" class="dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold">d%</button>
+        <!-- Characters Tab -->
+        <section id="content-characters" class="tab-content space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold">Character Roster</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Manage zero-level funnel survivors and hardened veterans alike.</p>
                 </div>
-                <div class="mb-4">
-                    <label class="block mb-2 font-semibold">Modifier</label>
-                    <input type="number" id="dice-modifier" value="0" class="w-full md:w-48 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
-                </div>
-                <div class="mb-4">
-                    <label class="block mb-2 font-semibold">Number of Dice</label>
-                    <input type="number" id="dice-count" value="1" min="1" max="20" class="w-full md:w-48 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
-                </div>
-                <div class="mb-4">
-                    <label class="block mb-2 font-semibold">Roll Description (optional)</label>
-                    <input type="text" id="roll-description" placeholder="e.g., Attack roll, Saving throw" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-base">
+                <div class="flex flex-wrap gap-3">
+                    <button id="btn-create-character" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 shadow-glow transition text-base">+ New Character</button>
+                    <button id="btn-import-data" class="px-4 py-2 border border-primary text-primary rounded hover:bg-primary/10 transition text-base">Import</button>
+                    <button id="btn-export-data" class="px-4 py-2 border border-primary text-primary rounded hover:bg-primary/10 transition text-base">Export</button>
                 </div>
             </div>
 
-            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
-                <h3 class="text-xl font-bold mb-4">Roll Results</h3>
-                <div id="dice-results" class="space-y-3 max-h-96 overflow-y-auto">
-                    <p class="text-gray-500 dark:text-gray-400 text-center py-8">Roll some dice to see results</p>
-                </div>
-            </div>
-        </div>
-
-        <div id="content-combat" class="tab-content hidden">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">Combat Tracker</h2>
-                <div class="flex gap-2">
-                    <button onclick="addCombatant()" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">+ Add Combatant</button>
-                    <button onclick="sortInitiative()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition text-base">Sort Initiative</button>
-                    <button onclick="clearCombat()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition text-base">Clear All</button>
-                </div>
-            </div>
-
-            <div class="mb-4 bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                <div class="flex items-center gap-4">
-                    <div>
-                        <label class="font-semibold">Round:</label>
-                        <span id="combat-round" class="ml-2 text-xl font-bold text-primary">1</span>
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="md:w-64 space-y-4">
+                    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                        <h3 class="font-semibold mb-2">Filters</h3>
+                        <input id="character-search" type="text" placeholder="Search name or class" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm mb-3">
+                        <select id="character-class-filter" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                            <option value="">All Classes</option>
+                            <option>Warrior</option>
+                            <option>Wizard</option>
+                            <option>Cleric</option>
+                            <option>Thief</option>
+                            <option>Dwarf</option>
+                            <option>Elf</option>
+                            <option>Halfling</option>
+                            <option>Peasant</option>
+                        </select>
                     </div>
-                    <button onclick="nextRound()" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Next Round</button>
+                    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 text-sm space-y-2">
+                        <h3 class="font-semibold">Party Snapshot</h3>
+                        <p>Total Characters: <span id="party-count" class="font-bold">0</span></p>
+                        <p>Average Level: <span id="party-level" class="font-bold">0</span></p>
+                        <p>Highest Luck: <span id="party-luck" class="font-bold">0</span></p>
+                    </div>
+                </div>
+
+                <div id="character-list" class="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <!-- Characters populated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Dice Roller Tab -->
+        <section id="content-dice" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold">Dice Roller</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Supports the odd dice chain and favorite roll presets.</p>
+                </div>
+                <button id="btn-save-favorite" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 shadow-glow transition text-base">Save as Favorite</button>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div class="xl:col-span-2 space-y-6">
+                    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 space-y-4">
+                        <h3 class="text-xl font-semibold">Quick Dice Chain</h3>
+                        <div class="grid grid-cols-4 md:grid-cols-7 gap-2">
+                            <template id="dice-chain-template"></template>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 space-y-4">
+                        <h3 class="text-xl font-semibold">Custom Roll</h3>
+                        <div class="grid md:grid-cols-5 gap-3 items-end">
+                            <div>
+                                <label class="block text-sm font-semibold mb-1">Dice</label>
+                                <input id="dice-count" type="number" min="1" max="20" value="1" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-1">Sides</label>
+                                <input id="dice-sides" type="number" min="2" max="120" value="20" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-1">Modifier</label>
+                                <input id="dice-modifier" type="number" value="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-1">Advantage</label>
+                                <select id="dice-advantage" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                                    <option value="normal">Normal</option>
+                                    <option value="advantage">Advantage</option>
+                                    <option value="disadvantage">Disadvantage</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-1">Description</label>
+                                <input id="roll-description" type="text" placeholder="e.g., Mighty deed" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button id="btn-roll-custom" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Roll</button>
+                            <button id="btn-roll-spellburn" class="px-4 py-2 border border-primary text-primary rounded hover:bg-primary/10 transition text-base">Spellburn Check (3d6)</button>
+                            <button id="btn-roll-luck" class="px-4 py-2 border border-primary text-primary rounded hover:bg-primary/10 transition text-base">Luck Check (1d20)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">Roll Results</h3>
+                        <div id="dice-results" class="space-y-3 max-h-[32rem] overflow-y-auto text-sm">
+                            <p class="text-gray-500 dark:text-gray-400 text-center py-8">Roll some dice to see results.</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">Favorite Rolls</h3>
+                        <div id="favorite-rolls" class="space-y-3 text-sm">
+                            <p class="text-gray-500 dark:text-gray-400 text-center py-4">Save commonly used rolls here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Combat Tracker Tab -->
+        <section id="content-combat" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold">Combat Tracker</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Keep initiative order, conditions, and round structure tidy.</p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button id="btn-add-combatant" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 shadow-glow transition text-base">+ Add Combatant</button>
+                    <button id="btn-sort-initiative" class="px-4 py-2 border border-primary text-primary rounded hover:bg-primary/10 transition text-base">Sort Initiative</button>
+                    <button id="btn-clear-combat" class="px-4 py-2 border border-red-500 text-red-500 rounded hover:bg-red-500 hover:text-white transition text-base">Clear</button>
                 </div>
             </div>
 
-            <div id="combat-list" class="space-y-2">
-                <!-- Combat entries will be added here -->
-            </div>
-        </div>
-
-        <div id="content-tables" class="tab-content hidden">
-            <h2 class="text-2xl font-bold mb-4">Reference Tables</h2>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Critical Hit Table -->
-                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                    <h3 class="text-xl font-bold mb-3">Critical Hits (d20)</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div class="lg:col-span-3 space-y-4" id="combat-list">
+                    <!-- Combatants -->
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Round</p>
+                            <p id="combat-round" class="text-4xl font-extrabold text-primary">1</p>
+                        </div>
+                        <div class="space-y-2">
+                            <button id="btn-next-turn" class="w-full bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Next Turn</button>
+                            <button id="btn-prev-turn" class="w-full px-4 py-2 border border-primary text-primary rounded hover:bg-primary/10 transition text-base">Previous Turn</button>
+                        </div>
+                    </div>
                     <div class="space-y-2 text-sm">
-                        <div class="flex"><span class="font-bold w-16">1-6:</span><span>Normal damage</span></div>
-                        <div class="flex"><span class="font-bold w-16">7-11:</span><span>+1d6 damage</span></div>
-                        <div class="flex"><span class="font-bold w-16">12-13:</span><span>+2d6 damage</span></div>
-                        <div class="flex"><span class="font-bold w-16">14-15:</span><span>+3d6 damage</span></div>
-                        <div class="flex"><span class="font-bold w-16">16-17:</span><span>+1d10 damage + bleed 1d6</span></div>
-                        <div class="flex"><span class="font-bold w-16">18:</span><span>+2d10 damage + bleed 1d6</span></div>
-                        <div class="flex"><span class="font-bold w-16">19:</span><span>+3d10 damage + bleed 2d6</span></div>
-                        <div class="flex"><span class="font-bold w-16">20:</span><span>+4d10 damage + limb/organ damage</span></div>
-                    </div>
-                </div>
-
-                <!-- Fumble Table -->
-                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                    <h3 class="text-xl font-bold mb-3">Fumbles (d8)</h3>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex"><span class="font-bold w-12">1:</span><span>Drop weapon</span></div>
-                        <div class="flex"><span class="font-bold w-12">2:</span><span>Slip, lose next action</span></div>
-                        <div class="flex"><span class="font-bold w-12">3:</span><span>Twist ankle, -5 ft movement</span></div>
-                        <div class="flex"><span class="font-bold w-12">4:</span><span>Stumble, foe gets free attack</span></div>
-                        <div class="flex"><span class="font-bold w-12">5:</span><span>Hit ally for normal damage</span></div>
-                        <div class="flex"><span class="font-bold w-12">6:</span><span>Weapon stuck, DC 10 STR to free</span></div>
-                        <div class="flex"><span class="font-bold w-12">7:</span><span>Armor strap breaks, -1 AC</span></div>
-                        <div class="flex"><span class="font-bold w-12">8:</span><span>Weapon damaged, -1 to hit</span></div>
-                    </div>
-                </div>
-
-                <!-- Ability Score Modifiers -->
-                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                    <h3 class="text-xl font-bold mb-3">Ability Score Modifiers</h3>
-                    <div class="grid grid-cols-2 gap-2 text-sm">
-                        <div class="flex"><span class="font-bold w-12">3:</span><span>-3</span></div>
-                        <div class="flex"><span class="font-bold w-12">4-5:</span><span>-2</span></div>
-                        <div class="flex"><span class="font-bold w-12">6-8:</span><span>-1</span></div>
-                        <div class="flex"><span class="font-bold w-12">9-12:</span><span>0</span></div>
-                        <div class="flex"><span class="font-bold w-12">13-15:</span><span>+1</span></div>
-                        <div class="flex"><span class="font-bold w-12">16-17:</span><span>+2</span></div>
-                        <div class="flex"><span class="font-bold w-12">18:</span><span>+3</span></div>
-                    </div>
-                </div>
-
-                <!-- Luck Uses -->
-                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                    <h3 class="text-xl font-bold mb-3">Luck Uses</h3>
-                    <div class="space-y-2 text-sm">
-                        <div>• Add/subtract from any roll (before or after)</div>
-                        <div>• Improve critical hit/fumble results</div>
-                        <div>• Modify initiative</div>
-                        <div>• Find lucky items or gold</div>
-                        <div>• Avoid death (at Judge's discretion)</div>
-                        <div class="pt-2 italic">Luck spent is permanent unless restored</div>
-                    </div>
-                </div>
-
-                <!-- Action Dice -->
-                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                    <h3 class="text-xl font-bold mb-3">Action Dice by Level</h3>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex"><span class="font-bold w-20">Level 1-4:</span><span>1d20</span></div>
-                        <div class="flex"><span class="font-bold w-20">Level 5:</span><span>1d20 + 1d14</span></div>
-                        <div class="flex"><span class="font-bold w-20">Level 6-7:</span><span>1d20 + 1d16</span></div>
-                        <div class="flex"><span class="font-bold w-20">Level 8-9:</span><span>1d20 + 1d20</span></div>
-                        <div class="flex"><span class="font-bold w-20">Level 10:</span><span>1d20 + 1d20 + 1d14</span></div>
-                        <div class="pt-2 italic text-xs">Warriors gain bonus action dice at higher levels</div>
-                    </div>
-                </div>
-
-                <!-- Spell Corruption -->
-                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                    <h3 class="text-xl font-bold mb-3">Spell Corruption (d10)</h3>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex"><span class="font-bold w-12">1:</span><span>Eyes glow when casting</span></div>
-                        <div class="flex"><span class="font-bold w-12">2:</span><span>Hair turns white/silver</span></div>
-                        <div class="flex"><span class="font-bold w-12">3:</span><span>Skin becomes pale/ashen</span></div>
-                        <div class="flex"><span class="font-bold w-12">4:</span><span>Fingernails turn black</span></div>
-                        <div class="flex"><span class="font-bold w-12">5:</span><span>Voice becomes raspy</span></div>
-                        <div class="flex"><span class="font-bold w-12">6:</span><span>Minor temperature change around caster</span></div>
-                        <div class="flex"><span class="font-bold w-12">7:</span><span>Smell of brimstone/ozone</span></div>
-                        <div class="flex"><span class="font-bold w-12">8:</span><span>Small horns sprout</span></div>
-                        <div class="flex"><span class="font-bold w-12">9:</span><span>Shadow moves independently</span></div>
-                        <div class="flex"><span class="font-bold w-12">10:</span><span>Magical runes appear on skin</span></div>
+                        <p>Active Combatant: <span id="combat-active" class="font-semibold">None</span></p>
+                        <div>
+                            <p class="font-semibold mb-1">Conditions Legend</p>
+                            <div class="flex flex-wrap gap-2 text-xs">
+                                <span class="px-2 py-1 rounded bg-red-500/20 text-red-500">Bloodied</span>
+                                <span class="px-2 py-1 rounded bg-yellow-500/20 text-yellow-500">Stunned</span>
+                                <span class="px-2 py-1 rounded bg-blue-500/20 text-blue-500">Prone</span>
+                                <span class="px-2 py-1 rounded bg-purple-500/20 text-purple-500">Hexed</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div id="content-campaigns" class="tab-content hidden">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">Campaigns</h2>
-                <button onclick="showCreateCampaign()" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">+ New Campaign</button>
+        <!-- Reference Tab -->
+        <section id="content-tables" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold">Reference Library</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Quick rulings and tables for fast-paced judgement.</p>
+                </div>
             </div>
-            <div id="campaign-list" class="grid grid-cols-1 gap-4">
-                <!-- Campaigns will be added here -->
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="reference-grid">
+                <!-- Reference cards rendered dynamically -->
             </div>
-        </div>
+        </section>
+
+        <!-- Campaign Planner Tab -->
+        <section id="content-campaigns" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold">Campaign Planner</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Track realms, adventure hooks, NPC factions, and treasure caches.</p>
+                </div>
+                <button id="btn-create-campaign" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 shadow-glow transition text-base">+ New Campaign</button>
+            </div>
+            <div id="campaign-list" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                <!-- Campaign cards -->
+            </div>
+        </section>
+
+        <!-- Tools Tab -->
+        <section id="content-tools" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold">Judge Tools</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Utility helpers to speed up rulings mid-session.</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 space-y-3">
+                    <h3 class="text-xl font-semibold">Name Inspiration</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Generate gonzo peasant names for zero-level funnels.</p>
+                    <button id="btn-generate-name" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Generate Name</button>
+                    <div id="name-output" class="text-lg font-semibold text-primary"></div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 space-y-3">
+                    <h3 class="text-xl font-semibold">Treasure Parcel</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Quickly create an odd bit of loot for an encounter.</p>
+                    <button id="btn-generate-treasure" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Generate Treasure</button>
+                    <div id="treasure-output" class="text-sm text-gray-700 dark:text-gray-300"></div>
+                </div>
+            </div>
+        </section>
     </div>
 
-    <!-- Create Campaign Modal -->
-    <div id="create-campaign-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-                <h3 class="text-2xl font-bold mb-4">Create Campaign</h3>
-                <form id="campaign-form" class="space-y-4">
-                    <div>
-                        <label class="block mb-2 font-semibold">Campaign Name</label>
-                        <input type="text" id="campaign-name" required="" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base">
-                    </div>
-                    <div>
-                        <label class="block mb-2 font-semibold">Campaign Description</label>
-                        <textarea id="campaign-description" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base"></textarea>
-                    </div>
-                    <div class="flex justify-end gap-3">
-                        <button type="button" onclick="hideCreateCampaign()" class="px-6 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-base">Cancel</button>
-                        <button type="submit" class="px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded transition text-base">Create</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Campaign Detail Modal -->
-    <div id="campaign-detail-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-2xl font-bold" id="detail-campaign-name"></h3>
-                    <button onclick="hideCampaignDetail()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl">×</button>
+    <!-- Character Modal -->
+    <div id="character-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[95vh] overflow-y-auto">
+            <form id="character-form" class="p-6 space-y-5">
+                <div class="flex justify-between items-center">
+                    <h3 id="character-modal-title" class="text-2xl font-bold">Create Character</h3>
+                    <button type="button" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl" data-close="character-modal">×</button>
                 </div>
-                <div id="campaign-detail-content"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Adventure Detail Modal -->
-    <div id="adventure-detail-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-2xl font-bold" id="detail-adventure-name"></h3>
-                    <button onclick="hideAdventureDetail()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl">×</button>
+                <input type="hidden" id="character-id">
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Name</label>
+                        <input id="char-name" type="text" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Class</label>
+                        <select id="char-class" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                            <option value="Peasant">0-Level (Peasant)</option>
+                            <option value="Warrior">Warrior</option>
+                            <option value="Wizard">Wizard</option>
+                            <option value="Cleric">Cleric</option>
+                            <option value="Thief">Thief</option>
+                            <option value="Dwarf">Dwarf</option>
+                            <option value="Elf">Elf</option>
+                            <option value="Halfling">Halfling</option>
+                        </select>
+                    </div>
                 </div>
-                <div id="adventure-detail-content"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Character Creation Modal -->
-    <div id="create-character-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-                <h3 class="text-2xl font-bold mb-4">Create Character</h3>
-                <form id="character-form" class="space-y-4">
+                <div class="grid md:grid-cols-4 gap-4">
                     <div>
-                        <label class="block mb-2 font-semibold">Name</label>
-                        <input type="text" id="char-name" required="" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base">
+                        <label class="block text-sm font-semibold mb-1">Level</label>
+                        <input id="char-level" type="number" min="0" max="10" value="0" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
                     </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block mb-2 font-semibold">Level</label>
-                            <input type="number" id="char-level" value="0" min="0" max="10" required="" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base">
-                        </div>
-                        <div>
-                            <label class="block mb-2 font-semibold">Class</label>
-                            <select id="char-class" required="" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base">
-                                <option value="Peasant">0-Level (Peasant)</option>
-                                <option value="Warrior">Warrior</option>
-                                <option value="Wizard">Wizard</option>
-                                <option value="Cleric">Cleric</option>
-                                <option value="Thief">Thief</option>
-                                <option value="Dwarf">Dwarf</option>
-                                <option value="Elf">Elf</option>
-                                <option value="Halfling">Halfling</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-4">
-                        <div>
-                            <label class="block mb-2 font-semibold">STR</label>
-                            <input type="number" id="char-str" value="10" min="3" max="18" required="" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base">
-                        </div>
-                        <div>
-                            <label class="block mb-2 font-semibold">AGI</label>
-                            <input type="number" id="char-agi" value="10" min="3" max="18" required="" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base">
-                        </div>
-                        <div>
-                            <label class="block mb-2 font-semibold">STA</label>
-                            <input type="number" id="char-sta" value="10" min="3" max="18" required="" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base">
-                        </div>
-                        <div>
-                            <label class="block mb-2 font-semibold">PER</label>
-                            <input type="number" id="char-per" value="10" min="3" max="18" required="" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base">
-                        </div>
-                        <div>
-                            <label class="block mb-2 font-semibold">INT</label>
-                            <input type="number" id="char-int" value="10" min="3" max="18" required="" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base">
-                        </div>
-                        <div>
-                            <label class="block mb-2 font-semibold">LUC</label>
-                            <input type="number" id="char-luc" value="10" min="3" max="18" required="" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block mb-2 font-semibold">HP (Max)</label>
-                            <input type="number" id="char-hp-max" value="4" min="1" required="" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base">
-                        </div>
-                        <div>
-                            <label class="block mb-2 font-semibold">Current HP</label>
-                            <input type="number" id="char-hp-current" value="4" min="0" required="" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block mb-2 font-semibold">AC</label>
-                            <input type="number" id="char-ac" value="10" min="1" required="" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base">
-                        </div>
-                        <div>
-                            <label class="block mb-2 font-semibold">Speed</label>
-                            <input type="number" id="char-speed" value="30" min="0" required="" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base">
-                        </div>
-                    </div>
-
                     <div>
-                        <label class="block mb-2 font-semibold">Equipment/Notes</label>
-                        <textarea id="char-equipment" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-base"></textarea>
+                        <label class="block text-sm font-semibold mb-1">Alignment</label>
+                        <select id="char-alignment" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                            <option>Lawful</option>
+                            <option>Neutral</option>
+                            <option>Chaotic</option>
+                        </select>
                     </div>
-
-                    <div class="flex justify-end gap-3 mt-6">
-                        <button type="button" onclick="hideCreateCharacter()" class="px-6 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-base">Cancel</button>
-                        <button type="submit" class="px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded transition text-base">Create</button>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Occupation</label>
+                        <input id="char-occupation" type="text" placeholder="Turnip farmer" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
                     </div>
-                </form>
-            </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Deed Die</label>
+                        <input id="char-deed" type="text" placeholder="1d3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Action Dice</label>
+                        <input id="char-action-dice" type="text" placeholder="1d20" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Hit Points (Max)</label>
+                        <input id="char-hp-max" type="number" min="1" value="4" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Current HP</label>
+                        <input id="char-hp-current" type="number" min="0" value="4" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">AC</label>
+                        <input id="char-ac" type="number" min="1" value="10" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Speed (ft)</label>
+                        <input id="char-speed" type="number" min="0" value="30" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Luck Score</label>
+                        <input id="char-luck" type="number" min="3" max="18" value="10" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">XP</label>
+                        <input id="char-xp" type="number" min="0" value="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Initiative Bonus</label>
+                        <input id="char-initiative" type="number" value="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Spell Check Bonus</label>
+                        <input id="char-spellcheck" type="number" value="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">Ability Scores</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                        <div>
+                            <label class="block mb-1">STR</label>
+                            <input id="char-str" type="number" min="3" max="18" value="10" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                        </div>
+                        <div>
+                            <label class="block mb-1">AGI</label>
+                            <input id="char-agi" type="number" min="3" max="18" value="10" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                        </div>
+                        <div>
+                            <label class="block mb-1">STA</label>
+                            <input id="char-sta" type="number" min="3" max="18" value="10" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                        </div>
+                        <div>
+                            <label class="block mb-1">PER</label>
+                            <input id="char-per" type="number" min="3" max="18" value="10" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                        </div>
+                        <div>
+                            <label class="block mb-1">INT</label>
+                            <input id="char-int" type="number" min="3" max="18" value="10" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                        </div>
+                        <div>
+                            <label class="block mb-1">LUC</label>
+                            <input id="char-luc" type="number" min="3" max="18" value="10" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Equipment & Gear</label>
+                    <textarea id="char-equipment" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900" placeholder="Comma separated or one per line"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Spells & Abilities</label>
+                    <textarea id="char-spells" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900" placeholder="Fireball (CL 3), Patron Bond, etc."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Notes</label>
+                    <textarea id="char-notes" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900" placeholder="Quirks, mighty deed notes, patrons..."></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" class="px-6 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-base" data-close="character-modal">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded transition text-base">Save Character</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <!-- Character Detail Modal -->
     <div id="character-detail-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-2xl font-bold" id="detail-char-name"></h3>
-                    <button onclick="hideCharacterDetail()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl">×</button>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[95vh] overflow-y-auto">
+            <div class="p-6 space-y-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 id="detail-char-name" class="text-3xl font-bold"></h3>
+                        <p id="detail-char-subtitle" class="text-gray-600 dark:text-gray-400"></p>
+                    </div>
+                    <button class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl" data-close="character-detail-modal">×</button>
                 </div>
-                <div id="character-detail-content"></div>
+                <div id="character-detail-content" class="space-y-6"></div>
             </div>
         </div>
     </div>
 
+    <!-- Combatant Modal -->
+    <div id="combatant-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <form id="combatant-form" class="p-6 space-y-5">
+                <div class="flex justify-between items-center">
+                    <h3 id="combatant-modal-title" class="text-2xl font-bold">Add Combatant</h3>
+                    <button type="button" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl" data-close="combatant-modal">×</button>
+                </div>
+                <input type="hidden" id="combatant-id">
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Name</label>
+                        <input id="combatant-name" type="text" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Type</label>
+                        <select id="combatant-type" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                            <option>PC</option>
+                            <option>NPC</option>
+                            <option>Monster</option>
+                            <option>Hazard</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Initiative</label>
+                        <input id="combatant-initiative" type="number" min="-10" max="40" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900" placeholder="Leave blank to roll">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Init Modifier</label>
+                        <input id="combatant-init-mod" type="number" value="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">HP (Max)</label>
+                        <input id="combatant-hp-max" type="number" min="1" value="10" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Current HP</label>
+                        <input id="combatant-hp" type="number" min="0" value="10" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Armor Class</label>
+                    <input id="combatant-ac" type="number" value="10" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Conditions (comma separated)</label>
+                    <input id="combatant-conditions" type="text" placeholder="Stunned, On fire" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Notes</label>
+                    <textarea id="combatant-notes" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900" placeholder="Special abilities, tactics, loot..."></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" class="px-6 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-base" data-close="combatant-modal">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded transition text-base">Save Combatant</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Campaign Modal -->
+    <div id="campaign-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[95vh] overflow-y-auto">
+            <form id="campaign-form" class="p-6 space-y-5">
+                <div class="flex justify-between items-center">
+                    <h3 id="campaign-modal-title" class="text-2xl font-bold">Create Campaign</h3>
+                    <button type="button" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl" data-close="campaign-modal">×</button>
+                </div>
+                <input type="hidden" id="campaign-id">
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Campaign Name</label>
+                        <input id="campaign-name" type="text" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Judge</label>
+                        <input id="campaign-judge" type="text" placeholder="Judge name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Starting Level</label>
+                        <input id="campaign-level" type="number" value="1" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Tags</label>
+                        <input id="campaign-tags" type="text" placeholder="Sword & sorcery, Weird" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Pitch / Summary</label>
+                    <textarea id="campaign-summary" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900" placeholder="A cursed moon hangs over Shuddering Fen..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Campaign Notes (Markdown supported)</label>
+                    <textarea id="campaign-notes" rows="6" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900" placeholder="## Factions\n- The Pale Court\n- Silt Raiders"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" class="px-6 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition text-base" data-close="campaign-modal">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded transition text-base">Save Campaign</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Campaign Detail Modal -->
+    <div id="campaign-detail-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-5xl w-full mx-4 max-h-[95vh] overflow-y-auto">
+            <div class="p-6 space-y-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 id="detail-campaign-name" class="text-3xl font-bold"></h3>
+                        <p id="detail-campaign-tags" class="text-sm text-primary"></p>
+                    </div>
+                    <button class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl" data-close="campaign-detail-modal">×</button>
+                </div>
+                <div id="campaign-detail-content" class="space-y-6"></div>
+            </div>
+        </div>
+    </div>
     <script>
-        // Dark mode setup
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.classList.add('dark');
-        }
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-            if (event.matches) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
+        const STORAGE_KEY = 'dcc-vtt-state-v3';
+        const diceChain = [3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 30, 100];
+        let state = {
+            characters: [],
+            rollHistory: [],
+            favoriteRolls: [],
+            combat: {
+                round: 1,
+                activeId: null,
+                combatants: []
+            },
+            campaigns: []
+        };
+
+        function safeLocalStorage(fn, fallback) {
+            try {
+                return fn();
+            } catch (err) {
+                console.warn('Local storage unavailable', err);
+                return fallback;
             }
-        });
-
-        // Data storage (in-memory)
-        let characters = [];
-        let combatants = [];
-        let combatRound = 1;
-        let rollHistory = [];
-
-        // Tab switching
-        function switchTab(tab) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('nav button').forEach(el => el.classList.remove('tab-active'));
-
-            // Show selected tab
-            document.getElementById('content-' + tab).classList.remove('hidden');
-            document.getElementById('tab-' + tab).classList.add('tab-active');
         }
 
-        // Calculate ability modifier
+        function loadState() {
+            const saved = safeLocalStorage(() => JSON.parse(localStorage.getItem(STORAGE_KEY)), null);
+            if (saved) {
+                state = Object.assign(state, saved);
+            }
+        }
+
+        function persistState() {
+            safeLocalStorage(() => localStorage.setItem(STORAGE_KEY, JSON.stringify(state)));
+        }
+
+        function $(selector) {
+            return document.querySelector(selector);
+        }
+
+        function $all(selector) {
+            return Array.from(document.querySelectorAll(selector));
+        }
+
+        function toggleModal(id, show = true) {
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            if (show) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
         function getModifier(score) {
+            if (score === undefined || score === null) return 0;
             if (score <= 3) return -3;
             if (score <= 5) return -2;
             if (score <= 8) return -1;
@@ -451,473 +641,950 @@
             return 3;
         }
 
-        // Character Management
-        function showCreateCharacter() {
-            document.getElementById('create-character-modal').classList.remove('hidden');
-            document.getElementById('create-character-modal').classList.add('flex');
+        function modifierString(score) {
+            const mod = getModifier(score);
+            return mod >= 0 ? `+${mod}` : `${mod}`;
         }
 
-        function hideCreateCharacter() {
-            document.getElementById('create-character-modal').classList.add('hidden');
-            document.getElementById('create-character-modal').classList.remove('flex');
-            document.getElementById('character-form').reset();
+        function formatDate(ts) {
+            const date = new Date(ts);
+            return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
         }
 
-        document.getElementById('character-form').addEventListener('submit', function(e) {
-            e.preventDefault();
+        function uuid() {
+            return Date.now().toString(36) + Math.random().toString(36).slice(2);
+        }
 
-            const character = {
-                id: Date.now(),
-                name: document.getElementById('char-name').value,
-                level: parseInt(document.getElementById('char-level').value),
-                class: document.getElementById('char-class').value,
-                str: parseInt(document.getElementById('char-str').value),
-                agi: parseInt(document.getElementById('char-agi').value),
-                sta: parseInt(document.getElementById('char-sta').value),
-                per: parseInt(document.getElementById('char-per').value),
-                int: parseInt(document.getElementById('char-int').value),
-                luc: parseInt(document.getElementById('char-luc').value),
-                hpMax: parseInt(document.getElementById('char-hp-max').value),
-                hpCurrent: parseInt(document.getElementById('char-hp-current').value),
-                ac: parseInt(document.getElementById('char-ac').value),
-                speed: parseInt(document.getElementById('char-speed').value),
-                equipment: document.getElementById('char-equipment').value
-            };
+        function copyState() {
+            return JSON.parse(JSON.stringify(state));
+        }
 
-            characters.push(character);
-            renderCharacters();
-            hideCreateCharacter();
-        });
+        // Tab switching
+        function switchTab(tab) {
+            $all('.tab-content').forEach(el => el.classList.add('hidden'));
+            $all('nav button').forEach(el => el.classList.remove('tab-active'));
+            const content = document.getElementById(`content-${tab}`);
+            if (content) content.classList.remove('hidden');
+            const tabBtn = document.getElementById(`tab-${tab}`);
+            if (tabBtn) tabBtn.classList.add('tab-active');
+        }
+
+        // Characters
+        function openCharacterModal(character = null) {
+            $('#character-form').reset();
+            $('#character-id').value = character ? character.id : '';
+            $('#character-modal-title').textContent = character ? 'Edit Character' : 'Create Character';
+            if (character) {
+                $('#char-name').value = character.name || '';
+                $('#char-class').value = character.class || 'Peasant';
+                $('#char-level').value = character.level ?? 0;
+                $('#char-alignment').value = character.alignment || 'Neutral';
+                $('#char-occupation').value = character.occupation || '';
+                $('#char-deed').value = character.deedDie || '';
+                $('#char-action-dice').value = character.actionDice || '';
+                $('#char-hp-max').value = character.hpMax ?? 4;
+                $('#char-hp-current').value = character.hpCurrent ?? character.hpMax ?? 4;
+                $('#char-ac').value = character.ac ?? 10;
+                $('#char-speed').value = character.speed ?? 30;
+                $('#char-luck').value = character.luck ?? 10;
+                $('#char-xp').value = character.xp ?? 0;
+                $('#char-initiative').value = character.initiativeBonus ?? 0;
+                $('#char-spellcheck').value = character.spellCheck ?? 0;
+                $('#char-str').value = character.str ?? 10;
+                $('#char-agi').value = character.agi ?? 10;
+                $('#char-sta').value = character.sta ?? 10;
+                $('#char-per').value = character.per ?? 10;
+                $('#char-int').value = character.int ?? 10;
+                $('#char-luc').value = character.luc ?? 10;
+                $('#char-equipment').value = character.equipment || '';
+                $('#char-spells').value = character.spells || '';
+                $('#char-notes').value = character.notes || '';
+            }
+            toggleModal('character-modal', true);
+        }
 
         function renderCharacters() {
-            const container = document.getElementById('character-list');
+            const list = $('#character-list');
+            const search = $('#character-search').value.toLowerCase();
+            const classFilter = $('#character-class-filter').value;
+            const filtered = state.characters.filter(char => {
+                const matchesSearch = !search || `${char.name} ${char.class}`.toLowerCase().includes(search);
+                const matchesClass = !classFilter || char.class === classFilter;
+                return matchesSearch && matchesClass;
+            });
 
-            if (characters.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-8 col-span-full">No characters yet. Create one to get started!</p>';
-                return;
+            if (filtered.length === 0) {
+                list.innerHTML = '<p class="col-span-full text-center text-gray-500 dark:text-gray-400 py-12">No characters yet. Create one to get started!</p>';
+            } else {
+                list.innerHTML = filtered.map(char => {
+                    const hpMax = Math.max(1, char.hpMax || 1);
+                    const current = Math.max(0, Math.min(hpMax, char.hpCurrent ?? hpMax));
+                    const hpPercent = Math.round((current / hpMax) * 100);
+                    const scoreGrid = ['STR', 'AGI', 'STA', 'PER', 'INT', 'LUC'].map(stat => {
+                        const value = char[stat.toLowerCase()] ?? 10;
+                        return `<div class="text-center">
+                            <div class="text-xs text-gray-500 dark:text-gray-400">${stat}</div>
+                            <div class="font-semibold">${value}</div>
+                            <div class="text-[0.7rem] text-gray-500">(${modifierString(value)})</div>
+                        </div>`;
+                    }).join('');
+
+                    return `
+                        <article class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex flex-col gap-3 border border-transparent hover:border-primary/40 transition">
+                            <div class="flex justify-between items-start gap-3">
+                                <div>
+                                    <h3 class="text-xl font-bold">${char.name}</h3>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Level ${char.level ?? 0} ${char.class}</p>
+                                    <p class="text-xs text-gray-500">${char.alignment || 'Neutral'}${char.occupation ? ' • ' + char.occupation : ''}</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="text-sm text-primary hover:underline" data-action="view-character" data-id="${char.id}">View</button>
+                                    <button class="text-sm text-primary hover:underline" data-action="edit-character" data-id="${char.id}">Edit</button>
+                                    <button class="text-sm text-red-500 hover:underline" data-action="delete-character" data-id="${char.id}">Delete</button>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="flex-1 h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                                    <div class="h-full ${hpPercent <= 25 ? 'bg-red-500' : hpPercent < 75 ? 'bg-yellow-500' : 'bg-primary'}" style="width: ${hpPercent}%;"></div>
+                                </div>
+                                <span class="text-xs text-gray-600 dark:text-gray-400">HP ${current}/${hpMax}</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 text-xs">
+                                <div class="bg-white/60 dark:bg-black/20 rounded p-2">
+                                    <div class="text-gray-500">AC</div>
+                                    <div class="font-semibold text-lg">${char.ac ?? 10}</div>
+                                </div>
+                                <div class="bg-white/60 dark:bg-black/20 rounded p-2">
+                                    <div class="text-gray-500">Speed</div>
+                                    <div class="font-semibold text-lg">${char.speed ?? 30} ft</div>
+                                </div>
+                                <div class="bg-white/60 dark:bg-black/20 rounded p-2">
+                                    <div class="text-gray-500">Luck</div>
+                                    <div class="font-semibold text-lg">${char.luck ?? 10}</div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-6 gap-1 text-xs">${scoreGrid}</div>
+                            <div class="flex flex-wrap gap-2 text-xs">
+                                ${char.deedDie ? `<span class="px-2 py-1 rounded bg-primary/10 text-primary">Deed ${char.deedDie}</span>` : ''}
+                                ${char.actionDice ? `<span class="px-2 py-1 rounded bg-primary/10 text-primary">Action ${char.actionDice}</span>` : ''}
+                                ${char.spellCheck ? `<span class="px-2 py-1 rounded bg-purple-500/10 text-purple-500">Spell +${char.spellCheck}</span>` : ''}
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <button class="flex-1 px-3 py-2 text-sm border border-primary text-primary rounded hover:bg-primary/10" data-action="adjust-resource" data-type="hp" data-direction="-5" data-id="${char.id}">-5 HP</button>
+                                <button class="flex-1 px-3 py-2 text-sm border border-primary text-primary rounded hover:bg-primary/10" data-action="adjust-resource" data-type="hp" data-direction="5" data-id="${char.id}">+5 HP</button>
+                                <button class="flex-1 px-3 py-2 text-sm bg-primary text-white rounded hover:bg-opacity-90" data-action="add-to-combat" data-id="${char.id}">Add to Combat</button>
+                            </div>
+                        </article>
+                    `;
+                }).join('');
             }
 
-            container.innerHTML = characters.map(char => `
-                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 hover:shadow-lg transition cursor-pointer" onclick="showCharacterDetail(${char.id})">
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <h3 class="text-xl font-bold">${char.name}</h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Level ${char.level} ${char.class}</p>
-                        </div>
-                        <button onclick="event.stopPropagation(); deleteCharacter(${char.id})" class="text-red-500 hover:text-red-700 text-xl">&times;</button>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2 text-sm mb-2">
-                        <div>
-                            <span class="font-semibold">HP:</span> ${char.hpCurrent}/${char.hpMax}
-                        </div>
-                        <div>
-                            <span class="font-semibold">AC:</span> ${char.ac}
-                        </div>
-                        <div>
-                            <span class="font-semibold">Speed:</span> ${char.speed}ft
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-6 gap-1 text-xs">
-                        <div class="text-center">
-                            <div class="font-semibold">STR</div>
-                            <div>${char.str} <span class="stat-modifier">(${getModifier(char.str) >= 0 ? '+' : ''}${getModifier(char.str)})</span></div>
-                        </div>
-                        <div class="text-center">
-                            <div class="font-semibold">AGI</div>
-                            <div>${char.agi} <span class="stat-modifier">(${getModifier(char.agi) >= 0 ? '+' : ''}${getModifier(char.agi)})</span></div>
-                        </div>
-                        <div class="text-center">
-                            <div class="font-semibold">STA</div>
-                            <div>${char.sta} <span class="stat-modifier">(${getModifier(char.sta) >= 0 ? '+' : ''}${getModifier(char.sta)})</span></div>
-                        </div>
-                        <div class="text-center">
-                            <div class="font-semibold">PER</div>
-                            <div>${char.per} <span class="stat-modifier">(${getModifier(char.per) >= 0 ? '+' : ''}${getModifier(char.per)})</span></div>
-                        </div>
-                        <div class="text-center">
-                            <div class="font-semibold">INT</div>
-                            <div>${char.int} <span class="stat-modifier">(${getModifier(char.int) >= 0 ? '+' : ''}${getModifier(char.int)})</span></div>
-                        </div>
-                        <div class="text-center">
-                            <div class="font-semibold">LUC</div>
-                            <div>${char.luc} <span class="stat-modifier">(${getModifier(char.luc) >= 0 ? '+' : ''}${getModifier(char.luc)})</span></div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+            const total = state.characters.length;
+            const avgLevel = total ? (state.characters.reduce((sum, c) => sum + (c.level ?? 0), 0) / total).toFixed(1) : 0;
+            const highestLuck = total ? Math.max(...state.characters.map(c => c.luck ?? 0)) : 0;
+            $('#party-count').textContent = total;
+            $('#party-level').textContent = avgLevel;
+            $('#party-luck').textContent = highestLuck;
         }
 
-        function showCharacterDetail(id) {
-            const char = characters.find(c => c.id === id);
-            if (!char) return;
+        function saveCharacterFromForm(event) {
+            event.preventDefault();
+            const id = $('#character-id').value || uuid();
+            const character = {
+                id,
+                name: $('#char-name').value.trim(),
+                class: $('#char-class').value,
+                level: parseInt($('#char-level').value) || 0,
+                alignment: $('#char-alignment').value,
+                occupation: $('#char-occupation').value.trim(),
+                deedDie: $('#char-deed').value.trim(),
+                actionDice: $('#char-action-dice').value.trim(),
+                hpMax: parseInt($('#char-hp-max').value) || 1,
+                hpCurrent: parseInt($('#char-hp-current').value) || 0,
+                ac: parseInt($('#char-ac').value) || 10,
+                speed: parseInt($('#char-speed').value) || 30,
+                luck: parseInt($('#char-luck').value) || 10,
+                xp: parseInt($('#char-xp').value) || 0,
+                initiativeBonus: parseInt($('#char-initiative').value) || 0,
+                spellCheck: parseInt($('#char-spellcheck').value) || 0,
+                str: parseInt($('#char-str').value) || 10,
+                agi: parseInt($('#char-agi').value) || 10,
+                sta: parseInt($('#char-sta').value) || 10,
+                per: parseInt($('#char-per').value) || 10,
+                int: parseInt($('#char-int').value) || 10,
+                luc: parseInt($('#char-luc').value) || 10,
+                equipment: $('#char-equipment').value.trim(),
+                spells: $('#char-spells').value.trim(),
+                notes: $('#char-notes').value.trim()
+            };
 
-            document.getElementById('detail-char-name').textContent = char.name;
+            const existingIndex = state.characters.findIndex(c => c.id === id);
+            if (existingIndex >= 0) {
+                state.characters[existingIndex] = character;
+            } else {
+                state.characters.push(character);
+            }
 
-            const content = `
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div><span class="font-semibold">Level:</span> ${char.level}</div>
-                        <div><span class="font-semibold">Class:</span> ${char.class}</div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="text-center bg-gray-100 dark:bg-gray-900 p-3 rounded">
-                            <div class="text-sm text-gray-600 dark:text-gray-400">HP</div>
-                            <div class="text-2xl font-bold">${char.hpCurrent}/${char.hpMax}</div>
-                            <div class="mt-2 flex gap-2">
-                                <button onclick="adjustHP(${char.id}, -1)" class="flex-1 bg-red-500 text-white px-2 py-1 rounded text-sm">-</button>
-                                <button onclick="adjustHP(${char.id}, 1)" class="flex-1 bg-green-500 text-white px-2 py-1 rounded text-sm">+</button>
-                            </div>
-                        </div>
-                        <div class="text-center bg-gray-100 dark:bg-gray-900 p-3 rounded">
-                            <div class="text-sm text-gray-600 dark:text-gray-400">AC</div>
-                            <div class="text-2xl font-bold">${char.ac}</div>
-                        </div>
-                        <div class="text-center bg-gray-100 dark:bg-gray-900 p-3 rounded">
-                            <div class="text-sm text-gray-600 dark:text-gray-400">Speed</div>
-                            <div class="text-2xl font-bold">${char.speed}ft</div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h4 class="font-bold mb-2">Ability Scores</h4>
-                        <div class="grid grid-cols-3 gap-3">
-                            <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center">
-                                <div class="font-semibold">STR</div>
-                                <div class="text-xl">${char.str}</div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400">${getModifier(char.str) >= 0 ? '+' : ''}${getModifier(char.str)}</div>
-                            </div>
-                            <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center">
-                                <div class="font-semibold">AGI</div>
-                                <div class="text-xl">${char.agi}</div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400">${getModifier(char.agi) >= 0 ? '+' : ''}${getModifier(char.agi)}</div>
-                            </div>
-                            <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center">
-                                <div class="font-semibold">STA</div>
-                                <div class="text-xl">${char.sta}</div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400">${getModifier(char.sta) >= 0 ? '+' : ''}${getModifier(char.sta)}</div>
-                            </div>
-                            <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center">
-                                <div class="font-semibold">PER</div>
-                                <div class="text-xl">${char.per}</div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400">${getModifier(char.per) >= 0 ? '+' : ''}${getModifier(char.per)}</div>
-                            </div>
-                            <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center">
-                                <div class="font-semibold">INT</div>
-                                <div class="text-xl">${char.int}</div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400">${getModifier(char.int) >= 0 ? '+' : ''}${getModifier(char.int)}</div>
-                            </div>
-                            <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-center">
-                                <div class="font-semibold">LUC</div>
-                                <div class="text-xl">${char.luc}</div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400">${getModifier(char.luc) >= 0 ? '+' : ''}${getModifier(char.luc)}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    ${char.equipment ? `
-                    <div>
-                        <h4 class="font-bold mb-2">Equipment & Notes</h4>
-                        <div class="bg-gray-100 dark:bg-gray-900 p-3 rounded whitespace-pre-wrap">${char.equipment}</div>
-                    </div>
-                    ` : ''}
-
-                    <div class="flex gap-2">
-                        <button onclick="addCharacterToCombat(${char.id})" class="flex-1 bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Add to Combat</button>
-                        <button onclick="deleteCharacter(${char.id})" class="flex-1 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition text-base">Delete</button>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('character-detail-content').innerHTML = content;
-            document.getElementById('character-detail-modal').classList.remove('hidden');
-            document.getElementById('character-detail-modal').classList.add('flex');
-        }
-
-        function hideCharacterDetail() {
-            document.getElementById('character-detail-modal').classList.add('hidden');
-            document.getElementById('character-detail-modal').classList.remove('flex');
-        }
-
-        function adjustHP(id, amount) {
-            const char = characters.find(c => c.id === id);
-            if (!char) return;
-
-            char.hpCurrent = Math.max(0, Math.min(char.hpMax, char.hpCurrent + amount));
+            persistState();
             renderCharacters();
-            showCharacterDetail(id);
+            toggleModal('character-modal', false);
         }
 
         function deleteCharacter(id) {
-            showCustomConfirm('Are you sure you want to delete this character?', () => {
-                characters = characters.filter(c => c.id !== id);
-                renderCharacters();
-                hideCharacterDetail();
-            });
+            const char = state.characters.find(c => c.id === id);
+            if (!char) return;
+            if (!confirm(`Delete ${char.name}? This cannot be undone.`)) return;
+            state.characters = state.characters.filter(c => c.id !== id);
+            state.combat.combatants = state.combat.combatants.filter(c => c.linkedCharacterId !== id);
+            persistState();
+            renderCharacters();
+            renderCombat();
         }
 
-        // Dice Roller
-        function rollDice(sides) {
-            const count = parseInt(document.getElementById('dice-count').value) || 1;
-            const modifier = parseInt(document.getElementById('dice-modifier').value) || 0;
-            const description = document.getElementById('roll-description').value;
+        function adjustCharacterResource(id, type, amount) {
+            const char = state.characters.find(c => c.id === id);
+            if (!char) return;
+            if (type === 'hp') {
+                const hpMax = Math.max(1, char.hpMax || 1);
+                char.hpCurrent = Math.max(0, Math.min(hpMax, (char.hpCurrent ?? hpMax) + amount));
+            }
+            persistState();
+            renderCharacters();
+        }
 
+        function showCharacterDetail(id) {
+            const char = state.characters.find(c => c.id === id);
+            if (!char) return;
+            $('#detail-char-name').textContent = char.name;
+            $('#detail-char-subtitle').textContent = `Level ${char.level ?? 0} ${char.class} • ${char.alignment || 'Neutral'}${char.occupation ? ' • ' + char.occupation : ''}`;
+
+            const abilityCard = (label, value) => `
+                <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded text-center">
+                    <div class="text-sm text-gray-500 dark:text-gray-400">${label}</div>
+                    <div class="text-3xl font-bold">${value}</div>
+                    <div class="text-sm text-primary">${modifierString(value)}</div>
+                </div>`;
+
+            const detailHTML = `
+                <section class="grid md:grid-cols-4 gap-4">
+                    <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded">
+                        <div class="text-sm text-gray-500">HP</div>
+                        <div class="text-3xl font-extrabold">${char.hpCurrent}/${char.hpMax}</div>
+                        <div class="flex gap-2 mt-3">
+                            <button data-action="detail-adjust" data-type="hp" data-id="${char.id}" data-amount="-1" class="flex-1 bg-red-500 text-white rounded py-1">-1</button>
+                            <button data-action="detail-adjust" data-type="hp" data-id="${char.id}" data-amount="1" class="flex-1 bg-green-500 text-white rounded py-1">+1</button>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded">
+                        <div class="text-sm text-gray-500">AC</div>
+                        <div class="text-3xl font-extrabold">${char.ac}</div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded">
+                        <div class="text-sm text-gray-500">Luck</div>
+                        <div class="text-3xl font-extrabold">${char.luck}</div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded">
+                        <div class="text-sm text-gray-500">Speed</div>
+                        <div class="text-3xl font-extrabold">${char.speed} ft</div>
+                    </div>
+                </section>
+                <section class="grid md:grid-cols-6 gap-3">
+                    ${['STR','AGI','STA','PER','INT','LUC'].map(stat => abilityCard(stat, char[stat.toLowerCase()] ?? 10)).join('')}
+                </section>
+                ${char.equipment ? `<section><h4 class="font-semibold mb-2">Equipment</h4><div class="bg-gray-50 dark:bg-gray-900 rounded p-3 text-sm whitespace-pre-wrap">${char.equipment}</div></section>` : ''}
+                ${char.spells ? `<section><h4 class="font-semibold mb-2">Spells & Abilities</h4><div class="bg-gray-50 dark:bg-gray-900 rounded p-3 text-sm whitespace-pre-wrap">${char.spells}</div></section>` : ''}
+                ${char.notes ? `<section><h4 class="font-semibold mb-2">Notes</h4><div class="bg-gray-50 dark:bg-gray-900 rounded p-3 text-sm whitespace-pre-wrap">${char.notes}</div></section>` : ''}
+                <section class="flex flex-wrap gap-3">
+                    <button class="px-4 py-2 bg-primary text-white rounded" data-action="add-to-combat" data-id="${char.id}">Add to Combat</button>
+                    <button class="px-4 py-2 border border-primary text-primary rounded" data-action="edit-character" data-id="${char.id}">Edit</button>
+                    <button class="px-4 py-2 border border-red-500 text-red-500 rounded" data-action="delete-character" data-id="${char.id}">Delete</button>
+                </section>
+            `;
+
+            $('#character-detail-content').innerHTML = detailHTML;
+            toggleModal('character-detail-modal', true);
+        }
+
+        function adjustHPDetail(button) {
+            const id = button.dataset.id;
+            const amount = parseInt(button.dataset.amount) || 0;
+            adjustCharacterResource(id, 'hp', amount);
+            showCharacterDetail(id);
+        }
+
+        // Dice roller
+        function renderDiceChain() {
+            const template = $('#dice-chain-template');
+            const fragment = document.createDocumentFragment();
+            diceChain.forEach(sides => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'dice-btn bg-primary text-white px-3 py-3 rounded hover:bg-opacity-90 transition text-base font-bold';
+                btn.textContent = sides === 100 ? 'd%' : `d${sides}`;
+                btn.addEventListener('click', () => rollDice({ count: 1, sides }));
+                fragment.appendChild(btn);
+            });
+            template.replaceWith(fragment);
+        }
+
+        function rollDice({ count, sides, modifier = 0, advantage = 'normal', description = '' }) {
+            if (!count || !sides) return;
             const rolls = [];
             let total = modifier;
 
-            for (let i = 0; i < count; i++) {
-                const roll = Math.floor(Math.random() * sides) + 1;
-                rolls.push(roll);
-                total += roll;
+            if (advantage !== 'normal' && count === 1 && (sides === 20 || sides === 30)) {
+                const first = Math.floor(Math.random() * sides) + 1;
+                const second = Math.floor(Math.random() * sides) + 1;
+                const chosen = advantage === 'advantage' ? Math.max(first, second) : Math.min(first, second);
+                rolls.push(`${first} / ${second}`);
+                total += chosen;
+            } else {
+                for (let i = 0; i < count; i++) {
+                    const roll = Math.floor(Math.random() * sides) + 1;
+                    rolls.push(roll);
+                    total += roll;
+                }
             }
 
             const result = {
+                id: uuid(),
                 sides,
                 count,
-                rolls,
                 modifier,
-                total,
+                advantage,
                 description,
-                timestamp: new Date().toLocaleTimeString()
+                rolls,
+                total,
+                timestamp: Date.now()
             };
 
-            rollHistory.unshift(result);
-            if (rollHistory.length > 20) rollHistory.pop();
-
+            state.rollHistory.unshift(result);
+            if (state.rollHistory.length > 30) state.rollHistory.pop();
+            persistState();
             displayRollResults();
         }
 
         function displayRollResults() {
-            const container = document.getElementById('dice-results');
-
-            if (rollHistory.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-8">Roll some dice to see results</p>';
+            const container = $('#dice-results');
+            if (state.rollHistory.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-8">Roll some dice to see results.</p>';
                 return;
             }
-
-            container.innerHTML = rollHistory.map(r => `
-                <div class="dice-result bg-white dark:bg-gray-800 p-4 rounded-lg border-l-4 border-primary">
-                    ${r.description ? `<div class="font-semibold mb-1">${r.description}</div>` : ''}
-                    <div class="flex items-center justify-between">
-                        <div class="text-sm text-gray-600 dark:text-gray-400">
-                            ${r.count}d${r.sides}${r.modifier !== 0 ? (r.modifier > 0 ? '+' : '') + r.modifier : ''}
-                            <span class="ml-2">[${r.rolls.join(', ')}]</span>
+            container.innerHTML = state.rollHistory.map(r => {
+                const parts = [`${r.count}d${r.sides}`];
+                if (r.modifier) parts.push(r.modifier > 0 ? `+${r.modifier}` : `${r.modifier}`);
+                if (r.advantage !== 'normal') parts.push(`(${r.advantage})`);
+                return `
+                    <div class="dice-result bg-white dark:bg-gray-800 p-4 rounded-lg border-l-4 border-primary space-y-1">
+                        ${r.description ? `<div class="font-semibold">${r.description}</div>` : ''}
+                        <div class="flex items-center justify-between text-sm">
+                            <span>${parts.join(' ')} <span class="ml-2 text-xs text-gray-500">[${r.rolls.join(', ')}]</span></span>
+                            <span class="text-2xl font-bold text-primary">${r.total}</span>
                         </div>
-                        <div class="text-2xl font-bold text-primary">${r.total}</div>
+                        <div class="text-xs text-gray-500">${formatDate(r.timestamp)}</div>
+                    </div>`;
+            }).join('');
+        }
+
+        function addFavoriteRoll() {
+            const count = parseInt($('#dice-count').value) || 1;
+            const sides = parseInt($('#dice-sides').value) || 20;
+            const modifier = parseInt($('#dice-modifier').value) || 0;
+            const advantage = $('#dice-advantage').value;
+            const description = $('#roll-description').value.trim() || `${count}d${sides}`;
+            const favorite = { id: uuid(), count, sides, modifier, advantage, description };
+            state.favoriteRolls.push(favorite);
+            persistState();
+            renderFavoriteRolls();
+        }
+
+        function renderFavoriteRolls() {
+            const container = $('#favorite-rolls');
+            if (state.favoriteRolls.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-4">Save commonly used rolls here.</p>';
+                return;
+            }
+            container.innerHTML = state.favoriteRolls.map(fav => `
+                <div class="bg-white dark:bg-gray-800 p-3 rounded border border-primary/40 flex items-center justify-between gap-3 text-sm">
+                    <div>
+                        <p class="font-semibold">${fav.description}</p>
+                        <p class="text-xs text-gray-500">${fav.count}d${fav.sides}${fav.modifier ? (fav.modifier > 0 ? '+' : '') + fav.modifier : ''}${fav.advantage !== 'normal' ? ` (${fav.advantage})` : ''}</p>
                     </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-500 mt-1">${r.timestamp}</div>
+                    <div class="flex gap-2">
+                        <button class="px-3 py-1 bg-primary text-white rounded" data-action="favorite-roll" data-id="${fav.id}">Roll</button>
+                        <button class="px-3 py-1 text-red-500 border border-red-500 rounded" data-action="delete-favorite" data-id="${fav.id}">Delete</button>
+                    </div>
                 </div>
             `).join('');
         }
 
         // Combat Tracker
-        function addCombatant() {
-            const name = showCustomPrompt('Enter combatant name:');
-            if (!name) return;
+        function openCombatantModal(combatant = null) {
+            $('#combatant-form').reset();
+            $('#combatant-id').value = combatant ? combatant.id : '';
+            $('#combatant-modal-title').textContent = combatant ? 'Edit Combatant' : 'Add Combatant';
+            if (combatant) {
+                $('#combatant-name').value = combatant.name;
+                $('#combatant-type').value = combatant.type;
+                $('#combatant-initiative').value = combatant.initiative;
+                $('#combatant-init-mod').value = combatant.initMod || 0;
+                $('#combatant-hp-max').value = combatant.hpMax;
+                $('#combatant-hp').value = combatant.hp;
+                $('#combatant-ac').value = combatant.ac;
+                $('#combatant-conditions').value = combatant.conditions.join(', ');
+                $('#combatant-notes').value = combatant.notes || '';
+            }
+            toggleModal('combatant-modal', true);
+        }
 
-            const initiative = showCustomPrompt('Enter initiative (or leave blank to roll):');
-            const init = initiative ? parseInt(initiative) : Math.floor(Math.random() * 20) + 1;
+        function saveCombatant(event) {
+            event.preventDefault();
+            let initiative = parseInt($('#combatant-initiative').value);
+            const initMod = parseInt($('#combatant-init-mod').value) || 0;
+            if (Number.isNaN(initiative)) {
+                initiative = Math.floor(Math.random() * 20) + 1 + initMod;
+            }
 
-            const hp = showCustomPrompt('Enter HP:', '10');
-            const ac = showCustomPrompt('Enter AC:', '10');
-
-            combatants.push({
-                id: Date.now(),
-                name,
-                initiative: init,
-                hp: parseInt(hp) || 10,
-                hpMax: parseInt(hp) || 10,
-                ac: parseInt(ac) || 10,
+            const id = $('#combatant-id').value || uuid();
+            const combatant = {
+                id,
+                name: $('#combatant-name').value.trim() || 'Unknown',
+                type: $('#combatant-type').value,
+                initiative,
+                initMod,
+                hpMax: parseInt($('#combatant-hp-max').value) || 1,
+                hp: parseInt($('#combatant-hp').value) || 0,
+                ac: parseInt($('#combatant-ac').value) || 10,
+                conditions: $('#combatant-conditions').value.split(',').map(c => c.trim()).filter(Boolean),
+                notes: $('#combatant-notes').value.trim(),
                 isActive: false
-            });
+            };
 
+            const existingIndex = state.combat.combatants.findIndex(c => c.id === id);
+            if (existingIndex >= 0) {
+                combatant.linkedCharacterId = state.combat.combatants[existingIndex].linkedCharacterId;
+                combatant.isActive = state.combat.combatants[existingIndex].isActive;
+                state.combat.combatants[existingIndex] = combatant;
+            } else {
+                state.combat.combatants.push(combatant);
+            }
+
+            persistState();
             renderCombat();
+            toggleModal('combatant-modal', false);
         }
 
         function addCharacterToCombat(charId) {
-            const char = characters.find(c => c.id === charId);
+            const char = state.characters.find(c => c.id === charId);
             if (!char) return;
-
-            const initiative = Math.floor(Math.random() * 20) + 1 + getModifier(char.agi);
-
-            combatants.push({
-                id: Date.now(),
+            const initiative = Math.floor(Math.random() * 20) + 1 + (char.initiativeBonus || getModifier(char.agi));
+            state.combat.combatants.push({
+                id: uuid(),
                 name: char.name,
+                type: 'PC',
                 initiative,
-                hp: char.hpCurrent,
+                initMod: char.initiativeBonus || 0,
                 hpMax: char.hpMax,
+                hp: char.hpCurrent,
                 ac: char.ac,
-                isActive: false,
-                characterId: charId
+                conditions: [],
+                notes: char.notes || '',
+                linkedCharacterId: char.id,
+                isActive: false
             });
-
             renderCombat();
-            hideCharacterDetail();
-        }
-
-        function sortInitiative() {
-            combatants.sort((a, b) => b.initiative - a.initiative);
-            if (combatants.length > 0) {
-                combatants.forEach(c => c.isActive = false);
-                combatants[0].isActive = true;
-            }
-            renderCombat();
+            persistState();
+            toggleModal('character-detail-modal', false);
         }
 
         function renderCombat() {
-            const container = document.getElementById('combat-list');
-
-            if (combatants.length === 0) {
+            const container = $('#combat-list');
+            if (state.combat.combatants.length === 0) {
                 container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-8">No combatants. Add characters or NPCs to begin combat.</p>';
+                $('#combat-active').textContent = 'None';
+                $('#combat-round').textContent = state.combat.round;
                 return;
             }
-
-            container.innerHTML = combatants.map((c, index) => `
-                <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg ${c.isActive ? 'ring-2 ring-primary' : ''}">
-                    <div class="flex items-center justify-between gap-4">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-3">
-                                ${c.isActive ? '<span class="text-primary text-2xl">▶</span>' : '<span class="text-2xl opacity-0">▶</span>'}
+            const cards = state.combat.combatants
+                .sort((a, b) => b.initiative - a.initiative)
+                .map(combatant => {
+                    const conditionTags = combatant.conditions.map(condition => `<span class="px-2 py-1 text-xs rounded bg-primary/10 text-primary">${condition}</span>`).join('');
+                    return `
+                        <article class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg ${combatant.isActive ? 'ring-2 ring-primary' : ''}">
+                            <div class="flex items-center justify-between gap-4">
                                 <div class="flex-1">
-                                    <div class="font-bold text-lg">${c.name}</div>
-                                    <div class="text-sm text-gray-600 dark:text-gray-400">Initiative: ${c.initiative} | AC: ${c.ac}</div>
+                                    <div class="flex items-center gap-3">
+                                        ${combatant.isActive ? '<span class="text-primary text-2xl">▶</span>' : '<span class="text-2xl opacity-0">▶</span>'}
+                                        <div>
+                                            <div class="font-bold text-lg">${combatant.name}</div>
+                                            <div class="text-xs text-gray-500">${combatant.type} • Initiative ${combatant.initiative}${combatant.initMod ? ` (${combatant.initMod >= 0 ? '+' : ''}${combatant.initMod})` : ''}</div>
+                                            <div class="flex gap-2 mt-2">${conditionTags}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="text-center">
+                                        <div class="text-xs text-gray-500">HP</div>
+                                        <div class="font-bold ${combatant.hp <= 0 ? 'text-red-500' : ''}">${combatant.hp}/${combatant.hpMax}</div>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <button class="bg-red-500 text-white px-3 py-1 rounded" data-action="adjust-combat-hp" data-id="${combatant.id}" data-amount="-1">-</button>
+                                        <button class="bg-green-500 text-white px-3 py-1 rounded" data-action="adjust-combat-hp" data-id="${combatant.id}" data-amount="1">+</button>
+                                    </div>
+                                    <button class="px-3 py-1 border border-primary text-primary rounded" data-action="edit-combatant" data-id="${combatant.id}">Edit</button>
+                                    <button class="text-red-500 hover:text-red-700 text-xl" data-action="remove-combatant" data-id="${combatant.id}">&times;</button>
                                 </div>
                             </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="text-center">
-                                <div class="text-sm text-gray-600 dark:text-gray-400">HP</div>
-                                <div class="font-bold ${c.hp <= 0 ? 'text-red-500' : ''}">${c.hp}/${c.hpMax}</div>
-                            </div>
-                            <div class="flex gap-1">
-                                <button onclick="adjustCombatantHP(${c.id}, -1)" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-base">-</button>
-                                <button onclick="adjustCombatantHP(${c.id}, 1)" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-base">+</button>
-                            </div>
-                            <button onclick="removeCombatant(${c.id})" class="text-red-500 hover:text-red-700 text-xl">&times;</button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+                            ${combatant.notes ? `<p class="mt-3 text-xs text-gray-500">${combatant.notes}</p>` : ''}
+                        </article>
+                    `;
+                }).join('');
+            container.innerHTML = cards;
+            const active = state.combat.combatants.find(c => c.isActive);
+            $('#combat-active').textContent = active ? active.name : 'None';
+            $('#combat-round').textContent = state.combat.round;
         }
 
         function adjustCombatantHP(id, amount) {
-            const combatant = combatants.find(c => c.id === id);
+            const combatant = state.combat.combatants.find(c => c.id === id);
             if (!combatant) return;
-
             combatant.hp = Math.max(0, Math.min(combatant.hpMax, combatant.hp + amount));
-
-            // Update character if linked
-            if (combatant.characterId) {
-                const char = characters.find(c => c.id === combatant.characterId);
-                if (char) {
-                    char.hpCurrent = combatant.hp;
-                    renderCharacters();
+            if (combatant.linkedCharacterId) {
+                const linked = state.characters.find(c => c.id === combatant.linkedCharacterId);
+                if (linked) {
+                    linked.hpCurrent = combatant.hp;
                 }
             }
-
+            persistState();
             renderCombat();
+            renderCharacters();
         }
 
         function removeCombatant(id) {
-            combatants = combatants.filter(c => c.id !== id);
+            state.combat.combatants = state.combat.combatants.filter(c => c.id !== id);
+            if (state.combat.activeId === id) state.combat.activeId = null;
+            persistState();
             renderCombat();
         }
 
         function clearCombat() {
-            showCustomConfirm('Clear all combatants?', () => {
-                combatants = [];
-                combatRound = 1;
-                document.getElementById('combat-round').textContent = combatRound;
-                renderCombat();
-            });
+            if (!confirm('Clear all combatants?')) return;
+            state.combat.combatants = [];
+            state.combat.round = 1;
+            state.combat.activeId = null;
+            persistState();
+            renderCombat();
         }
 
-        function nextRound() {
-            combatRound++;
-            document.getElementById('combat-round').textContent = combatRound;
+        function sortInitiative() {
+            state.combat.combatants.sort((a, b) => b.initiative - a.initiative);
+            if (state.combat.combatants.length) {
+                state.combat.combatants.forEach(c => c.isActive = false);
+                state.combat.combatants[0].isActive = true;
+                state.combat.activeId = state.combat.combatants[0].id;
+            }
+            persistState();
+            renderCombat();
+        }
 
-            if (combatants.length > 0) {
-                const currentIndex = combatants.findIndex(c => c.isActive);
-                combatants.forEach(c => c.isActive = false);
+        function advanceTurn(direction = 1) {
+            if (state.combat.combatants.length === 0) return;
+            const order = [...state.combat.combatants].sort((a, b) => b.initiative - a.initiative);
+            let index = order.findIndex(c => c.id === state.combat.activeId);
+            if (index === -1) index = 0;
+            index = (index + direction + order.length) % order.length;
+            state.combat.activeId = order[index].id;
+            state.combat.combatants.forEach(c => c.isActive = c.id === state.combat.activeId);
+            if (direction === 1 && index === 0) {
+                state.combat.round += 1;
+            } else if (direction === -1 && index === order.length - 1 && state.combat.round > 1) {
+                state.combat.round -= 1;
+            }
+            persistState();
+            renderCombat();
+        }
 
-                if (currentIndex < combatants.length - 1) {
-                    combatants[currentIndex + 1].isActive = true;
-                } else {
-                    combatants[0].isActive = true;
+        // Reference data
+        const referenceCards = [
+            {
+                title: 'Critical Hits (d20)',
+                items: [
+                    '1-6: Normal damage',
+                    '7-11: +1d6 damage',
+                    '12-13: +2d6 damage',
+                    '14-15: +3d6 damage',
+                    '16-17: +1d10 damage + bleed 1d6',
+                    '18: +2d10 damage + bleed 1d6',
+                    '19: +3d10 damage + bleed 2d6',
+                    '20: +4d10 damage + limb/organ damage'
+                ]
+            },
+            {
+                title: 'Fumbles (d8)',
+                items: [
+                    '1: Drop weapon',
+                    '2: Slip, lose next action',
+                    '3: Twist ankle, -5 ft movement',
+                    '4: Stumble, foe gets free attack',
+                    '5: Hit ally for normal damage',
+                    '6: Weapon stuck, DC 10 STR to free',
+                    '7: Armor strap breaks, -1 AC',
+                    '8: Weapon damaged, -1 to hit'
+                ]
+            },
+            {
+                title: 'Ability Score Modifiers',
+                items: [
+                    '3: -3',
+                    '4-5: -2',
+                    '6-8: -1',
+                    '9-12: 0',
+                    '13-15: +1',
+                    '16-17: +2',
+                    '18: +3'
+                ]
+            },
+            {
+                title: 'Action Dice by Level',
+                items: [
+                    'Level 1-4: 1d20',
+                    'Level 5: 1d20 + 1d14',
+                    'Level 6-7: 1d20 + 1d16',
+                    'Level 8-9: 1d20 + 1d20',
+                    'Level 10: 1d20 + 1d20 + 1d14'
+                ]
+            },
+            {
+                title: 'Luck Uses',
+                items: [
+                    'Modify any roll before or after it is made',
+                    'Improve critical or fumble results',
+                    'Adjust initiative order',
+                    'Discover useful items or gold',
+                    "Avoid death at the Judge's discretion"
+                ]
+            },
+            {
+                title: 'Spell Corruption (d10)',
+                items: [
+                    '1: Eyes glow when casting',
+                    '2: Hair turns white',
+                    '3: Skin becomes pale',
+                    '4: Fingernails blacken',
+                    '5: Voice becomes raspy',
+                    '6: Temperature drops nearby',
+                    '7: Smell of brimstone',
+                    '8: Small horns sprout',
+                    '9: Shadow moves independently',
+                    '10: Runes crawl across skin'
+                ]
+            }
+        ];
+
+        function renderReferences() {
+            const grid = $('#reference-grid');
+            grid.innerHTML = referenceCards.map(card => `
+                <article class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 space-y-2">
+                    <h3 class="text-xl font-semibold">${card.title}</h3>
+                    <ul class="space-y-1 text-sm list-disc list-inside">
+                        ${card.items.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </article>
+            `).join('');
+        }
+
+        // Campaigns
+        function openCampaignModal(campaign = null) {
+            $('#campaign-form').reset();
+            $('#campaign-id').value = campaign ? campaign.id : '';
+            $('#campaign-modal-title').textContent = campaign ? 'Edit Campaign' : 'Create Campaign';
+            if (campaign) {
+                $('#campaign-name').value = campaign.name;
+                $('#campaign-judge').value = campaign.judge || '';
+                $('#campaign-level').value = campaign.startingLevel || 1;
+                $('#campaign-tags').value = campaign.tags.join(', ');
+                $('#campaign-summary').value = campaign.summary || '';
+                $('#campaign-notes').value = campaign.notes || '';
+            }
+            toggleModal('campaign-modal', true);
+        }
+
+        function saveCampaign(event) {
+            event.preventDefault();
+            const id = $('#campaign-id').value || uuid();
+            const campaign = {
+                id,
+                name: $('#campaign-name').value.trim(),
+                judge: $('#campaign-judge').value.trim(),
+                startingLevel: parseInt($('#campaign-level').value) || 1,
+                tags: $('#campaign-tags').value.split(',').map(t => t.trim()).filter(Boolean),
+                summary: $('#campaign-summary').value.trim(),
+                notes: $('#campaign-notes').value.trim(),
+                sessionLog: [],
+                npcs: [],
+                quests: [],
+                treasure: []
+            };
+
+            const existingIndex = state.campaigns.findIndex(c => c.id === id);
+            if (existingIndex >= 0) {
+                campaign.sessionLog = state.campaigns[existingIndex].sessionLog;
+                campaign.npcs = state.campaigns[existingIndex].npcs;
+                campaign.quests = state.campaigns[existingIndex].quests;
+                campaign.treasure = state.campaigns[existingIndex].treasure;
+                state.campaigns[existingIndex] = campaign;
+            } else {
+                state.campaigns.push(campaign);
+            }
+
+            persistState();
+            renderCampaigns();
+            toggleModal('campaign-modal', false);
+        }
+
+        function renderCampaigns() {
+            const container = $('#campaign-list');
+            if (state.campaigns.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-12">Plan your first realm to see it listed here.</p>';
+                return;
+            }
+            container.innerHTML = state.campaigns.map(c => `
+                <article class="bg-gray-50 dark:bg-gray-900 rounded-lg p-5 space-y-3 border border-transparent hover:border-primary/40 transition">
+                    <div class="flex justify-between items-start gap-3">
+                        <div>
+                            <h3 class="text-xl font-semibold">${c.name}</h3>
+                            <p class="text-xs text-gray-500">Judge: ${c.judge || 'Unknown'} • Starting Level ${c.startingLevel}</p>
+                            <div class="flex flex-wrap gap-2 text-xs mt-2">
+                                ${c.tags.map(tag => `<span class="px-2 py-1 bg-primary/10 text-primary rounded">${tag}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="text-sm text-primary hover:underline" data-action="view-campaign" data-id="${c.id}">Open</button>
+                            <button class="text-sm text-primary hover:underline" data-action="edit-campaign" data-id="${c.id}">Edit</button>
+                            <button class="text-sm text-red-500 hover:underline" data-action="delete-campaign" data-id="${c.id}">Delete</button>
+                        </div>
+                    </div>
+                    ${c.summary ? `<p class="text-sm text-gray-600 dark:text-gray-300">${c.summary}</p>` : ''}
+                </article>
+            `).join('');
+        }
+
+        function deleteCampaign(id) {
+            const campaign = state.campaigns.find(c => c.id === id);
+            if (!campaign) return;
+            if (!confirm(`Delete ${campaign.name}?`)) return;
+            state.campaigns = state.campaigns.filter(c => c.id !== id);
+            persistState();
+            renderCampaigns();
+        }
+
+        function showCampaignDetail(id) {
+            const campaign = state.campaigns.find(c => c.id === id);
+            if (!campaign) return;
+            $('#detail-campaign-name').textContent = campaign.name;
+            $('#detail-campaign-tags').textContent = campaign.tags.join(' • ');
+
+            const renderList = (items, emptyText) => {
+                if (!items.length) return `<p class="text-sm text-gray-500">${emptyText}</p>`;
+                return `<ul class="space-y-1 text-sm list-disc list-inside">${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
+            };
+
+            const content = `
+                ${campaign.summary ? `<section><h4 class="text-lg font-semibold mb-2">Pitch</h4><p class="text-sm text-gray-600 dark:text-gray-300">${campaign.summary}</p></section>` : ''}
+                <section>
+                    <h4 class="text-lg font-semibold mb-2">Session Log</h4>
+                    ${renderList(campaign.sessionLog, 'Log your first session notes to see them here.')}
+                    <button class="mt-3 px-3 py-1 border border-primary text-primary rounded" data-action="add-session" data-id="${campaign.id}">Add Entry</button>
+                </section>
+                <section>
+                    <h4 class="text-lg font-semibold mb-2">NPCs</h4>
+                    ${renderList(campaign.npcs, 'Add notable personalities to track them.')}
+                    <button class="mt-3 px-3 py-1 border border-primary text-primary rounded" data-action="add-npc" data-id="${campaign.id}">Add NPC</button>
+                </section>
+                <section>
+                    <h4 class="text-lg font-semibold mb-2">Quests & Hooks</h4>
+                    ${renderList(campaign.quests, 'No hooks recorded yet.')}
+                    <button class="mt-3 px-3 py-1 border border-primary text-primary rounded" data-action="add-quest" data-id="${campaign.id}">Add Quest</button>
+                </section>
+                <section>
+                    <h4 class="text-lg font-semibold mb-2">Treasure Hoard</h4>
+                    ${renderList(campaign.treasure, 'Track relics and rewards earned by the party.')}
+                    <button class="mt-3 px-3 py-1 border border-primary text-primary rounded" data-action="add-treasure" data-id="${campaign.id}">Add Treasure</button>
+                </section>
+                ${campaign.notes ? `<section><h4 class="text-lg font-semibold mb-2">Notes</h4><div class="prose dark:prose-invert max-w-none">${marked.parse(campaign.notes)}</div></section>` : ''}
+            `;
+
+            $('#campaign-detail-content').innerHTML = content;
+            toggleModal('campaign-detail-modal', true);
+        }
+
+        function appendCampaignItem(id, key, promptLabel) {
+            const value = prompt(promptLabel);
+            if (!value) return;
+            const campaign = state.campaigns.find(c => c.id === id);
+            if (!campaign) return;
+            campaign[key].push(value);
+            persistState();
+            showCampaignDetail(id);
+            renderCampaigns();
+        }
+
+        // Tools
+        const namePrefixes = ['Ash', 'Grim', 'Storm', 'Night', 'Rust', 'Thorn', 'Gloom', 'Wild', 'Iron', 'Fang'];
+        const nameSuffixes = ['bane', 'brand', 'gaze', 'lash', 'monger', 'song', 'spark', 'tooth', 'veil', 'wither'];
+        const occupations = ['Lantern bearer', 'Mole wrangler', 'Muck farmer', 'Astrologer', 'Grave digger', 'Mushroom tender', 'Tax collector'];
+        function generateName() {
+            const prefix = namePrefixes[Math.floor(Math.random() * namePrefixes.length)];
+            const suffix = nameSuffixes[Math.floor(Math.random() * nameSuffixes.length)];
+            const occupation = occupations[Math.floor(Math.random() * occupations.length)];
+            $('#name-output').textContent = `${prefix}${suffix} the ${occupation}`;
+        }
+
+        const treasures = ['Jeweled dagger worth 120 gp', 'Silver idol haunted by whispers', 'Map fragment to the Lich Gate', 'Potion that glows like starlight', 'Runed stone granting +1 Luck once'];
+        function generateTreasure() {
+            const treasure = treasures[Math.floor(Math.random() * treasures.length)];
+            $('#treasure-output').textContent = treasure;
+        }
+
+        // Import/Export
+        function exportData() {
+            const data = JSON.stringify(copyState(), null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'dcc-companion-export.json';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+            input.addEventListener('change', event => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    try {
+                        const parsed = JSON.parse(reader.result);
+                        state = Object.assign(state, parsed);
+                        persistState();
+                        renderAll();
+                    } catch (err) {
+                        alert('Unable to import file. Ensure it is a valid export.');
+                    }
+                };
+                reader.readAsText(file);
+            });
+            input.click();
+        }
+
+        // Event wiring
+        function wireEvents() {
+            $all('nav button[data-tab]').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+
+            $('#btn-create-character').addEventListener('click', () => openCharacterModal());
+            $('#btn-save-favorite').addEventListener('click', addFavoriteRoll);
+            $('#btn-roll-custom').addEventListener('click', () => {
+                rollDice({
+                    count: parseInt($('#dice-count').value) || 1,
+                    sides: parseInt($('#dice-sides').value) || 20,
+                    modifier: parseInt($('#dice-modifier').value) || 0,
+                    advantage: $('#dice-advantage').value,
+                    description: $('#roll-description').value.trim()
+                });
+            });
+            $('#btn-roll-spellburn').addEventListener('click', () => rollDice({ count: 3, sides: 6, description: 'Spellburn Check' }));
+            $('#btn-roll-luck').addEventListener('click', () => rollDice({ count: 1, sides: 20, description: 'Luck Check' }));
+            $('#btn-add-combatant').addEventListener('click', () => openCombatantModal());
+            $('#btn-sort-initiative').addEventListener('click', sortInitiative);
+            $('#btn-clear-combat').addEventListener('click', clearCombat);
+            $('#btn-next-turn').addEventListener('click', () => advanceTurn(1));
+            $('#btn-prev-turn').addEventListener('click', () => advanceTurn(-1));
+            $('#btn-create-campaign').addEventListener('click', () => openCampaignModal());
+            $('#btn-generate-name').addEventListener('click', generateName);
+            $('#btn-generate-treasure').addEventListener('click', generateTreasure);
+            $('#btn-export-data').addEventListener('click', exportData);
+            $('#btn-import-data').addEventListener('click', importData);
+
+            $('#character-form').addEventListener('submit', saveCharacterFromForm);
+            $('#combatant-form').addEventListener('submit', saveCombatant);
+            $('#campaign-form').addEventListener('submit', saveCampaign);
+
+            $('#character-search').addEventListener('input', renderCharacters);
+            $('#character-class-filter').addEventListener('change', renderCharacters);
+
+            document.body.addEventListener('click', event => {
+                const target = event.target;
+                if (target.matches('[data-close]')) {
+                    toggleModal(target.dataset.close, false);
+                    return;
                 }
-
-                renderCombat();
-            }
-        }
-
-        // Custom dialog functions
-        function showCustomConfirm(message, onConfirm) {
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 modal-backdrop flex items-center justify-center z-50';
-            modal.innerHTML = `
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
-                    <p class="text-gray-700 dark:text-gray-300 mb-4">${message}</p>
-                    <div class="flex justify-end space-x-3">
-                        <button class="cancel-btn px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-base">Cancel</button>
-                        <button class="confirm-btn px-4 py-2 bg-red-500 text-white hover:bg-red-600 rounded text-base">Confirm</button>
-                    </div>
-                </div>
-            `;
-
-            modal.querySelector('.cancel-btn').onclick = () => modal.remove();
-            modal.querySelector('.confirm-btn').onclick = () => {
-                modal.remove();
-                onConfirm();
-            };
-
-            document.body.appendChild(modal);
-        }
-
-        function showCustomPrompt(message, defaultValue = '') {
-            const result = {value: null};
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 modal-backdrop flex items-center justify-center z-50';
-            modal.innerHTML = `
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
-                    <p class="text-gray-700 dark:text-gray-300 mb-4">${message}</p>
-                    <input type="text" class="prompt-input w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 mb-4 text-base" value="${defaultValue}">
-                    <div class="flex justify-end space-x-3">
-                        <button class="cancel-btn px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-base">Cancel</button>
-                        <button class="ok-btn px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded text-base">OK</button>
-                    </div>
-                </div>
-            `;
-
-            const input = modal.querySelector('.prompt-input');
-            const done = () => {
-                result.value = input.value;
-                modal.remove();
-            };
-
-            modal.querySelector('.cancel-btn').onclick = () => modal.remove();
-            modal.querySelector('.ok-btn').onclick = done;
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') done();
+                if (target.dataset.action === 'view-character') {
+                    showCharacterDetail(target.dataset.id);
+                } else if (target.dataset.action === 'edit-character') {
+                    const char = state.characters.find(c => c.id === target.dataset.id);
+                    if (char) openCharacterModal(char);
+                } else if (target.dataset.action === 'delete-character') {
+                    deleteCharacter(target.dataset.id);
+                } else if (target.dataset.action === 'adjust-resource') {
+                    adjustCharacterResource(target.dataset.id, target.dataset.type, parseInt(target.dataset.direction));
+                } else if (target.dataset.action === 'add-to-combat') {
+                    addCharacterToCombat(target.dataset.id);
+                } else if (target.dataset.action === 'detail-adjust') {
+                    adjustHPDetail(target);
+                } else if (target.dataset.action === 'favorite-roll') {
+                    const fav = state.favoriteRolls.find(f => f.id === target.dataset.id);
+                    if (fav) rollDice(fav);
+                } else if (target.dataset.action === 'delete-favorite') {
+                    state.favoriteRolls = state.favoriteRolls.filter(f => f.id !== target.dataset.id);
+                    persistState();
+                    renderFavoriteRolls();
+                } else if (target.dataset.action === 'adjust-combat-hp') {
+                    adjustCombatantHP(target.dataset.id, parseInt(target.dataset.amount));
+                } else if (target.dataset.action === 'remove-combatant') {
+                    removeCombatant(target.dataset.id);
+                } else if (target.dataset.action === 'edit-combatant') {
+                    const combatant = state.combat.combatants.find(c => c.id === target.dataset.id);
+                    if (combatant) openCombatantModal(combatant);
+                } else if (target.dataset.action === 'view-campaign') {
+                    showCampaignDetail(target.dataset.id);
+                } else if (target.dataset.action === 'edit-campaign') {
+                    const campaign = state.campaigns.find(c => c.id === target.dataset.id);
+                    if (campaign) openCampaignModal(campaign);
+                } else if (target.dataset.action === 'delete-campaign') {
+                    deleteCampaign(target.dataset.id);
+                } else if (target.dataset.action === 'add-session') {
+                    appendCampaignItem(target.dataset.id, 'sessionLog', 'Summarize the session:');
+                } else if (target.dataset.action === 'add-npc') {
+                    appendCampaignItem(target.dataset.id, 'npcs', 'Describe the NPC:');
+                } else if (target.dataset.action === 'add-quest') {
+                    appendCampaignItem(target.dataset.id, 'quests', 'Outline the quest or hook:');
+                } else if (target.dataset.action === 'add-treasure') {
+                    appendCampaignItem(target.dataset.id, 'treasure', 'Note the treasure item:');
+                }
             });
-
-            document.body.appendChild(modal);
-            input.focus();
-            input.select();
-
-            // Synchronous-like behavior using a busy wait (not ideal but works for this use case)
-            const startTime = Date.now();
-            while (result.value === null && Date.now() - startTime < 60000) {
-                // Wait for user input or timeout
-                const event = new Promise(resolve => setTimeout(resolve, 10));
-            }
-
-            return result.value;
         }
 
-        // Initialize
-        renderCharacters();
-        renderCombat();
+        function renderAll() {
+            renderCharacters();
+            renderDiceChain();
+            displayRollResults();
+            renderFavoriteRolls();
+            renderCombat();
+            renderReferences();
+            renderCampaigns();
+        }
+
+        loadState();
+        wireEvents();
+        renderAll();
     </script>
-
-
-</body></html>
+</body>
+</html>
