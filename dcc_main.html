@@ -113,6 +113,8 @@
                 </div>
             </div>
 
+            <div id="character-summary" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 space-y-3 border border-gray-200 dark:border-gray-800">
                     <div>
@@ -166,6 +168,8 @@
                     </select>
                 </div>
             </div>
+
+            <div id="dice-stats" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
 
             <div class="bg-gray-50 dark:bg-surface rounded-lg p-6 border border-gray-200 dark:border-gray-800 space-y-6">
                 <div class="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-2">
@@ -249,6 +253,8 @@
                     <button onclick="clearCombat()" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm">Clear</button>
                 </div>
             </div>
+
+            <div id="combat-summary" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3"></div>
 
             <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-6 space-y-4">
                 <form id="combat-form" class="grid grid-cols-1 lg:grid-cols-6 gap-3">
@@ -391,6 +397,40 @@
                         <li><span class="font-semibold">10:</span> Runes scar across skin</li>
                     </ul>
                 </div>
+                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800">
+                    <h3 class="text-xl font-bold mb-3">Mighty Deeds Inspiration (d5)</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><span class="font-semibold">1:</span> Disarm or batter aside a foe's weapon</li>
+                        <li><span class="font-semibold">2:</span> Shove an enemy into hazards or off balance</li>
+                        <li><span class="font-semibold">3:</span> Rally allies, granting +1 to hit this round</li>
+                        <li><span class="font-semibold">4:</span> Smash shields or armor, reducing AC by 1</li>
+                        <li><span class="font-semibold">5:</span> Seize the initiative, acting again at the end of the round</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800">
+                    <h3 class="text-xl font-bold mb-3">Dungeon Hazards (d6)</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><span class="font-semibold">1:</span> Collapsing ceiling (Reflex DC 12 or 1d6 damage)</li>
+                        <li><span class="font-semibold">2:</span> Poison needle trap (Fort DC 10 or 1d4 damage + 1 CON)</li>
+                        <li><span class="font-semibold">3:</span> Hidden pit, 10 ft drop (1d6 damage)</li>
+                        <li><span class="font-semibold">4:</span> Swarm of bats erupts, imposing -2 to ranged attacks</li>
+                        <li><span class="font-semibold">5:</span> Sudden darkness; treat light sources as sputtering</li>
+                        <li><span class="font-semibold">6:</span> Arcane glyph explodes (Will DC 12 or lose next action)</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface rounded-lg p-4 border border-gray-200 dark:border-gray-800">
+                    <h3 class="text-xl font-bold mb-3">Treasure Finds (d8)</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><span class="font-semibold">1:</span> Pouch of 3d12 silver coins</li>
+                        <li><span class="font-semibold">2:</span> Minor potion (roll on mercurial effects when imbibed)</li>
+                        <li><span class="font-semibold">3:</span> Map fragment hinting at a hidden level</li>
+                        <li><span class="font-semibold">4:</span> Bundle of exotic trade goods worth 50 gp</li>
+                        <li><span class="font-semibold">5:</span> +1 weapon with an odd personality quirk</li>
+                        <li><span class="font-semibold">6:</span> Cache of rare spell components</li>
+                        <li><span class="font-semibold">7:</span> Idol that whispers secrets, but demands a price</li>
+                        <li><span class="font-semibold">8:</span> Hoard of gems worth 3d6 × 10 gp</li>
+                    </ul>
+                </div>
             </div>
         </section>
 
@@ -403,6 +443,29 @@
                 </div>
                 <button onclick="showCampaignForm()" class="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-sm">+ New Campaign</button>
             </div>
+            <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4 space-y-3">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Search</label>
+                        <input type="text" id="campaign-search" placeholder="Search by name, player, or note" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Judge Filter</label>
+                        <input type="text" id="campaign-judge-filter" placeholder="Judge name" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Sort</label>
+                        <select id="campaign-sort" class="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm">
+                            <option value="recent">Recently Updated</option>
+                            <option value="name">Name (A-Z)</option>
+                            <option value="sessions">Most Sessions</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-600 dark:text-gray-400">Filters apply instantly so you can surface the right campaign dashboard during play.</p>
+            </div>
+
+            <div id="campaign-summary" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"></div>
             <div id="campaign-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </section>
     </div>
@@ -627,7 +690,10 @@
         const uiState = {
             characterSearch: '',
             characterClass: 'all',
-            characterSort: 'name'
+            characterSort: 'name',
+            campaignSearch: '',
+            campaignJudge: '',
+            campaignSort: 'recent'
         };
 
         function clone(obj) {
@@ -693,6 +759,13 @@
         function formatModifier(score) {
             const mod = getModifier(score);
             return (mod >= 0 ? '+' : '') + mod;
+        }
+
+        function formatTimestamp(isoString) {
+            if (!isoString) return '—';
+            const date = new Date(isoString);
+            if (Number.isNaN(date.getTime())) return '—';
+            return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         }
 
         function openModal(id) {
@@ -818,6 +891,21 @@
             renderCharacters();
         });
 
+        document.getElementById('campaign-search').addEventListener('input', (event) => {
+            uiState.campaignSearch = event.target.value.toLowerCase();
+            renderCampaigns();
+        });
+
+        document.getElementById('campaign-judge-filter').addEventListener('input', (event) => {
+            uiState.campaignJudge = event.target.value.toLowerCase();
+            renderCampaigns();
+        });
+
+        document.getElementById('campaign-sort').addEventListener('change', (event) => {
+            uiState.campaignSort = event.target.value;
+            renderCampaigns();
+        });
+
         function rollDiceNTimes(count, sides) {
             const results = [];
             for (let i = 0; i < count; i++) {
@@ -858,6 +946,56 @@
             openModal('character-form-modal');
         }
 
+        function renderCharacterSummary(filtered, all) {
+            const container = document.getElementById('character-summary');
+            if (!container) return;
+            if (!all.length) {
+                container.innerHTML = `
+                    <div class="bg-gray-50 dark:bg-surface border border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-4 text-sm text-gray-600 dark:text-gray-400">
+                        Add characters to see roster analytics at a glance.
+                    </div>
+                `;
+                return;
+            }
+
+            const total = all.length;
+            const filteredCount = filtered.length;
+            const highestLevel = all.reduce((max, char) => Math.max(max, char.level || 0), 0);
+            const readyCount = all.filter(char => (char.hpCurrent || 0) > 0).length;
+            const averageLuck = (all.reduce((sum, char) => sum + getModifier(char.luc || 10), 0) / total).toFixed(1);
+
+            const classFrequency = all.reduce((acc, char) => {
+                const key = (char.class || 'Unknown').toLowerCase();
+                acc[key] = (acc[key] || 0) + 1;
+                return acc;
+            }, {});
+            const mostCommonClassKey = Object.keys(classFrequency).sort((a, b) => classFrequency[b] - classFrequency[a])[0];
+            const mostCommonClass = all.find(char => (char.class || '').toLowerCase() === mostCommonClassKey)?.class || '—';
+
+            container.innerHTML = `
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Roster Size</div>
+                    <div class="text-2xl font-bold">${total}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">${filteredCount} matching current filters</div>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Highest Level</div>
+                    <div class="text-2xl font-bold">${highestLevel}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Most common class: ${mostCommonClass}</div>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Average Luck Mod</div>
+                    <div class="text-2xl font-bold">${averageLuck}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Based on ${total} heroes</div>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Battle Ready</div>
+                    <div class="text-2xl font-bold">${readyCount}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Have HP above zero</div>
+                </div>
+            `;
+        }
+
         function renderCharacters() {
             const container = document.getElementById('character-list');
             if (!container) return;
@@ -883,6 +1021,8 @@
                             return (a.name || '').localeCompare(b.name || '');
                     }
                 });
+
+            renderCharacterSummary(filtered, state.characters);
 
             if (filtered.length === 0) {
                 container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-12">No characters yet. Create one or import from a JSON backup.</p>';
@@ -1239,9 +1379,55 @@
             displayRollResults();
         }
 
+        function renderDiceStats() {
+            const container = document.getElementById('dice-stats');
+            if (!container) return;
+            if (!state.diceHistory.length) {
+                container.innerHTML = `
+                    <div class="bg-gray-50 dark:bg-surface border border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-4 text-sm text-gray-600 dark:text-gray-400">
+                        Roll some dice to populate your analytics panel.
+                    </div>
+                `;
+                return;
+            }
+
+            const totals = state.diceHistory.map(entry => entry.total || 0);
+            const average = (totals.reduce((sum, value) => sum + value, 0) / totals.length).toFixed(1);
+            const highest = Math.max(...totals);
+            const mostRecent = state.diceHistory[0];
+            const mostRecentTotal = mostRecent.total ?? '—';
+            const mostRecentFormula = mostRecent.formula || '—';
+
+            const formulaFrequency = state.diceHistory.reduce((acc, entry) => {
+                const key = entry.formula || '—';
+                acc[key] = (acc[key] || 0) + 1;
+                return acc;
+            }, {});
+            const popularFormula = Object.keys(formulaFrequency).sort((a, b) => formulaFrequency[b] - formulaFrequency[a])[0];
+
+            container.innerHTML = `
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Logged Rolls</div>
+                    <div class="text-2xl font-bold">${totals.length}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Last: ${mostRecentTotal} on ${mostRecentFormula}</div>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Average Result</div>
+                    <div class="text-2xl font-bold">${average}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Across ${totals.length} rolls</div>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">High Water Mark</div>
+                    <div class="text-2xl font-bold">${highest}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Most used: ${popularFormula} (${formulaFrequency[popularFormula]}×)</div>
+                </div>
+            `;
+        }
+
         function displayRollResults() {
             const container = document.getElementById('dice-results');
             if (!container) return;
+            renderDiceStats();
             if (state.diceHistory.length === 0) {
                 container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-12">Roll dice to populate the log.</p>';
                 return;
@@ -1296,10 +1482,54 @@
             document.getElementById('combat-init-mod').value = 0;
         });
 
+        function renderCombatSummary() {
+            const container = document.getElementById('combat-summary');
+            if (!container) return;
+            const combatants = state.combat.combatants;
+            if (!combatants.length) {
+                container.innerHTML = `
+                    <div class="bg-gray-50 dark:bg-surface border border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-4 text-sm text-gray-600 dark:text-gray-400">
+                        Add combatants or pull heroes from your roster to see encounter metrics.
+                    </div>
+                `;
+                return;
+            }
+
+            const pcs = combatants.filter(c => c.type === 'pc').length;
+            const hostiles = combatants.length - pcs;
+            const totalHP = combatants.reduce((sum, c) => sum + (c.hp || 0), 0);
+            const bloodied = combatants.filter(c => c.hp > 0 && c.hp <= Math.max(1, Math.floor((c.hpMax || 1) / 2))).length;
+            const active = combatants.find(c => c.id === state.combat.activeId) || combatants[0];
+
+            container.innerHTML = `
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Round</div>
+                    <div class="text-2xl font-bold">${state.combat.round}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Active: ${active ? active.name : '—'}</div>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Roster</div>
+                    <div class="text-2xl font-bold">${pcs} PCs / ${hostiles} foes</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">${combatants.length} combatants total</div>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Combined HP</div>
+                    <div class="text-2xl font-bold">${totalHP}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Live bodies on the field</div>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Bloodied</div>
+                    <div class="text-2xl font-bold">${bloodied}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">At or below half hit points</div>
+                </div>
+            `;
+        }
+
         function renderCombat() {
             document.getElementById('combat-round').textContent = state.combat.round;
             const container = document.getElementById('combat-list');
             if (!container) return;
+            renderCombatSummary();
             if (!state.combat.combatants.length) {
                 container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-12">No combatants yet. Add a foe or pull a character from your roster.</p>';
                 return;
@@ -1462,14 +1692,16 @@
                 const index = state.campaigns.findIndex(c => c.id === id);
                 if (index !== -1) {
                     const existing = state.campaigns[index];
-                    state.campaigns[index] = { ...existing, ...campaignData };
+                    state.campaigns[index] = { ...existing, ...campaignData, updatedAt: new Date().toISOString() };
                 }
             } else {
+                const timestamp = new Date().toISOString();
                 state.campaigns.push({
                     ...campaignData,
                     adventures: [],
                     sessions: [],
-                    createdAt: new Date().toISOString()
+                    createdAt: timestamp,
+                    updatedAt: timestamp
                 });
             }
 
@@ -1481,14 +1713,125 @@
             }
         });
 
+        function renderCampaignSummary(filtered, all) {
+            const container = document.getElementById('campaign-summary');
+            if (!container) return;
+            if (!all.length) {
+                container.innerHTML = `
+                    <div class="bg-gray-50 dark:bg-surface border border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-4 text-sm text-gray-600 dark:text-gray-400">
+                        Create your first campaign to unlock quick dashboard stats.
+                    </div>
+                `;
+                return;
+            }
+
+            if (!filtered.length) {
+                container.innerHTML = `
+                    <div class="bg-gray-50 dark:bg-surface border border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-4 text-sm text-gray-600 dark:text-gray-400">
+                        No campaigns match the current filters. Showing 0 of ${all.length} tracked.
+                    </div>
+                `;
+                return;
+            }
+
+            const totalCampaigns = all.length;
+            const playerSet = new Set();
+            let sessionCount = 0;
+            let adventureCount = 0;
+            let lastUpdatedIso = null;
+            filtered.forEach(campaign => {
+                (campaign.players || []).forEach(player => {
+                    const trimmed = (player || '').trim();
+                    if (trimmed) {
+                        playerSet.add(trimmed.toLowerCase());
+                    }
+                });
+                sessionCount += campaign.sessions?.length || 0;
+                adventureCount += campaign.adventures?.length || 0;
+                const candidate = campaign.updatedAt || campaign.createdAt;
+                if (candidate) {
+                    if (!lastUpdatedIso) {
+                        lastUpdatedIso = candidate;
+                    } else {
+                        const candidateTime = new Date(candidate).getTime();
+                        const existingTime = new Date(lastUpdatedIso).getTime();
+                        if (!Number.isNaN(candidateTime) && (Number.isNaN(existingTime) || candidateTime > existingTime)) {
+                            lastUpdatedIso = candidate;
+                        }
+                    }
+                }
+            });
+
+            container.innerHTML = `
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Campaign Dashboards</div>
+                    <div class="text-2xl font-bold">${filtered.length}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">of ${totalCampaigns} total tracked</div>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Unique Players</div>
+                    <div class="text-2xl font-bold">${playerSet.size}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Across filtered campaigns</div>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Sessions Logged</div>
+                    <div class="text-2xl font-bold">${sessionCount}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Adventures cataloged: ${adventureCount}</div>
+                </div>
+                <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                    <div class="text-xs uppercase text-gray-500">Last Updated</div>
+                    <div class="text-2xl font-bold">${lastUpdatedIso ? formatTimestamp(lastUpdatedIso) : '—'}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Most recent activity</div>
+                </div>
+            `;
+        }
+
         function renderCampaigns() {
             const container = document.getElementById('campaign-list');
             if (!container) return;
-            if (!state.campaigns.length) {
+            const allCampaigns = state.campaigns.slice();
+            if (!allCampaigns.length) {
+                renderCampaignSummary([], allCampaigns);
                 container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-12">No campaigns tracked. Log your first adventure to begin.</p>';
                 return;
             }
-            container.innerHTML = state.campaigns.map(campaign => `
+
+            const filtered = allCampaigns
+                .filter(campaign => {
+                    const search = uiState.campaignSearch;
+                    const judgeFilter = uiState.campaignJudge;
+                    const haystack = [
+                        campaign.name || '',
+                        campaign.description || '',
+                        campaign.notes || '',
+                        (campaign.players || []).join(' ')
+                    ].join(' ').toLowerCase();
+                    const matchesSearch = !search || haystack.includes(search);
+                    const matchesJudge = !judgeFilter || (campaign.judge || '').toLowerCase().includes(judgeFilter);
+                    return matchesSearch && matchesJudge;
+                })
+                .sort((a, b) => {
+                    switch (uiState.campaignSort) {
+                        case 'name':
+                            return (a.name || '').localeCompare(b.name || '');
+                        case 'sessions':
+                            return (b.sessions?.length || 0) - (a.sessions?.length || 0);
+                        default: {
+                            const aTime = new Date(a.updatedAt || a.createdAt || 0).getTime() || 0;
+                            const bTime = new Date(b.updatedAt || b.createdAt || 0).getTime() || 0;
+                            return bTime - aTime;
+                        }
+                    }
+                });
+
+            renderCampaignSummary(filtered, allCampaigns);
+
+            if (!filtered.length) {
+                container.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-12">No campaigns match your filters. Adjust search terms to continue.</p>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(campaign => `
                 <div class="bg-gray-50 dark:bg-surface border border-gray-200 dark:border-gray-800 rounded-lg p-5 space-y-3">
                     <div class="flex items-start justify-between gap-3">
                         <div>
@@ -1503,8 +1846,8 @@
                     </div>
                     ${campaign.description ? `<div class=\"text-sm text-gray-700 dark:text-gray-300 line-clamp-3\">${campaign.description}</div>` : ''}
                     <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                        <span>${campaign.adventures?.length || 0} adventures</span>
-                        <span>${campaign.sessions?.length || 0} session logs</span>
+                        <span>${campaign.adventures?.length || 0} adventures • ${campaign.sessions?.length || 0} session logs</span>
+                        <span>Updated ${formatTimestamp(campaign.updatedAt || campaign.createdAt)}</span>
                     </div>
                     <button onclick="showCampaignDetail('${campaign.id}')" class="w-full px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm">Open Dashboard</button>
                 </div>
@@ -1580,6 +1923,12 @@
             closeModal('campaign-detail-modal');
         }
 
+        function markCampaignUpdated(campaign) {
+            if (campaign) {
+                campaign.updatedAt = new Date().toISOString();
+            }
+        }
+
         function addAdventure(campaignId, event) {
             event.preventDefault();
             const campaign = state.campaigns.find(c => c.id === campaignId);
@@ -1589,6 +1938,7 @@
             if (!name) return false;
             campaign.adventures = campaign.adventures || [];
             campaign.adventures.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name, summary });
+            markCampaignUpdated(campaign);
             saveState();
             renderCampaigns();
             showCampaignDetail(campaignId);
@@ -1599,6 +1949,7 @@
             const campaign = state.campaigns.find(c => c.id === campaignId);
             if (!campaign) return;
             campaign.adventures = (campaign.adventures || []).filter(a => a.id !== adventureId);
+            markCampaignUpdated(campaign);
             saveState();
             renderCampaigns();
             showCampaignDetail(campaignId);
@@ -1616,6 +1967,7 @@
                 date: new Date().toISOString(),
                 log
             });
+            markCampaignUpdated(campaign);
             saveState();
             renderCampaigns();
             showCampaignDetail(campaignId);
@@ -1626,6 +1978,7 @@
             const campaign = state.campaigns.find(c => c.id === campaignId);
             if (!campaign) return;
             campaign.sessions = (campaign.sessions || []).filter(s => s.id !== sessionId);
+            markCampaignUpdated(campaign);
             saveState();
             renderCampaigns();
             showCampaignDetail(campaignId);
