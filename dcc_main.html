@@ -96,6 +96,61 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+        .dm-card {
+            position: relative;
+            background: linear-gradient(160deg, rgba(93, 92, 222, 0.08), rgba(255, 255, 255, 0.92));
+            border: 1px solid rgba(93, 92, 222, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 18px 34px -22px rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(6px);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .dm-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 22px 42px -22px rgba(93, 92, 222, 0.55);
+        }
+        .dark .dm-card {
+            background: linear-gradient(160deg, rgba(24, 24, 24, 0.96), rgba(45, 45, 45, 0.86));
+            border-color: rgba(93, 92, 222, 0.35);
+            box-shadow: 0 20px 38px -24px rgba(0, 0, 0, 0.7);
+        }
+        .dark .dm-card:hover {
+            box-shadow: 0 22px 46px -24px rgba(93, 92, 222, 0.6);
+        }
+        .dm-stat-card {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding: 1.25rem;
+            border-radius: 0.9rem;
+            background: linear-gradient(140deg, rgba(93, 92, 222, 0.15), rgba(255, 255, 255, 0.9));
+            border: 1px solid rgba(93, 92, 222, 0.28);
+            box-shadow: 0 16px 38px -28px rgba(15, 23, 42, 0.6);
+        }
+        .dm-stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+            color: rgba(30, 41, 59, 0.72);
+        }
+        .dm-stat-value {
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: #2e2a7f;
+        }
+        .dark .dm-stat-card {
+            background: linear-gradient(140deg, rgba(93, 92, 222, 0.28), rgba(35, 35, 35, 0.85));
+            border-color: rgba(93, 92, 222, 0.45);
+            box-shadow: 0 18px 42px -28px rgba(0, 0, 0, 0.85);
+        }
+        .dark .dm-stat-label {
+            color: rgba(226, 232, 240, 0.72);
+        }
+        .dark .dm-stat-value {
+            color: rgba(199, 206, 255, 0.95);
+        }
     </style>
     <script src="https://puc.poecdn.net/authenticated_preview_page/syncedState.3f7572448765332f3047.js"></script>
 </head>
@@ -148,20 +203,39 @@
         </nav>
 
         <!-- DM Tools Tab -->
-        <section id="content-dm" class="tab-content hidden space-y-4">
+        <section id="content-dm" class="tab-content hidden space-y-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="space-y-1">
                     <h2 class="text-2xl font-bold">DM Control Panel</h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400">Track prep, pace sessions, and surface inspiration without shuffling paper behind the screen.</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <button onclick="resetDMTools()" class="px-4 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition text-sm">Reset Panel</button>
+                    <button onclick="resetDMTools()" class="px-4 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition text-sm shadow-sm">Reset Panel</button>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                <div class="xl:col-span-2 space-y-4">
-                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                <div class="dm-stat-card">
+                    <span class="dm-stat-label">Prepped Encounters</span>
+                    <span id="dm-ai-encounter-count" class="dm-stat-value">0</span>
+                </div>
+                <div class="dm-stat-card">
+                    <span class="dm-stat-label">Session Notes</span>
+                    <span id="dm-ai-note-count" class="dm-stat-value">0</span>
+                </div>
+                <div class="dm-stat-card">
+                    <span class="dm-stat-label">Spotlight Moments</span>
+                    <span id="dm-ai-spotlight-count" class="dm-stat-value">0</span>
+                </div>
+                <div class="dm-stat-card">
+                    <span class="dm-stat-label">Inspiration Pulls</span>
+                    <span id="dm-ai-inspiration-count" class="dm-stat-value">0</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                <div class="xl:col-span-7 space-y-6">
+                    <div class="dm-card space-y-5">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xl font-semibold">Encounter Builder</h3>
                             <span class="text-xs text-gray-500" id="dm-encounter-count">0 prepped</span>
@@ -169,15 +243,15 @@
                         <form id="dm-encounter-form" class="grid grid-cols-1 md:grid-cols-6 gap-3">
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-semibold mb-1">Encounter Name</label>
-                                <input type="text" name="encounter-name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="e.g., Goblin ambush" required>
+                                <input type="text" name="encounter-name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition" placeholder="e.g., Goblin ambush" required>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold mb-1">Quantity</label>
-                                <input type="number" name="encounter-quantity" min="1" value="1" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                                <input type="number" name="encounter-quantity" min="1" value="1" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition">
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold mb-1">Threat</label>
-                                <select name="encounter-threat" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                                <select name="encounter-threat" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition">
                                     <option value="Low">Low</option>
                                     <option value="Moderate">Moderate</option>
                                     <option value="Dangerous">Dangerous</option>
@@ -186,45 +260,45 @@
                             </div>
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-semibold mb-1">Environment</label>
-                                <input type="text" name="encounter-environment" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="Ruined temple, swamp trail...">
+                                <input type="text" name="encounter-environment" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition" placeholder="Ruined temple, swamp trail...">
                             </div>
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold mb-1">Tactics & Rewards</label>
-                                <textarea name="encounter-notes" rows="2" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="Opening gambit, morale, treasure, complications..."></textarea>
+                                <label class="block text-sm font-semibold mb-1">Tactics &amp; Rewards</label>
+                                <textarea name="encounter-notes" rows="2" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition" placeholder="Opening gambit, morale, treasure, complications..."></textarea>
                             </div>
                             <div class="md:col-span-6 flex justify-end">
-                                <button type="submit" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm">Save Encounter</button>
+                                <button type="submit" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm shadow-sm">Save Encounter</button>
                             </div>
                         </form>
                         <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-                            <input type="search" id="dm-encounter-search" placeholder="Search prepped encounters" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
-                            <button type="button" id="dm-encounter-clear-search" class="px-3 py-2 border border-gray-300 dark:border-gray-700 text-xs rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition">Clear</button>
+                            <input type="search" id="dm-encounter-search" placeholder="Search prepped encounters" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition">
+                            <button type="button" id="dm-encounter-clear-search" class="px-3 py-2 border border-gray-300 dark:border-gray-700 text-xs rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition shadow-sm">Clear</button>
                         </div>
                         <div id="dm-encounter-list" class="space-y-3 text-sm text-gray-700 dark:text-gray-300">
                             <p class="text-xs text-gray-500">No encounters prepped yet.</p>
                         </div>
                     </div>
 
-                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-4">
+                    <div class="dm-card space-y-5">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xl font-semibold">Session Notes</h3>
                             <span class="text-xs text-gray-500" id="dm-note-count">0 captured</span>
                         </div>
                         <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-                            <input type="search" id="dm-note-search" placeholder="Search notes" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm">
+                            <input type="search" id="dm-note-search" placeholder="Search notes" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition">
                             <label class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                                 <input type="checkbox" id="dm-note-spotlight-filter" class="h-4 w-4 text-primary">
                                 Spotlight only
                             </label>
                         </div>
                         <form id="dm-note-form" class="space-y-3">
-                            <textarea id="dm-note-input" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="Summaries, secrets revealed, NPC goals..." required></textarea>
-                            <div class="flex items-center justify-between text-xs text-gray-500">
+                            <textarea id="dm-note-input" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition" placeholder="Summaries, secrets revealed, NPC goals..." required></textarea>
+                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500">
                                 <label class="flex items-center gap-2">
                                     <input type="checkbox" id="dm-note-spotlight" class="h-4 w-4 text-primary">
                                     Spotlight this note
                                 </label>
-                                <button type="submit" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm">Log Note</button>
+                                <button type="submit" class="px-4 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm shadow-sm">Log Note</button>
                             </div>
                         </form>
                         <div id="dm-note-list" class="space-y-3 text-sm text-gray-700 dark:text-gray-300">
@@ -233,44 +307,190 @@
                     </div>
                 </div>
 
-                <div class="space-y-4">
-                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-3">
+                <div class="xl:col-span-5 space-y-6">
+                    <div class="dm-card space-y-4">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xl font-semibold">Session Clock</h3>
                             <span class="text-xs text-gray-500" id="dm-stopwatch-status">Idle</span>
                         </div>
-                        <div class="text-3xl font-bold text-primary" id="dm-stopwatch-display">00:00:00</div>
+                        <div class="text-4xl font-bold text-primary" id="dm-stopwatch-display">00:00:00</div>
                         <div class="flex flex-wrap gap-2">
-                            <button id="dm-stopwatch-start" class="flex-1 px-3 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm">Start</button>
-                            <button id="dm-stopwatch-pause" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm">Pause</button>
-                            <button id="dm-stopwatch-reset" class="flex-1 px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm">Reset</button>
+                            <button id="dm-stopwatch-start" class="flex-1 px-3 py-2 bg-primary text-white rounded hover:bg-opacity-90 transition text-sm shadow-sm">Start</button>
+                            <button id="dm-stopwatch-pause" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm shadow-sm">Pause</button>
+                            <button id="dm-stopwatch-reset" class="flex-1 px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition text-sm shadow-sm">Reset</button>
                         </div>
                     </div>
 
-                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-3">
+                    <div class="dm-card space-y-4">
                         <h3 class="text-xl font-semibold">Resource Trackers</h3>
                         <div id="dm-trackers" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm"></div>
                     </div>
 
-                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-3">
+                    <div class="dm-card space-y-4">
                         <h3 class="text-xl font-semibold">Inspiration Engine</h3>
                         <div class="grid grid-cols-2 gap-2 text-sm">
-                            <button id="dm-random-weather" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Weather</button>
-                            <button id="dm-random-complication" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Complication</button>
-                            <button id="dm-random-treasure" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Treasure Hook</button>
-                            <button id="dm-random-npc" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">NPC Quirk</button>
+                            <button id="dm-random-weather" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Weather</button>
+                            <button id="dm-random-complication" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Complication</button>
+                            <button id="dm-random-treasure" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Treasure Hook</button>
+                            <button id="dm-random-npc" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">NPC Quirk</button>
                         </div>
                         <div id="dm-random-history" class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                             <p class="text-xs text-gray-500">Roll the inspiration engine to populate this log.</p>
                         </div>
                     </div>
 
+                    <div class="dm-card space-y-6">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-4">
                         <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                             <div>
                                 <h3 class="text-xl font-semibold">AI Co-DM Helper</h3>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Bundle your prep into prompt-ready snippets for your favorite assistant.</p>
                             </div>
+                            <button id="dm-ai-refresh-context" class="self-start px-3 py-1 text-xs border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition shadow-sm">Refresh</button>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="space-y-6">
+                                <div class="space-y-3">
+                                    <h4 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Context Builder</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Toggle which prep elements flow into the context snapshot before you copy it out.</p>
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs sm:text-sm">
+                                        <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white/70 dark:bg-gray-900/60 cursor-pointer shadow-sm hover:border-primary transition">
+                                            <input type="checkbox" class="dm-ai-context-toggle accent-primary" data-ai-toggle="encounters" checked>
+                                            <span>Upcoming Encounters</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white/70 dark:bg-gray-900/60 cursor-pointer shadow-sm hover:border-primary transition">
+                                            <input type="checkbox" class="dm-ai-context-toggle accent-primary" data-ai-toggle="resolved" checked>
+                                            <span>Recent Victories</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white/70 dark:bg-gray-900/60 cursor-pointer shadow-sm hover:border-primary transition">
+                                            <input type="checkbox" class="dm-ai-context-toggle accent-primary" data-ai-toggle="spotlight" checked>
+                                            <span>Spotlight Moments</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white/70 dark:bg-gray-900/60 cursor-pointer shadow-sm hover:border-primary transition">
+                                            <input type="checkbox" class="dm-ai-context-toggle accent-primary" data-ai-toggle="beats" checked>
+                                            <span>Recent Beats</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white/70 dark:bg-gray-900/60 cursor-pointer shadow-sm hover:border-primary transition">
+                                            <input type="checkbox" class="dm-ai-context-toggle accent-primary" data-ai-toggle="trackers" checked>
+                                            <span>Resource Trackers</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white/70 dark:bg-gray-900/60 cursor-pointer shadow-sm hover:border-primary transition">
+                                            <input type="checkbox" class="dm-ai-context-toggle accent-primary" data-ai-toggle="inspiration" checked>
+                                            <span>Inspiration Log</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white/70 dark:bg-gray-900/60 cursor-pointer shadow-sm hover:border-primary transition">
+                                            <input type="checkbox" class="dm-ai-context-toggle accent-primary" data-ai-toggle="clock" checked>
+                                            <span>Session Clock</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Context Snapshot</label>
+                                    <textarea id="dm-ai-context" rows="10" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition" readonly placeholder="Log encounters or spotlight notes to build AI-ready context."></textarea>
+                                    <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                        <span>Context updates automatically as you prep.</span>
+                                        <button id="dm-ai-copy-context" class="px-3 py-2 text-xs border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Copy Context</button>
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <h4 class="text-sm font-semibold">Prompt Starters</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Prime the helper with a ready-made request or use them as inspiration for your own question.</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                                        <button data-ai-prompt="session-recap" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Session Recap</button>
+                                        <button data-ai-prompt="encounter-escalation" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Escalate Encounter</button>
+                                        <button data-ai-prompt="npc-dialogue" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">NPC Dialogue</button>
+                                        <button data-ai-prompt="downtime-hooks" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Downtime Hooks</button>
+                                        <button data-ai-prompt="scene-painting" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Scene Painting</button>
+                                        <button data-ai-prompt="momentum-plan" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Momentum Plan</button>
+                                        <button data-ai-prompt="rules-lookup" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Rules Lookup</button>
+                                        <button data-ai-prompt="treasure-upgrade" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Treasure Upgrade</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-6">
+                                <div class="space-y-3">
+                                    <h4 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Voice & Format Controls</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Dial in how the assistant responds before compiling your final prompt.</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                                        <label class="flex flex-col gap-1">
+                                            <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Voice</span>
+                                            <select id="dm-ai-tone" class="w-full px-2 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition">
+                                                <option value="neutral" selected>Neutral Narrator</option>
+                                                <option value="grim">Grim & Perilous</option>
+                                                <option value="whimsical">Weird & Whimsical</option>
+                                                <option value="epic">Mythic & Heroic</option>
+                                            </select>
+                                        </label>
+                                        <label class="flex flex-col gap-1">
+                                            <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Format</span>
+                                            <select id="dm-ai-structure" class="w-full px-2 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition">
+                                                <option value="auto" selected>Adaptive</option>
+                                                <option value="bullet">Bullet Points</option>
+                                                <option value="narrative">Narrative</option>
+                                                <option value="dialogue">Dialogue</option>
+                                            </select>
+                                        </label>
+                                        <label class="flex flex-col gap-1">
+                                            <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Length</span>
+                                            <select id="dm-ai-length" class="w-full px-2 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition">
+                                                <option value="tight">Punchy</option>
+                                                <option value="standard" selected>Balanced Detail</option>
+                                                <option value="epic">Sweeping</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <p id="dm-ai-style-preview" class="text-xs text-gray-500 dark:text-gray-400">Neutral narrator • Format: adaptive • Length: balanced detail</p>
+                                </div>
+                                <div class="space-y-3">
+                                    <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Working Prompt</label>
+                                    <textarea id="dm-ai-prompt-output" rows="6" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition" placeholder="Press a prompt starter or draft your own request for the AI."></textarea>
+                                    <div class="flex flex-wrap justify-end gap-2">
+                                        <button id="dm-ai-append-context" class="px-3 py-2 text-xs border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Append Context</button>
+                                        <button id="dm-ai-clear-prompt" class="px-3 py-2 text-xs border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition shadow-sm">Clear</button>
+                                        <button id="dm-ai-copy-prompt" class="px-3 py-2 text-xs bg-primary text-white rounded hover:bg-opacity-90 transition shadow-sm">Copy Prompt</button>
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <h4 class="text-sm font-semibold">AI Launch Pad</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Package your prompt, context, and style directives, then jump straight into your preferred assistant.</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                                        <label class="flex flex-col gap-1">
+                                            <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Assistant Target</span>
+                                            <select id="dm-ai-provider" class="w-full px-2 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition">
+                                                <option value="poe">Poe (multi-model)</option>
+                                                <option value="chatgpt">ChatGPT</option>
+                                                <option value="claude">Claude</option>
+                                                <option value="gemini">Gemini</option>
+                                                <option value="custom">Custom URL</option>
+                                            </select>
+                                        </label>
+                                        <label id="dm-ai-provider-url-wrapper" class="flex flex-col gap-1 hidden">
+                                            <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Custom Assistant URL</span>
+                                            <input id="dm-ai-provider-url" type="url" class="w-full px-2 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition" placeholder="https://assistant.example.com/session">
+                                        </label>
+                                        <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white/70 dark:bg-gray-900/60 cursor-pointer shadow-sm">
+                                            <input type="checkbox" id="dm-ai-include-context" class="accent-primary" checked>
+                                            <span class="text-xs sm:text-sm">Attach context snapshot automatically</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white/70 dark:bg-gray-900/60 cursor-pointer shadow-sm">
+                                            <input type="checkbox" id="dm-ai-include-style" class="accent-primary" checked>
+                                            <span class="text-xs sm:text-sm">Include style guide directives</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white/70 dark:bg-gray-900/60 cursor-pointer shadow-sm sm:col-span-2">
+                                            <input type="checkbox" id="dm-ai-auto-copy" class="accent-primary" checked>
+                                            <span class="text-xs sm:text-sm">Copy final prompt to clipboard when launching</span>
+                                        </label>
+                                    </div>
+                                    <p id="dm-ai-provider-hint" class="text-xs text-gray-500 dark:text-gray-400"></p>
+                                    <textarea id="dm-ai-full-preview" rows="6" class="w-full px-3 py-2 border border-dashed border-gray-300 dark:border-gray-700 rounded bg-white/80 dark:bg-gray-900/60 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition" readonly placeholder="Build a working prompt or context to preview the final AI hand-off."></textarea>
+                                    <div class="flex flex-wrap justify-end gap-2">
+                                        <button id="dm-ai-preview-full" class="px-3 py-2 text-xs border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition shadow-sm">Refresh Preview</button>
+                                        <button id="dm-ai-copy-full" class="px-3 py-2 text-xs border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Copy Final Prompt</button>
+                                        <button id="dm-ai-launch" class="px-3 py-2 text-xs bg-primary text-white rounded hover:bg-opacity-90 transition shadow-sm">Open AI Chat</button>
+                                    </div>
+                                    <p id="dm-ai-launch-status" class="text-xs text-gray-500 dark:text-gray-400"></p>
+                                </div>
                             <button id="dm-ai-refresh-context" class="self-start px-3 py-1 text-xs border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition">Refresh</button>
                         </div>
                         <div class="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
@@ -307,7 +527,6 @@
                 </div>
             </div>
         </section>
-
         <!-- Characters Tab -->
         <section id="content-characters" class="tab-content space-y-4">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -1015,6 +1234,25 @@
 
         const storageKey = 'dcc-tabletop-state-v2';
         const tabKey = 'dcc-active-tab';
+        const defaultDMAISettings = {
+            toggles: {
+                encounters: true,
+                resolved: true,
+                spotlight: true,
+                beats: true,
+                trackers: true,
+                inspiration: true,
+                clock: true
+            },
+            tone: 'neutral',
+            structure: 'auto',
+            length: 'standard',
+            includeContext: true,
+            includeStyleGuide: true,
+            autoCopyFull: true,
+            provider: 'poe',
+            customProviderUrl: ''
+        };
         const defaultState = {
             characters: [],
             campaigns: [],
@@ -1048,7 +1286,8 @@
                     startedAt: null,
                     elapsed: 0
                 },
-                randomHistory: []
+                randomHistory: [],
+                aiSettings: JSON.parse(JSON.stringify(defaultDMAISettings))
             }
         };
 
@@ -1107,6 +1346,14 @@
                         stopwatch: {
                             ...clone(defaultState.dm.stopwatch),
                             ...(parsed?.dm?.stopwatch || {})
+                        },
+                        aiSettings: {
+                            ...JSON.parse(JSON.stringify(defaultDMAISettings)),
+                            ...(parsed?.dm?.aiSettings || {}),
+                            toggles: {
+                                ...defaultDMAISettings.toggles,
+                                ...((parsed?.dm?.aiSettings || {}).toggles || {})
+                            }
                         }
                     }
                 };
@@ -1182,6 +1429,126 @@
             ]
         };
 
+        const aiToneDirectives = {
+            neutral: 'Maintain a balanced, third-person narrator voice suited to pulpy sword-and-sorcery tables.',
+            grim: 'Adopt a grim, perilous tone emphasizing lethal stakes and hard choices.',
+            whimsical: 'Lean into Appendix N weird fantasy with playful, gonzo imagery and unexpected magic.',
+            epic: 'Use mythic, heroic language that frames the party as legendary figures.'
+        };
+
+        const aiStructureDirectives = {
+            bullet: 'Structure the response as concise bullet lists with bolded headers when appropriate.',
+            narrative: 'Deliver the response as flowing narrative paragraphs suitable for boxed text.',
+            dialogue: 'Present the response as snippets of dialogue with speaker cues and brief stage directions.'
+        };
+
+        const aiLengthDirectives = {
+            tight: 'Keep the response under 180 words unless otherwise specified.',
+            standard: 'Aim for 200–280 words, balancing detail with pacing.',
+            epic: 'Embrace lavish detail; 350–450 words is acceptable if it serves the drama.'
+        };
+
+        const aiToneLabels = {
+            neutral: 'Neutral narrator',
+            grim: 'Grim & perilous',
+            whimsical: 'Weird & whimsical',
+            epic: 'Mythic & heroic'
+        };
+
+        const aiStructureLabels = {
+            auto: 'Format: adaptive',
+            bullet: 'Format: bullet lists',
+            narrative: 'Format: narrative prose',
+            dialogue: 'Format: dialogue beats'
+        };
+
+        const aiLengthLabels = {
+            tight: 'Length: punchy',
+            standard: 'Length: balanced detail',
+            epic: 'Length: sweeping'
+        };
+
+        function finalizeAIPrompt(bodyLines = [], contextBlock = '', styleGuide = '') {
+            const lines = [...bodyLines];
+            if (contextBlock) {
+                lines.push('', contextBlock);
+            }
+            if (styleGuide) {
+                lines.push('', 'Style guide:', styleGuide);
+            }
+            return lines.join('\n');
+        }
+
+        function buildAIStyleDirectives(settings = {}, overrides = {}) {
+            const toneKey = overrides.tone || settings?.tone || defaultDMAISettings.tone;
+            const structureKey = overrides.structure
+                ? overrides.structure
+                : (settings?.structure === 'auto'
+                    ? (overrides.preferredStructure || 'auto')
+                    : (settings?.structure || 'auto'));
+            const baseLength = overrides.length || settings?.length || defaultDMAISettings.length;
+            const lengthKey = baseLength === defaultDMAISettings.length && overrides.preferredLength
+                ? overrides.preferredLength
+                : baseLength;
+
+            const lines = [];
+            if (toneKey && aiToneDirectives[toneKey]) {
+                lines.push(aiToneDirectives[toneKey]);
+            }
+            if (structureKey && aiStructureDirectives[structureKey]) {
+                lines.push(aiStructureDirectives[structureKey]);
+            }
+            if (lengthKey && aiLengthDirectives[lengthKey]) {
+                lines.push(aiLengthDirectives[lengthKey]);
+            }
+            return lines.join('\n');
+        }
+
+        function describeDMAISettings(settings = {}) {
+            const toneKey = settings?.tone || defaultDMAISettings.tone;
+            const structureKey = settings?.structure || 'auto';
+            const lengthKey = settings?.length || defaultDMAISettings.length;
+            const toneLabel = aiToneLabels[toneKey] || `Tone: ${toneKey}`;
+            const structureLabel = aiStructureLabels[structureKey] || `Format: ${structureKey}`;
+            const lengthLabel = aiLengthLabels[lengthKey] || `Length: ${lengthKey}`;
+            return [toneLabel, structureLabel, lengthLabel].filter(Boolean).join(' • ');
+        }
+
+        const aiProviderTargets = {
+            poe: {
+                label: 'Poe (multi-model)',
+                url: 'https://poe.com/',
+                hint: 'Opens Poe so you can pick Claude, GPT-4o, or other assistants and paste the copied prompt.'
+            },
+            chatgpt: {
+                label: 'ChatGPT',
+                url: 'https://chat.openai.com/',
+                hint: 'Launches ChatGPT in a new tab. Paste the prompt to continue the conversation.'
+            },
+            claude: {
+                label: 'Claude',
+                url: 'https://claude.ai/new',
+                hint: 'Opens Claude for a fresh chat with Anthropic models.'
+            },
+            gemini: {
+                label: 'Gemini',
+                url: 'https://gemini.google.com/app',
+                hint: 'Opens Google Gemini. Paste the prompt into a new chat.'
+            },
+            custom: {
+                label: 'Custom URL',
+                url: '',
+                hint: 'Provide the chat URL you want to use below, then paste the generated prompt there.'
+            }
+        };
+
+        const aiPromptTemplates = {
+            'session-recap': ({ context, data, settings }) => {
+                const contextBlock = context ? `Context:\n${context}` : 'Context: (Ask the judge for encounter details and highlights before drafting the recap.)';
+                const hasSpotlight = (data?.spotlightNotes || []).length > 0;
+                const focusLine = hasSpotlight ? 'Prioritize spotlight notes when highlighting character moments.' : 'Infer key beats from the provided context even if spotlight notes are absent.';
+                const styleGuide = buildAIStyleDirectives(settings, { preferredStructure: 'narrative' });
+                return finalizeAIPrompt([
         const aiPromptTemplates = {
             'session-recap': ({ context, data }) => {
                 const contextBlock = context ? `Context:\n${context}` : 'Context: (Ask the judge for encounter details and highlights before drafting the recap.)';
@@ -1193,6 +1560,15 @@
                     'Write a recap with:',
                     '- A punchy session title',
                     '- 2 short paragraphs summarizing major events',
+                    '- Bullet points listing unresolved threads and boons earned'
+                ], contextBlock, styleGuide);
+            },
+            'encounter-escalation': ({ context, data, settings }) => {
+                const focusEncounter = data?.encounters?.[0]?.name;
+                const hook = focusEncounter ? `Focus on the encounter "${focusEncounter}" when proposing twists.` : 'Use whichever encounter seems most imminent in the context.';
+                const contextBlock = context ? `Context:\n${context}` : 'Context: (Gather encounter information from the judge before responding.)';
+                const styleGuide = buildAIStyleDirectives(settings, { preferredStructure: 'bullet' });
+                return finalizeAIPrompt([
                     '- Bullet points listing unresolved threads and boons earned',
                     '',
                     contextBlock
@@ -1208,6 +1584,15 @@
                     'Provide:',
                     '- 3 escalating complications or environmental twists',
                     '- Tactics the opposition adopts if the party stalls',
+                    '- Treasure or story rewards tied to the encounter outcome'
+                ], contextBlock, styleGuide);
+            },
+            'npc-dialogue': ({ context, data, settings }) => {
+                const reference = data?.randomHistory?.[0]?.result;
+                const quirkHint = reference ? `Incorporate this spark: "${reference}".` : 'Invent a memorable quirk using the context.';
+                const contextBlock = context ? `Context:\n${context}` : 'Context: (Collect current session details before drafting dialogue.)';
+                const styleGuide = buildAIStyleDirectives(settings, { preferredStructure: 'dialogue', preferredLength: 'tight' });
+                return finalizeAIPrompt([
                     '- Treasure or story rewards tied to the encounter outcome',
                     '',
                     contextBlock
@@ -1223,6 +1608,10 @@
                     'Output:',
                     '- A short description of the NPC\'s vibe and goal',
                     '- 3 flavorful lines of dialogue reacting to the party',
+                    '- A secret or rumor they might reveal if persuaded'
+                ], contextBlock, styleGuide);
+            },
+            'downtime-hooks': ({ context, data, settings }) => {
                     '- A secret or rumor they might reveal if persuaded',
                     '',
                     contextBlock
@@ -1233,12 +1622,69 @@
                     ? 'Tie at least one hook to the active resource trackers.'
                     : 'Invent hooks that build on the encounters and notes provided.';
                 const contextBlock = context ? `Context:\n${context}` : 'Context: (Add session details so hooks can reference current threats.)';
+                const styleGuide = buildAIStyleDirectives(settings, { preferredStructure: 'bullet' });
+                return finalizeAIPrompt([
                 return [
                     'Generate downtime opportunities for the party between Dungeon Crawl Classics adventures.',
                     trackerSummary,
                     'Deliver 4 hooks. For each include:',
                     '- A short title',
                     '- What draws the heroes in',
+                    '- What boon or fallout completing it creates'
+                ], contextBlock, styleGuide);
+            },
+            'scene-painting': ({ context, data, settings }) => {
+                const environment = data?.encounters?.[0]?.environment || (data?.encounters?.[0]?.name ? `${data.encounters[0].name} locale` : null);
+                const prompt = environment
+                    ? `Paint the scene for the location: ${environment}.`
+                    : 'Paint the upcoming scene with sensory details gleaned from the context.';
+                const contextBlock = context ? `Context:\n${context}` : 'Context: (Include the encounter or location details you want painted.)';
+                const styleGuide = buildAIStyleDirectives(settings, { preferredStructure: 'narrative', preferredLength: 'tight' });
+                return finalizeAIPrompt([
+                    'Provide boxed text the Judge can read aloud to set the scene.',
+                    prompt,
+                    'Highlight sensory details (sight, sound, smell) and reveal a looming danger or opportunity.'
+                ], contextBlock, styleGuide);
+            },
+            'momentum-plan': ({ context, data, settings }) => {
+                const hasClock = Boolean(data?.stopwatch?.running) || (Number(data?.stopwatch?.elapsed) || 0) > 0;
+                const contextBlock = context ? `Context:\n${context}` : 'Context: (Add session notes and goals to outline the next beats.)';
+                const styleGuide = buildAIStyleDirectives(settings, { preferredStructure: 'bullet' });
+                return finalizeAIPrompt([
+                    'Help the Judge pace the next leg of the session.',
+                    hasClock ? 'Use the session clock to gauge urgency when appropriate.' : 'Assume the Judge is keeping the session on a tight cadence.',
+                    'Deliver:',
+                    '- 3 escalating beats describing what happens if the party charges ahead, hesitates, or backtracks',
+                    '- A spotlight idea for a quieter roleplay moment',
+                    '- A contingency if the heroes skip the prepared material'
+                ], contextBlock, styleGuide);
+            },
+            'rules-lookup': ({ context, data, settings }) => {
+                const focusEncounter = data?.encounters?.[0]?.name;
+                const contextBlock = context ? `Context:\n${context}` : 'Context: (Share the situation so the assistant can target relevant Dungeon Crawl Classics rules.)';
+                const styleGuide = buildAIStyleDirectives(settings, { preferredStructure: 'bullet', preferredLength: 'tight' });
+                return finalizeAIPrompt([
+                    'Act as a Dungeon Crawl Classics rules reference for the Judge.',
+                    focusEncounter ? `Prioritize mechanics most relevant to "${focusEncounter}".` : 'Focus on mechanics implied by the provided context.',
+                    'Summarize 3-4 rules or tables that might be consulted next. For each include:',
+                    '- The rule or table name',
+                    '- When it applies',
+                    '- The key modifiers or dice rolled'
+                ], contextBlock, styleGuide);
+            },
+            'treasure-upgrade': ({ context, data, settings }) => {
+                const inspiration = data?.randomHistory?.find(entry => entry.type === 'treasure');
+                const spark = inspiration ? `Incorporate this treasure spark: "${inspiration.result}".` : 'Invent treasure that reinforces themes from the context.';
+                const contextBlock = context ? `Context:\n${context}` : 'Context: (List encounters or factions to tailor rewards.)';
+                const styleGuide = buildAIStyleDirectives(settings, { preferredStructure: 'bullet' });
+                return finalizeAIPrompt([
+                    'Design 3 treasure or boon options that feel bespoke to the current adventure.',
+                    spark,
+                    'For each include:',
+                    '- The item or boon name',
+                    '- A vivid description or quirk',
+                    '- A mechanical or narrative payoff for claiming it'
+                ], contextBlock, styleGuide);
                     '- What boon or fallout completing it creates',
                     '',
                     contextBlock
@@ -1648,6 +2094,160 @@
         const dmAIPromptOutput = document.getElementById('dm-ai-prompt-output');
         if (dmAIPromptOutput) {
             dmAIPromptOutput.addEventListener('input', () => {
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAIAppendContextButton = document.getElementById('dm-ai-append-context');
+        if (dmAIAppendContextButton) {
+            dmAIAppendContextButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                const settings = ensureDMAISettings();
+                const context = buildDMAIContext(gatherDMAIData(), settings);
+                if (!context.trim()) {
+                    setDMAILaunchStatus('No context available to append yet.', 'error', 1800);
+                    return;
+                }
+                const promptOutput = document.getElementById('dm-ai-prompt-output');
+                if (!promptOutput) return;
+                const currentValue = promptOutput.value || '';
+                if (currentValue.toLowerCase().includes('context:')) {
+                    setDMAILaunchStatus('Context already attached to the working prompt.', 'muted', 2000);
+                    return;
+                }
+                const insertion = currentValue.trim()
+                    ? `${currentValue.trim()}\n\nContext:\n${context}`
+                    : `Context:\n${context}`;
+                promptOutput.value = insertion;
+                renderDMAIHelpers();
+                setDMAILaunchStatus('Context appended to the working prompt.', 'success', 2500);
+            });
+        }
+
+        const dmAIIncludeContextToggle = document.getElementById('dm-ai-include-context');
+        if (dmAIIncludeContextToggle) {
+            dmAIIncludeContextToggle.addEventListener('change', (event) => {
+                const settings = ensureDMAISettings();
+                settings.includeContext = !!event.target.checked;
+                saveState();
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAIIncludeStyleToggle = document.getElementById('dm-ai-include-style');
+        if (dmAIIncludeStyleToggle) {
+            dmAIIncludeStyleToggle.addEventListener('change', (event) => {
+                const settings = ensureDMAISettings();
+                settings.includeStyleGuide = !!event.target.checked;
+                saveState();
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAIAutoCopyToggle = document.getElementById('dm-ai-auto-copy');
+        if (dmAIAutoCopyToggle) {
+            dmAIAutoCopyToggle.addEventListener('change', (event) => {
+                const settings = ensureDMAISettings();
+                settings.autoCopyFull = !!event.target.checked;
+                saveState();
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAIProviderSelect = document.getElementById('dm-ai-provider');
+        if (dmAIProviderSelect) {
+            dmAIProviderSelect.addEventListener('change', (event) => {
+                const settings = ensureDMAISettings();
+                settings.provider = event.target.value;
+                saveState();
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAIProviderUrl = document.getElementById('dm-ai-provider-url');
+        if (dmAIProviderUrl) {
+            dmAIProviderUrl.addEventListener('input', (event) => {
+                const settings = ensureDMAISettings();
+                settings.customProviderUrl = event.target.value;
+                saveState();
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAIPreviewFull = document.getElementById('dm-ai-preview-full');
+        if (dmAIPreviewFull) {
+            dmAIPreviewFull.addEventListener('click', (event) => {
+                event.preventDefault();
+                renderDMAIHelpers();
+                setDMAILaunchStatus('Preview refreshed.', 'muted', 1500);
+            });
+        }
+
+        const dmAICopyFull = document.getElementById('dm-ai-copy-full');
+        if (dmAICopyFull) {
+            dmAICopyFull.addEventListener('click', async (event) => {
+                event.preventDefault();
+                const settings = getDMAISettings();
+                const data = gatherDMAIData();
+                const context = buildDMAIContext(data, settings);
+                const promptOutput = document.getElementById('dm-ai-prompt-output');
+                const promptValue = promptOutput ? promptOutput.value : '';
+                const fullPrompt = compileDMAIFullPrompt({ context, settings, promptText: promptValue });
+                if (!fullPrompt.trim()) {
+                    setDMAILaunchStatus('Nothing to copy yet—add context or a working prompt.', 'error', 2000);
+                    return;
+                }
+                const success = await copyTextToClipboard(fullPrompt, dmAICopyFull);
+                if (success) {
+                    setDMAILaunchStatus('Final prompt copied to your clipboard.', 'success', 2500);
+                } else {
+                    setDMAILaunchStatus('Clipboard copy failed—select the preview text manually.', 'error', 2500);
+                }
+            });
+        }
+
+        const dmAILaunchButton = document.getElementById('dm-ai-launch');
+        if (dmAILaunchButton) {
+            dmAILaunchButton.addEventListener('click', handleDMAILaunch);
+        }
+
+        document.querySelectorAll('.dm-ai-context-toggle').forEach(toggle => {
+            toggle.addEventListener('change', (event) => {
+                const key = event.target.dataset.aiToggle;
+                if (!key) return;
+                const settings = ensureDMAISettings();
+                settings.toggles[key] = !!event.target.checked;
+                saveState();
+                renderDMAIHelpers();
+            });
+        });
+
+        const dmAIToneSelect = document.getElementById('dm-ai-tone');
+        if (dmAIToneSelect) {
+            dmAIToneSelect.addEventListener('change', (event) => {
+                const settings = ensureDMAISettings();
+                settings.tone = event.target.value;
+                saveState();
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAIStructureSelect = document.getElementById('dm-ai-structure');
+        if (dmAIStructureSelect) {
+            dmAIStructureSelect.addEventListener('change', (event) => {
+                const settings = ensureDMAISettings();
+                settings.structure = event.target.value;
+                saveState();
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAILengthSelect = document.getElementById('dm-ai-length');
+        if (dmAILengthSelect) {
+            dmAILengthSelect.addEventListener('change', (event) => {
+                const settings = ensureDMAISettings();
+                settings.length = event.target.value;
+                saveState();
                 renderDMAIHelpers();
             });
         }
@@ -3173,6 +3773,11 @@
         }
 
         function gatherDMAIData() {
+            const allEncounters = (state.dm.encounters || []).slice();
+            const upcomingEncounters = allEncounters.filter(encounter => !encounter.resolved).slice(0, 5);
+            const fallbackEncounters = allEncounters.slice(0, 5);
+            const encounters = upcomingEncounters.length ? upcomingEncounters : fallbackEncounters;
+            const resolvedEncounters = allEncounters.filter(encounter => encounter.resolved).slice(0, 3);
             const encounters = (state.dm.encounters || []).slice(0, 5);
             const notes = state.dm.sessionNotes || [];
             const spotlightNotes = notes.filter(note => note.spotlight).slice(0, 5);
@@ -3180,6 +3785,7 @@
             const randomHistory = (state.dm.randomHistory || []).slice(0, 5);
             const trackers = { ...(state.dm.trackers || {}) };
             const stopwatch = state.dm.stopwatch || clone(defaultState.dm.stopwatch);
+            return { encounters, spotlightNotes, recentNotes, randomHistory, trackers, stopwatch, resolvedEncounters, allEncounters };
             return { encounters, spotlightNotes, recentNotes, randomHistory, trackers, stopwatch };
         }
 
@@ -3189,6 +3795,10 @@
             return normalized.length > limit ? `${normalized.slice(0, limit - 1)}…` : normalized;
         }
 
+        function buildDMAIContext(data = gatherDMAIData(), settings = getDMAISettings()) {
+            const sections = [];
+            const toggles = settings?.toggles || defaultDMAISettings.toggles;
+            if (toggles.encounters !== false && data.encounters.length) {
         function buildDMAIContext(data = gatherDMAIData()) {
             const sections = [];
             if (data.encounters.length) {
@@ -3205,6 +3815,20 @@
                 sections.push(`Encounters prepared:\n${encounterLines}`);
             }
 
+            if (toggles.resolved !== false && (data.resolvedEncounters || []).length) {
+                const resolvedLines = data.resolvedEncounters.map(encounter => {
+                    const name = encounter.name || 'Resolved encounter';
+                    const details = [];
+                    if (encounter.threat) details.push(encounter.threat);
+                    if (encounter.environment) details.push(encounter.environment);
+                    const header = `- ${name}${details.length ? ` (${details.join(' • ')})` : ''}`;
+                    const fallout = summarizeForContext(encounter.notes, 150);
+                    return fallout ? `${header}\n  Fallout: ${fallout}` : header;
+                }).join('\n');
+                sections.push(`Recent victories:\n${resolvedLines}`);
+            }
+
+            if (toggles.spotlight !== false && data.spotlightNotes.length) {
             if (data.spotlightNotes.length) {
                 const spotlightLines = data.spotlightNotes.map(note => {
                     const summary = summarizeForContext(note.text, 160) || 'No details provided.';
@@ -3216,6 +3840,7 @@
             }
 
             const additionalNotes = data.recentNotes.filter(note => !note.spotlight).slice(0, 3);
+            if (toggles.beats !== false && additionalNotes.length) {
             if (additionalNotes.length) {
                 const noteLines = additionalNotes.map(note => {
                     const summary = summarizeForContext(note.text, 150) || 'No details provided.';
@@ -3226,6 +3851,11 @@
             }
 
             const trackerEntries = Object.entries(dmTrackerLabels).map(([key, label]) => `${label}: ${Number(data.trackers?.[key] || 0)}`);
+            if (toggles.trackers !== false && trackerEntries.length) {
+                sections.push(`Resource trackers: ${trackerEntries.join(', ')}`);
+            }
+
+            if (toggles.inspiration !== false && data.randomHistory.length) {
             if (trackerEntries.length) {
                 sections.push(`Resource trackers: ${trackerEntries.join(', ')}`);
             }
@@ -3243,9 +3873,167 @@
             const stopwatch = data.stopwatch || clone(defaultState.dm.stopwatch);
             const elapsed = getStopwatchElapsed();
             const status = stopwatch.running ? 'running' : elapsed > 0 ? 'paused' : 'idle';
+            if (toggles.clock !== false && (elapsed > 0 || stopwatch.running)) {
+                sections.push(`Session clock: ${formatDuration(elapsed)} (${status})`);
+            }
+
+            return sections.join('\n\n').trim();
+        }
+
+        function compileDMAIFullPrompt({ context, settings, promptText } = {}) {
+            const activeSettings = settings || getDMAISettings();
+            const includeContext = activeSettings?.includeContext !== false;
+            const includeStyleGuide = activeSettings?.includeStyleGuide !== false;
+            const workingPrompt = (promptText !== undefined ? promptText : (document.getElementById('dm-ai-prompt-output')?.value || '')).trim();
+            const contextBlock = context !== undefined ? context : buildDMAIContext(gatherDMAIData(), activeSettings);
+            const sections = [];
+            const normalizedPrompt = workingPrompt.trim();
+            const promptLower = normalizedPrompt.toLowerCase();
+
+            if (normalizedPrompt) {
+                sections.push(normalizedPrompt);
+            }
+
+            if (includeContext && contextBlock && contextBlock.trim() && !promptLower.includes('context:')) {
+                sections.push(`Context:\n${contextBlock}`);
+            }
+
+            const styleGuide = includeStyleGuide ? buildAIStyleDirectives(activeSettings) : '';
+            if (styleGuide && !promptLower.includes('style guide:')) {
+                sections.push(`Style guide:\n${styleGuide}`);
+            }
             sections.push(`Session clock: ${formatDuration(elapsed)} (${status})`);
 
             return sections.join('\n\n').trim();
+        }
+
+        function getDMAILaunchUrl(settings = getDMAISettings()) {
+            const provider = settings?.provider || defaultDMAISettings.provider;
+            if (provider === 'custom') {
+                return (settings?.customProviderUrl || '').trim();
+            }
+            const target = aiProviderTargets[provider] || aiProviderTargets[defaultDMAISettings.provider];
+            return target?.url || '';
+        }
+
+        let dmAILaunchStatusTimer = null;
+
+        function setDMAILaunchStatus(message = '', tone = 'muted', duration = 0) {
+            const status = document.getElementById('dm-ai-launch-status');
+            if (!status) return;
+            status.textContent = message;
+            status.classList.remove('text-green-500', 'text-red-400');
+            if (tone === 'success') {
+                status.classList.add('text-green-500');
+                status.classList.remove('text-red-400');
+            } else if (tone === 'error') {
+                status.classList.add('text-red-400');
+                status.classList.remove('text-green-500');
+            }
+            if (tone === 'muted') {
+                status.classList.remove('text-green-500', 'text-red-400');
+            }
+            if (dmAILaunchStatusTimer) {
+                clearTimeout(dmAILaunchStatusTimer);
+                dmAILaunchStatusTimer = null;
+            }
+            if (message && duration > 0) {
+                dmAILaunchStatusTimer = setTimeout(() => {
+                    status.textContent = '';
+                    status.classList.remove('text-green-500', 'text-red-400');
+                    dmAILaunchStatusTimer = null;
+                }, duration);
+            }
+        }
+
+        async function handleDMAILaunch(event) {
+            event.preventDefault();
+            const launchButton = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+            const settings = ensureDMAISettings();
+            const data = gatherDMAIData();
+            const context = buildDMAIContext(data, settings);
+            const promptOutput = document.getElementById('dm-ai-prompt-output');
+            const promptValue = promptOutput ? promptOutput.value : '';
+            const fullPrompt = compileDMAIFullPrompt({ context, settings, promptText: promptValue });
+            if (!fullPrompt.trim()) {
+                setDMAILaunchStatus('Add a working prompt or prep details before launching.', 'error', 2200);
+                return;
+            }
+            const launchUrl = getDMAILaunchUrl(settings);
+            if (!launchUrl) {
+                setDMAILaunchStatus('Provide a custom assistant URL before launching.', 'error', 2200);
+                return;
+            }
+            const openedWindow = window.open(launchUrl, '_blank', 'noopener');
+            if (!openedWindow) {
+                setDMAILaunchStatus('Pop-up blocked—allow pop-ups for this site and try again.', 'error', 3200);
+                return;
+            }
+            if (settings.autoCopyFull !== false) {
+                try {
+                    const copied = await copyTextToClipboard(fullPrompt, launchButton);
+                    if (copied) {
+                        setDMAILaunchStatus('Full prompt copied—paste it into your assistant tab.', 'success', 3200);
+                    } else {
+                        setDMAILaunchStatus('Unable to copy automatically. Copy from the preview instead.', 'error', 3200);
+                    }
+                } catch (error) {
+                    setDMAILaunchStatus('Clipboard permissions blocked—copy from the preview instead.', 'error', 3200);
+                }
+            } else {
+                setDMAILaunchStatus('Prompt ready—copy it from the preview when you arrive.', 'muted', 2800);
+            }
+            renderDMAIHelpers();
+        }
+
+        function ensureDMAISettings() {
+            if (!state.dm) {
+                state.dm = clone(defaultState.dm);
+            }
+            const existing = state.dm.aiSettings || {};
+            state.dm.aiSettings = {
+                ...defaultDMAISettings,
+                ...existing,
+                toggles: {
+                    ...defaultDMAISettings.toggles,
+                    ...(existing.toggles || {})
+                }
+            };
+            return state.dm.aiSettings;
+        }
+
+        function getDMAISettings() {
+            return ensureDMAISettings();
+        }
+
+        function syncDMAIControls(settings) {
+            document.querySelectorAll('.dm-ai-context-toggle').forEach(toggle => {
+                const key = toggle.dataset.aiToggle;
+                if (!key) return;
+                const value = settings?.toggles?.[key];
+                toggle.checked = value !== false;
+            });
+            const toneSelect = document.getElementById('dm-ai-tone');
+            if (toneSelect) {
+                const toneValue = settings?.tone || defaultDMAISettings.tone;
+                if (Array.from(toneSelect.options).some(option => option.value === toneValue)) {
+                    toneSelect.value = toneValue;
+                }
+            }
+            const structureSelect = document.getElementById('dm-ai-structure');
+            if (structureSelect) {
+                const structureValue = settings?.structure || defaultDMAISettings.structure;
+                if (Array.from(structureSelect.options).some(option => option.value === structureValue)) {
+                    structureSelect.value = structureValue;
+                }
+            }
+            const lengthSelect = document.getElementById('dm-ai-length');
+            if (lengthSelect) {
+                const lengthValue = settings?.length || defaultDMAISettings.length;
+                if (Array.from(lengthSelect.options).some(option => option.value === lengthValue)) {
+                    lengthSelect.value = lengthValue;
+                }
+            }
         }
 
         function updateAIChip(id, value) {
@@ -3253,6 +4041,13 @@
             if (element) {
                 element.textContent = value;
             }
+        }
+
+        function setButtonAvailability(button, enabled) {
+            if (!button) return;
+            button.disabled = !enabled;
+            button.classList.toggle('opacity-50', !enabled);
+            button.classList.toggle('cursor-not-allowed', !enabled);
         }
 
         function resetCopyButton(button) {
@@ -3270,6 +4065,11 @@
 
         function renderDMAIHelpers() {
             const data = gatherDMAIData();
+            const settings = getDMAISettings();
+            const context = buildDMAIContext(data, settings);
+            const hasPrepContext = context.trim().length > 0;
+
+            syncDMAIControls(settings);
             const context = buildDMAIContext(data);
             const elapsed = getStopwatchElapsed();
             const hasPrepContext = Boolean(
@@ -3290,6 +4090,11 @@
                     : 'Log encounters or spotlight notes to build AI-ready context.';
             }
 
+            const stylePreview = document.getElementById('dm-ai-style-preview');
+            if (stylePreview) {
+                stylePreview.textContent = describeDMAISettings(settings);
+            }
+
             updateAIChip('dm-ai-encounter-count', (state.dm.encounters || []).length);
             updateAIChip('dm-ai-note-count', (state.dm.sessionNotes || []).length);
             updateAIChip('dm-ai-spotlight-count', (state.dm.sessionNotes || []).filter(note => note.spotlight).length);
@@ -3297,11 +4102,16 @@
 
             const copyContextButton = document.getElementById('dm-ai-copy-context');
             const copyPromptButton = document.getElementById('dm-ai-copy-prompt');
+            const copyFullButton = document.getElementById('dm-ai-copy-full');
             const promptOutput = document.getElementById('dm-ai-prompt-output');
             const hasPrompt = !!(promptOutput?.value || '').trim();
 
             resetCopyButton(copyContextButton);
             resetCopyButton(copyPromptButton);
+            resetCopyButton(copyFullButton);
+
+            setButtonAvailability(copyContextButton, hasPrepContext);
+            setButtonAvailability(copyPromptButton, hasPrompt);
 
             if (copyContextButton) {
                 copyContextButton.disabled = !hasPrepContext;
@@ -3321,6 +4131,96 @@
                     : 'Add prep details above or jot down what you need from the AI.';
             }
 
+            const appendContextButton = document.getElementById('dm-ai-append-context');
+            setButtonAvailability(appendContextButton, hasPrepContext);
+
+            const includeContextToggle = document.getElementById('dm-ai-include-context');
+            if (includeContextToggle && includeContextToggle.checked !== (settings?.includeContext !== false)) {
+                includeContextToggle.checked = settings?.includeContext !== false;
+            }
+
+            const includeStyleToggle = document.getElementById('dm-ai-include-style');
+            if (includeStyleToggle && includeStyleToggle.checked !== (settings?.includeStyleGuide !== false)) {
+                includeStyleToggle.checked = settings?.includeStyleGuide !== false;
+            }
+
+            const autoCopyToggle = document.getElementById('dm-ai-auto-copy');
+            if (autoCopyToggle && autoCopyToggle.checked !== (settings?.autoCopyFull !== false)) {
+                autoCopyToggle.checked = settings?.autoCopyFull !== false;
+            }
+
+            const providerSelect = document.getElementById('dm-ai-provider');
+            const provider = settings?.provider || defaultDMAISettings.provider;
+            if (providerSelect && providerSelect.value !== provider) {
+                providerSelect.value = provider;
+            }
+
+            const providerUrlWrapper = document.getElementById('dm-ai-provider-url-wrapper');
+            const providerUrlInput = document.getElementById('dm-ai-provider-url');
+            const requiresCustomUrl = provider === 'custom';
+            if (providerUrlWrapper) {
+                providerUrlWrapper.classList.toggle('hidden', !requiresCustomUrl);
+            }
+            if (providerUrlInput) {
+                const storedUrl = settings?.customProviderUrl || '';
+                if (providerUrlInput.value !== storedUrl) {
+                    providerUrlInput.value = storedUrl;
+                }
+            }
+
+            const trimmedCustomUrl = (settings?.customProviderUrl || '').trim();
+
+            const providerHint = document.getElementById('dm-ai-provider-hint');
+            if (providerHint) {
+                const target = aiProviderTargets[provider] || aiProviderTargets[defaultDMAISettings.provider];
+                providerHint.textContent = requiresCustomUrl && !trimmedCustomUrl
+                    ? 'Add the chat URL you want to open when launching.'
+                    : (target?.hint || '');
+            }
+
+            const promptValue = promptOutput ? promptOutput.value : '';
+            const fullPrompt = compileDMAIFullPrompt({ context, settings, promptText: promptValue });
+            const hasFullPrompt = fullPrompt.trim().length > 0;
+            const hasLaunchTarget = !requiresCustomUrl || !!trimmedCustomUrl;
+
+            const fullPreview = document.getElementById('dm-ai-full-preview');
+            if (fullPreview) {
+                fullPreview.value = fullPrompt;
+                fullPreview.placeholder = hasFullPrompt
+                    ? 'Final prompt ready—paste into your assistant or launch directly.'
+                    : 'Build a working prompt or context to preview the final AI hand-off.';
+            }
+
+            const previewButton = document.getElementById('dm-ai-preview-full');
+            setButtonAvailability(previewButton, hasFullPrompt);
+
+            setButtonAvailability(copyFullButton, hasFullPrompt);
+            if (copyFullButton) {
+                if (hasFullPrompt) {
+                    copyFullButton.removeAttribute('title');
+                } else {
+                    copyFullButton.title = 'Add context or a working prompt to assemble a final request first.';
+                }
+            }
+
+            const launchButton = document.getElementById('dm-ai-launch');
+            setButtonAvailability(launchButton, hasFullPrompt && hasLaunchTarget);
+            if (launchButton && hasFullPrompt && !hasLaunchTarget) {
+                launchButton.title = 'Add a custom assistant URL before launching.';
+            } else if (launchButton) {
+                launchButton.removeAttribute('title');
+            }
+
+            const hasPrepData = (
+                (state.dm.encounters || []).length +
+                (state.dm.sessionNotes || []).length +
+                (state.dm.randomHistory || []).length +
+                Object.values(state.dm.trackers || {}).reduce((sum, value) => sum + Number(value || 0), 0)
+            ) > 0;
+            const promptButtonsEnabled = hasPrepContext || hasPrepData;
+            document.querySelectorAll('[data-ai-prompt]').forEach(button => {
+                button.classList.toggle('opacity-60', !promptButtonsEnabled);
+                button.setAttribute('aria-disabled', String(!promptButtonsEnabled));
             document.querySelectorAll('[data-ai-prompt]').forEach(button => {
                 button.classList.toggle('opacity-60', !hasPrepContext);
                 button.setAttribute('aria-disabled', String(!hasPrepContext));
@@ -3329,6 +4229,11 @@
 
         function buildDMAIPrompt(type) {
             const data = gatherDMAIData();
+            const settings = getDMAISettings();
+            const context = buildDMAIContext(data, settings);
+            const builder = aiPromptTemplates[type];
+            if (typeof builder === 'function') {
+                return builder({ context, data, settings });
             const context = buildDMAIContext(data);
             const builder = aiPromptTemplates[type];
             if (typeof builder === 'function') {
@@ -3389,6 +4294,7 @@
             } else if (button) {
                 showCopyFeedback(button, 'Copy failed', 2000);
             }
+            return success;
         }
 
         function copyTextToClipboard(text, button) {
@@ -3397,6 +4303,17 @@
                 if (button) {
                     showCopyFeedback(button, 'Nothing to copy', 1200);
                 }
+                return Promise.resolve(false);
+            }
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                return navigator.clipboard.writeText(value).then(() => {
+                    showCopyFeedback(button);
+                    return true;
+                }).catch(() => {
+                    return fallbackCopy(value, button);
+                });
+            }
+            return Promise.resolve(fallbackCopy(value, button));
                 return;
             }
             if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
