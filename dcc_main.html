@@ -362,6 +362,10 @@
                                             <span>Recent Victories</span>
                                         </label>
                                         <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white/70 dark:bg-gray-900/60 cursor-pointer shadow-sm hover:border-primary transition">
+                                            <input type="checkbox" class="dm-ai-context-toggle accent-primary" data-ai-toggle="spotlight" checked>
+                                            <span>Spotlight Moments</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 bg-white/70 dark:bg-gray-900/60 cursor-pointer shadow-sm hover:border-primary transition">
                                             <input type="checkbox" class="dm-ai-context-toggle accent-primary" data-ai-toggle="beats" checked>
                                             <span>Recent Beats</span>
                                         </label>
@@ -381,7 +385,7 @@
                                 </div>
                                 <div class="space-y-3">
                                     <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Context Snapshot</label>
-                                    <textarea id="dm-ai-context" rows="6" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition" readonly placeholder="Log encounters or spotlight notes to build AI-ready context."></textarea>
+                                    <textarea id="dm-ai-context" rows="10" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition" readonly placeholder="Log encounters or spotlight notes to build AI-ready context."></textarea>
                                     <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400">
                                         <span>Context updates automatically as you prep.</span>
                                         <button id="dm-ai-copy-context" class="px-3 py-2 text-xs border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Copy Context</button>
@@ -389,43 +393,40 @@
                                 </div>
                                 <div class="space-y-3">
                                     <h4 class="text-sm font-semibold">Prompt Starters</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Prime the helper with a ready-made request or use them as inspiration for your own question.</p>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                                         <button data-ai-prompt="session-recap" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Session Recap</button>
-                                        <button data-ai-prompt="encounter-escalation" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Encounter Twist</button>
-                                        <button data-ai-prompt="npc-dialogue" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">NPC Roleplay</button>
+                                        <button data-ai-prompt="encounter-escalation" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Escalate Encounter</button>
+                                        <button data-ai-prompt="npc-dialogue" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">NPC Dialogue</button>
                                         <button data-ai-prompt="downtime-hooks" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Downtime Hooks</button>
-                                    </div>
-                                </div>
-                                <div class="space-y-3">
-                                    <h4 class="text-sm font-semibold">Creative Boosters</h4>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                                         <button data-ai-prompt="scene-painting" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Scene Painting</button>
                                         <button data-ai-prompt="momentum-plan" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Momentum Plan</button>
-                                        <button data-ai-prompt="rules-lookup" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Rule Spotlight</button>
+                                        <button data-ai-prompt="rules-lookup" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Rules Lookup</button>
                                         <button data-ai-prompt="treasure-upgrade" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Treasure Upgrade</button>
                                     </div>
                                 </div>
                             </div>
                             <div class="space-y-6">
                                 <div class="space-y-3">
-                                    <h4 class="text-sm font-semibold">AI Voice &amp; Format</h4>
+                                    <h4 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Voice & Format Controls</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Dial in how the assistant responds before compiling your final prompt.</p>
                                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
                                         <label class="flex flex-col gap-1">
-                                            <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Tone</span>
+                                            <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Voice</span>
                                             <select id="dm-ai-tone" class="w-full px-2 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition">
                                                 <option value="neutral" selected>Neutral Narrator</option>
-                                                <option value="grim">Grim &amp; Perilous</option>
-                                                <option value="whimsical">Weird &amp; Whimsical</option>
-                                                <option value="epic">Mythic &amp; Heroic</option>
+                                                <option value="grim">Grim & Perilous</option>
+                                                <option value="whimsical">Weird & Whimsical</option>
+                                                <option value="epic">Mythic & Heroic</option>
                                             </select>
                                         </label>
                                         <label class="flex flex-col gap-1">
-                                            <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Structure</span>
+                                            <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Format</span>
                                             <select id="dm-ai-structure" class="w-full px-2 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition">
-                                                <option value="auto" selected>Let AI Decide</option>
-                                                <option value="bullet">Bullet Lists</option>
-                                                <option value="narrative">Narrative Prose</option>
-                                                <option value="dialogue">Dialogue Beats</option>
+                                                <option value="auto" selected>Adaptive</option>
+                                                <option value="bullet">Bullet Points</option>
+                                                <option value="narrative">Narrative</option>
+                                                <option value="dialogue">Dialogue</option>
                                             </select>
                                         </label>
                                         <label class="flex flex-col gap-1">
@@ -441,7 +442,7 @@
                                 </div>
                                 <div class="space-y-3">
                                     <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Working Prompt</label>
-                                    <textarea id="dm-ai-prompt-output" rows="4" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition" placeholder="Press a prompt starter or draft your own request for the AI."></textarea>
+                                    <textarea id="dm-ai-prompt-output" rows="6" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition" placeholder="Press a prompt starter or draft your own request for the AI."></textarea>
                                     <div class="flex flex-wrap justify-end gap-2">
                                         <button id="dm-ai-append-context" class="px-3 py-2 text-xs border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Append Context</button>
                                         <button id="dm-ai-clear-prompt" class="px-3 py-2 text-xs border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition shadow-sm">Clear</button>
@@ -480,7 +481,7 @@
                                         </label>
                                     </div>
                                     <p id="dm-ai-provider-hint" class="text-xs text-gray-500 dark:text-gray-400"></p>
-                                    <textarea id="dm-ai-full-preview" rows="4" class="w-full px-3 py-2 border border-dashed border-gray-300 dark:border-gray-700 rounded bg-white/80 dark:bg-gray-900/60 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition" readonly placeholder="Build a working prompt or context to preview the final AI hand-off."></textarea>
+                                    <textarea id="dm-ai-full-preview" rows="6" class="w-full px-3 py-2 border border-dashed border-gray-300 dark:border-gray-700 rounded bg-white/80 dark:bg-gray-900/60 text-sm focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition" readonly placeholder="Build a working prompt or context to preview the final AI hand-off."></textarea>
                                     <div class="flex flex-wrap justify-end gap-2">
                                         <button id="dm-ai-preview-full" class="px-3 py-2 text-xs border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition shadow-sm">Refresh Preview</button>
                                         <button id="dm-ai-copy-full" class="px-3 py-2 text-xs border border-primary text-primary rounded hover:bg-primary hover:text-white transition shadow-sm">Copy Final Prompt</button>
