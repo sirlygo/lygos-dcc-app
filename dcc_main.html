@@ -264,6 +264,46 @@
                             <p class="text-xs text-gray-500">Roll the inspiration engine to populate this log.</p>
                         </div>
                     </div>
+
+                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-4">
+                        <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                                <h3 class="text-xl font-semibold">AI Co-DM Helper</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Bundle your prep into prompt-ready snippets for your favorite assistant.</p>
+                            </div>
+                            <button id="dm-ai-refresh-context" class="self-start px-3 py-1 text-xs border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition">Refresh</button>
+                        </div>
+                        <div class="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            <span class="chip bg-white/70 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700">Encounters: <span id="dm-ai-encounter-count" class="ml-1 font-semibold text-gray-800 dark:text-gray-200">0</span></span>
+                            <span class="chip bg-white/70 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700">Notes: <span id="dm-ai-note-count" class="ml-1 font-semibold text-gray-800 dark:text-gray-200">0</span></span>
+                            <span class="chip bg-white/70 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700">Spotlight: <span id="dm-ai-spotlight-count" class="ml-1 font-semibold text-gray-800 dark:text-gray-200">0</span></span>
+                            <span class="chip bg-white/70 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700">Inspiration: <span id="dm-ai-inspiration-count" class="ml-1 font-semibold text-gray-800 dark:text-gray-200">0</span></span>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Context Snapshot</label>
+                            <textarea id="dm-ai-context" rows="6" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" readonly placeholder="Log encounters or spotlight notes to build AI-ready context."></textarea>
+                            <div class="flex justify-end">
+                                <button id="dm-ai-copy-context" class="px-3 py-2 text-xs border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Copy Context</button>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <h4 class="text-sm font-semibold">Prompt Starters</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                                <button data-ai-prompt="session-recap" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Session Recap</button>
+                                <button data-ai-prompt="encounter-escalation" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Encounter Twist</button>
+                                <button data-ai-prompt="npc-dialogue" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">NPC Roleplay</button>
+                                <button data-ai-prompt="downtime-hooks" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Downtime Hooks</button>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Working Prompt</label>
+                            <textarea id="dm-ai-prompt-output" rows="4" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="Press a prompt starter or draft your own request for the AI."></textarea>
+                            <div class="flex justify-end gap-2">
+                                <button id="dm-ai-clear-prompt" class="px-3 py-2 text-xs border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition">Clear</button>
+                                <button id="dm-ai-copy-prompt" class="px-3 py-2 text-xs bg-primary text-white rounded hover:bg-opacity-90 transition">Copy Prompt</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -1142,6 +1182,72 @@
             ]
         };
 
+        const aiPromptTemplates = {
+            'session-recap': ({ context, data }) => {
+                const contextBlock = context ? `Context:\n${context}` : 'Context: (Ask the judge for encounter details and highlights before drafting the recap.)';
+                const hasSpotlight = (data?.spotlightNotes || []).length > 0;
+                const focusLine = hasSpotlight ? 'Prioritize spotlight notes when highlighting character moments.' : 'Infer key beats from the provided context even if spotlight notes are absent.';
+                return [
+                    'You are chronicling a Dungeon Crawl Classics session for the players.',
+                    focusLine,
+                    'Write a recap with:',
+                    '- A punchy session title',
+                    '- 2 short paragraphs summarizing major events',
+                    '- Bullet points listing unresolved threads and boons earned',
+                    '',
+                    contextBlock
+                ].join('\n');
+            },
+            'encounter-escalation': ({ context, data }) => {
+                const focusEncounter = data?.encounters?.[0]?.name;
+                const hook = focusEncounter ? `Focus on the encounter "${focusEncounter}" when proposing twists.` : 'Use whichever encounter seems most imminent in the context.';
+                const contextBlock = context ? `Context:\n${context}` : 'Context: (Gather encounter information from the judge before responding.)';
+                return [
+                    'You are an assistant Judge for Dungeon Crawl Classics helping intensify an upcoming encounter.',
+                    hook,
+                    'Provide:',
+                    '- 3 escalating complications or environmental twists',
+                    '- Tactics the opposition adopts if the party stalls',
+                    '- Treasure or story rewards tied to the encounter outcome',
+                    '',
+                    contextBlock
+                ].join('\n');
+            },
+            'npc-dialogue': ({ context, data }) => {
+                const reference = data?.randomHistory?.[0]?.result;
+                const quirkHint = reference ? `Incorporate this spark: "${reference}".` : 'Invent a memorable quirk using the context.';
+                const contextBlock = context ? `Context:\n${context}` : 'Context: (Collect current session details before drafting dialogue.)';
+                return [
+                    'Help the Judge improvise NPC roleplay for Dungeon Crawl Classics.',
+                    quirkHint,
+                    'Output:',
+                    '- A short description of the NPC\'s vibe and goal',
+                    '- 3 flavorful lines of dialogue reacting to the party',
+                    '- A secret or rumor they might reveal if persuaded',
+                    '',
+                    contextBlock
+                ].join('\n');
+            },
+            'downtime-hooks': ({ context, data }) => {
+                const trackerSummary = Object.entries(data?.trackers || {}).some(([, value]) => Number(value) > 0)
+                    ? 'Tie at least one hook to the active resource trackers.'
+                    : 'Invent hooks that build on the encounters and notes provided.';
+                const contextBlock = context ? `Context:\n${context}` : 'Context: (Add session details so hooks can reference current threats.)';
+                return [
+                    'Generate downtime opportunities for the party between Dungeon Crawl Classics adventures.',
+                    trackerSummary,
+                    'Deliver 4 hooks. For each include:',
+                    '- A short title',
+                    '- What draws the heroes in',
+                    '- What boon or fallout completing it creates',
+                    '',
+                    contextBlock
+                ].join('\n');
+            }
+        };
+
+        const copyFeedbackTimers = new Map();
+
         function saveState() {
             try {
                 localStorage.setItem(storageKey, JSON.stringify(state));
@@ -1499,6 +1605,58 @@
                     triggerDMGenerator(type);
                 });
             }
+        });
+
+        const dmAIRefreshButton = document.getElementById('dm-ai-refresh-context');
+        if (dmAIRefreshButton) {
+            dmAIRefreshButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAICopyContext = document.getElementById('dm-ai-copy-context');
+        if (dmAICopyContext) {
+            dmAICopyContext.addEventListener('click', (event) => {
+                event.preventDefault();
+                const contextField = document.getElementById('dm-ai-context');
+                copyTextToClipboard(contextField ? contextField.value : '', dmAICopyContext);
+            });
+        }
+
+        const dmAICopyPrompt = document.getElementById('dm-ai-copy-prompt');
+        if (dmAICopyPrompt) {
+            dmAICopyPrompt.addEventListener('click', (event) => {
+                event.preventDefault();
+                const promptOutput = document.getElementById('dm-ai-prompt-output');
+                copyTextToClipboard(promptOutput ? promptOutput.value : '', dmAICopyPrompt);
+            });
+        }
+
+        const dmAIClearPrompt = document.getElementById('dm-ai-clear-prompt');
+        if (dmAIClearPrompt) {
+            dmAIClearPrompt.addEventListener('click', (event) => {
+                event.preventDefault();
+                const promptOutput = document.getElementById('dm-ai-prompt-output');
+                if (promptOutput) {
+                    promptOutput.value = '';
+                }
+                renderDMAIHelpers();
+            });
+        }
+
+        const dmAIPromptOutput = document.getElementById('dm-ai-prompt-output');
+        if (dmAIPromptOutput) {
+            dmAIPromptOutput.addEventListener('input', () => {
+                renderDMAIHelpers();
+            });
+        }
+
+        document.querySelectorAll('[data-ai-prompt]').forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                handleDMAIPrompt(button.dataset.aiPrompt);
+            });
         });
 
         const tableSearchInput = document.getElementById('table-search');
@@ -2759,6 +2917,7 @@
             renderDMNotes();
             renderDMTrackers();
             renderDMRandomHistory();
+            renderDMAIHelpers();
             updateStopwatchDisplay();
             ensureStopwatchInterval();
         }
@@ -2795,12 +2954,14 @@
             encounter.resolved = !encounter.resolved;
             saveState();
             renderDMEncounters();
+            renderDMAIHelpers();
         }
 
         function deleteEncounter(id) {
             state.dm.encounters = state.dm.encounters.filter(enc => enc.id !== id);
             saveState();
             renderDMEncounters();
+            renderDMAIHelpers();
         }
 
         function renderDMEncounters() {
@@ -2892,6 +3053,7 @@
             state.dm.sessionNotes = state.dm.sessionNotes.filter(note => note.id !== id);
             saveState();
             renderDMNotes();
+            renderDMAIHelpers();
         }
 
         function renderDMNotes() {
@@ -2987,6 +3149,7 @@
             state.dm.trackers[key] = Math.max(0, current + delta);
             saveState();
             renderDMTrackers();
+            renderDMAIHelpers();
         }
 
         function renderDMRandomHistory() {
@@ -3009,6 +3172,244 @@
             `).join('');
         }
 
+        function gatherDMAIData() {
+            const encounters = (state.dm.encounters || []).slice(0, 5);
+            const notes = state.dm.sessionNotes || [];
+            const spotlightNotes = notes.filter(note => note.spotlight).slice(0, 5);
+            const recentNotes = notes.slice(0, 5);
+            const randomHistory = (state.dm.randomHistory || []).slice(0, 5);
+            const trackers = { ...(state.dm.trackers || {}) };
+            const stopwatch = state.dm.stopwatch || clone(defaultState.dm.stopwatch);
+            return { encounters, spotlightNotes, recentNotes, randomHistory, trackers, stopwatch };
+        }
+
+        function summarizeForContext(text, limit = 180) {
+            const normalized = (text || '').replace(/\s+/g, ' ').trim();
+            if (!normalized) return '';
+            return normalized.length > limit ? `${normalized.slice(0, limit - 1)}…` : normalized;
+        }
+
+        function buildDMAIContext(data = gatherDMAIData()) {
+            const sections = [];
+            if (data.encounters.length) {
+                const encounterLines = data.encounters.map(encounter => {
+                    const quantity = Number(encounter.quantity) > 1 ? `${encounter.quantity} × ` : '';
+                    const name = encounter.name || 'Untitled encounter';
+                    const details = [];
+                    if (encounter.threat) details.push(`Threat: ${encounter.threat}`);
+                    if (encounter.environment) details.push(encounter.environment);
+                    const header = `- ${quantity}${name}${details.length ? ` (${details.join(' • ')})` : ''}`;
+                    const noteSummary = summarizeForContext(encounter.notes, 160);
+                    return noteSummary ? `${header}\n  Notes: ${noteSummary}` : header;
+                }).join('\n');
+                sections.push(`Encounters prepared:\n${encounterLines}`);
+            }
+
+            if (data.spotlightNotes.length) {
+                const spotlightLines = data.spotlightNotes.map(note => {
+                    const summary = summarizeForContext(note.text, 160) || 'No details provided.';
+                    const timestamp = formatTimestamp(note.timestamp);
+                    const elapsedLabel = Number.isFinite(note.elapsedAt) ? ` · T+${formatDuration(note.elapsedAt)}` : '';
+                    return `- ${summary}${timestamp && timestamp !== '—' ? ` (${timestamp}${elapsedLabel})` : ''}`;
+                }).join('\n');
+                sections.push(`Spotlight moments:\n${spotlightLines}`);
+            }
+
+            const additionalNotes = data.recentNotes.filter(note => !note.spotlight).slice(0, 3);
+            if (additionalNotes.length) {
+                const noteLines = additionalNotes.map(note => {
+                    const summary = summarizeForContext(note.text, 150) || 'No details provided.';
+                    const timestamp = formatTimestamp(note.timestamp);
+                    return `- ${summary}${timestamp && timestamp !== '—' ? ` (${timestamp})` : ''}`;
+                }).join('\n');
+                sections.push(`Recent beats:\n${noteLines}`);
+            }
+
+            const trackerEntries = Object.entries(dmTrackerLabels).map(([key, label]) => `${label}: ${Number(data.trackers?.[key] || 0)}`);
+            if (trackerEntries.length) {
+                sections.push(`Resource trackers: ${trackerEntries.join(', ')}`);
+            }
+
+            if (data.randomHistory.length) {
+                const labels = { weather: 'Weather', complication: 'Complication', treasure: 'Treasure', npc: 'NPC' };
+                const randomLines = data.randomHistory.map(entry => {
+                    const tag = labels[entry.type] || 'Prompt';
+                    const summary = summarizeForContext(entry.result, 140) || 'No details logged.';
+                    return `- ${tag}: ${summary}`;
+                }).join('\n');
+                sections.push(`Recent inspiration draws:\n${randomLines}`);
+            }
+
+            const stopwatch = data.stopwatch || clone(defaultState.dm.stopwatch);
+            const elapsed = getStopwatchElapsed();
+            const status = stopwatch.running ? 'running' : elapsed > 0 ? 'paused' : 'idle';
+            sections.push(`Session clock: ${formatDuration(elapsed)} (${status})`);
+
+            return sections.join('\n\n').trim();
+        }
+
+        function updateAIChip(id, value) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        }
+
+        function resetCopyButton(button) {
+            if (!button) return;
+            if (copyFeedbackTimers.has(button)) {
+                clearTimeout(copyFeedbackTimers.get(button));
+                copyFeedbackTimers.delete(button);
+            }
+            if (!button.dataset.originalText) {
+                button.dataset.originalText = button.textContent;
+            } else {
+                button.textContent = button.dataset.originalText;
+            }
+        }
+
+        function renderDMAIHelpers() {
+            const data = gatherDMAIData();
+            const context = buildDMAIContext(data);
+            const elapsed = getStopwatchElapsed();
+            const hasPrepContext = Boolean(
+                data.encounters.length ||
+                data.spotlightNotes.length ||
+                data.recentNotes.length ||
+                data.randomHistory.length ||
+                Object.values(data.trackers || {}).some(value => Number(value) > 0) ||
+                elapsed > 0 ||
+                (state?.dm?.stopwatch?.running)
+            );
+
+            const contextField = document.getElementById('dm-ai-context');
+            if (contextField) {
+                contextField.value = hasPrepContext ? context : '';
+                contextField.placeholder = hasPrepContext
+                    ? 'Context snapshot ready—copy or tweak before sending to an AI assistant.'
+                    : 'Log encounters or spotlight notes to build AI-ready context.';
+            }
+
+            updateAIChip('dm-ai-encounter-count', (state.dm.encounters || []).length);
+            updateAIChip('dm-ai-note-count', (state.dm.sessionNotes || []).length);
+            updateAIChip('dm-ai-spotlight-count', (state.dm.sessionNotes || []).filter(note => note.spotlight).length);
+            updateAIChip('dm-ai-inspiration-count', (state.dm.randomHistory || []).length);
+
+            const copyContextButton = document.getElementById('dm-ai-copy-context');
+            const copyPromptButton = document.getElementById('dm-ai-copy-prompt');
+            const promptOutput = document.getElementById('dm-ai-prompt-output');
+            const hasPrompt = !!(promptOutput?.value || '').trim();
+
+            resetCopyButton(copyContextButton);
+            resetCopyButton(copyPromptButton);
+
+            if (copyContextButton) {
+                copyContextButton.disabled = !hasPrepContext;
+                copyContextButton.classList.toggle('opacity-50', !hasPrepContext);
+                copyContextButton.classList.toggle('cursor-not-allowed', !hasPrepContext);
+            }
+
+            if (copyPromptButton) {
+                copyPromptButton.disabled = !hasPrompt;
+                copyPromptButton.classList.toggle('opacity-50', !hasPrompt);
+                copyPromptButton.classList.toggle('cursor-not-allowed', !hasPrompt);
+            }
+
+            if (promptOutput && !hasPrompt) {
+                promptOutput.placeholder = hasPrepContext
+                    ? 'Press a prompt starter or draft your own request for the AI.'
+                    : 'Add prep details above or jot down what you need from the AI.';
+            }
+
+            document.querySelectorAll('[data-ai-prompt]').forEach(button => {
+                button.classList.toggle('opacity-60', !hasPrepContext);
+                button.setAttribute('aria-disabled', String(!hasPrepContext));
+            });
+        }
+
+        function buildDMAIPrompt(type) {
+            const data = gatherDMAIData();
+            const context = buildDMAIContext(data);
+            const builder = aiPromptTemplates[type];
+            if (typeof builder === 'function') {
+                return builder({ context, data });
+            }
+            if (typeof builder === 'string') {
+                return builder;
+            }
+            return context ? `Context:\n${context}` : '';
+        }
+
+        function handleDMAIPrompt(type) {
+            if (!type) return;
+            const promptOutput = document.getElementById('dm-ai-prompt-output');
+            if (!promptOutput) return;
+            const prompt = buildDMAIPrompt(type);
+            if (!prompt) return;
+            promptOutput.value = prompt;
+            promptOutput.focus();
+            if (typeof promptOutput.setSelectionRange === 'function') {
+                promptOutput.setSelectionRange(prompt.length, prompt.length);
+            }
+            renderDMAIHelpers();
+        }
+
+        function showCopyFeedback(button, message = 'Copied!', duration = 1500) {
+            if (!button) return;
+            const original = button.dataset.originalText || button.textContent;
+            button.textContent = message;
+            if (copyFeedbackTimers.has(button)) {
+                clearTimeout(copyFeedbackTimers.get(button));
+            }
+            const timeout = setTimeout(() => {
+                button.textContent = button.dataset.originalText || original;
+                copyFeedbackTimers.delete(button);
+                renderDMAIHelpers();
+            }, duration);
+            copyFeedbackTimers.set(button, timeout);
+        }
+
+        function fallbackCopy(text, button) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'absolute';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            let success = false;
+            try {
+                success = document.execCommand('copy');
+            } catch (error) {
+                success = false;
+            }
+            document.body.removeChild(textarea);
+            if (success) {
+                showCopyFeedback(button);
+            } else if (button) {
+                showCopyFeedback(button, 'Copy failed', 2000);
+            }
+        }
+
+        function copyTextToClipboard(text, button) {
+            const value = (text || '').trim();
+            if (!value) {
+                if (button) {
+                    showCopyFeedback(button, 'Nothing to copy', 1200);
+                }
+                return;
+            }
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                navigator.clipboard.writeText(value).then(() => {
+                    showCopyFeedback(button);
+                }).catch(() => {
+                    fallbackCopy(value, button);
+                });
+            } else {
+                fallbackCopy(value, button);
+            }
+        }
+
         function triggerDMGenerator(type) {
             const options = inspirationTables[type];
             if (!options || !options.length) return;
@@ -3024,6 +3425,7 @@
             }
             saveState();
             renderDMRandomHistory();
+            renderDMAIHelpers();
         }
 
         function resetDMTools() {
@@ -3091,6 +3493,7 @@
             saveState();
             ensureStopwatchInterval();
             updateStopwatchDisplay();
+            renderDMAIHelpers();
         }
 
         function pauseStopwatch() {
@@ -3104,6 +3507,7 @@
             saveState();
             ensureStopwatchInterval();
             updateStopwatchDisplay();
+            renderDMAIHelpers();
         }
 
         function resetStopwatch() {
@@ -3111,6 +3515,7 @@
             saveState();
             ensureStopwatchInterval();
             updateStopwatchDisplay();
+            renderDMAIHelpers();
         }
 
         // Campaign management
