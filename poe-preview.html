@@ -42,6 +42,16 @@
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(4px);
         }
+        .prose p {
+            margin-bottom: 0.5rem;
+        }
+        .prose ul {
+            list-style-type: disc;
+            margin-left: 1.25rem;
+        }
+        .prose li {
+            margin-bottom: 0.25rem;
+        }
     </style>
 <script src="https://puc.poecdn.net/authenticated_preview_page/syncedState.3f7572448765332f3047.js"></script></head>
 <body class="bg-white dark:bg-[#181818] text-gray-900 dark:text-gray-100 min-h-screen transition-colors">
@@ -69,6 +79,9 @@
                 </li>
                 <li class="mr-2">
                     <button onclick="switchTab('campaigns')" id="tab-campaigns" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">Campaigns</button>
+                </li>
+                <li class="mr-2">
+                    <button onclick="switchTab('ai')" id="tab-ai" class="inline-block p-4 border-b-2 border-transparent hover:text-primary transition">AI Tools</button>
                 </li>
             </ul>
         </nav>
@@ -252,6 +265,147 @@
                 <!-- Campaigns will be added here -->
             </div>
         </div>
+
+        <div id="content-ai" class="tab-content hidden">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">AI Tools</h2>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm md:text-base">Generate inspiration for NPCs, quests, and vivid scene descriptions tailored to your campaign.</p>
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-900 px-4 py-2 rounded">
+                    These generators run locally in your browser using curated creative tables.
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <section class="bg-gray-50 dark:bg-gray-900 rounded-lg p-5 shadow-sm border border-gray-200 dark:border-gray-800">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">AI NPC Generator</h3>
+                        <button onclick="copyAiText('ai-npc-output')" class="text-sm px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">Copy</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-semibold mb-2">Tone</label>
+                            <select id="ai-npc-tone" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                                <option value="heroic">Heroic</option>
+                                <option value="gritty">Gritty</option>
+                                <option value="whimsical">Whimsical</option>
+                                <option value="mysterious">Mysterious</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-semibold mb-2">Role</label>
+                            <select id="ai-npc-role" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                                <option value="village guide">Village Guide</option>
+                                <option value="battle-scarred warrior">Battle-Scarred Warrior</option>
+                                <option value="eccentric sage">Eccentric Sage</option>
+                                <option value="shadowy broker">Shadowy Broker</option>
+                                <option value="wandering performer">Wandering Performer</option>
+                                <option value="zealous cleric">Zealous Cleric</option>
+                                <option value="underworld fixer">Underworld Fixer</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-semibold mb-2">Campaign Thread</label>
+                            <input type="text" id="ai-npc-theme" placeholder="Ancient curse, lost heir, etc." class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                        </div>
+                    </div>
+                    <button onclick="generateNpcIdea()" class="w-full md:w-auto bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Generate NPC</button>
+                    <div id="ai-npc-output" class="mt-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded p-4 min-h-[160px] prose prose-sm dark:prose-invert max-w-none text-sm">
+                        <p class="text-gray-500 dark:text-gray-400">Pick your tone and role to create a fresh face for your world.</p>
+                    </div>
+                </section>
+
+                <section class="bg-gray-50 dark:bg-gray-900 rounded-lg p-5 shadow-sm border border-gray-200 dark:border-gray-800">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">AI Quest Hook Generator</h3>
+                        <button onclick="copyAiText('ai-quest-output')" class="text-sm px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">Copy</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-semibold mb-2">Difficulty</label>
+                            <select id="ai-quest-difficulty" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                                <option value="novice">Novice</option>
+                                <option value="seasoned">Seasoned</option>
+                                <option value="heroic">Heroic</option>
+                                <option value="deadly">Deadly</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-semibold mb-2">Pacing</label>
+                            <select id="ai-quest-length" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                                <option value="one-shot">One-Shot</option>
+                                <option value="short arc">Short Arc</option>
+                                <option value="season-long">Season Long</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-semibold mb-2">Story Seed</label>
+                            <input type="text" id="ai-quest-theme" placeholder="Plague, prophecy, rebellion..." class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                        </div>
+                    </div>
+                    <button onclick="generateQuestIdea()" class="w-full md:w-auto bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Generate Quest Hook</button>
+                    <div id="ai-quest-output" class="mt-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded p-4 min-h-[160px] prose prose-sm dark:prose-invert max-w-none text-sm">
+                        <p class="text-gray-500 dark:text-gray-400">Blend difficulty, pacing, and seeds into a ready-to-run adventure idea.</p>
+                    </div>
+                </section>
+
+                <section class="bg-gray-50 dark:bg-gray-900 rounded-lg p-5 shadow-sm border border-gray-200 dark:border-gray-800">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">AI Scene Painter</h3>
+                        <button onclick="copyAiText('ai-scene-output')" class="text-sm px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">Copy</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-semibold mb-2">Location Type</label>
+                            <select id="ai-scene-location" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                                <option value="ancient ruin">Ancient Ruin</option>
+                                <option value="eldritch forest">Eldritch Forest</option>
+                                <option value="bustling bazaar">Bustling Bazaar</option>
+                                <option value="astral crossing">Astral Crossing</option>
+                                <option value="sacred temple">Sacred Temple</option>
+                                <option value="forbidden laboratory">Forbidden Laboratory</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-semibold mb-2">Mood</label>
+                            <select id="ai-scene-mood" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                                <option value="awe">Awe</option>
+                                <option value="tension">Tension</option>
+                                <option value="melancholy">Melancholy</option>
+                                <option value="whimsy">Whimsy</option>
+                                <option value="horror">Horror</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-semibold mb-2">Sensory Focus</label>
+                            <select id="ai-scene-sense" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-sm">
+                                <option value="sound">Sound</option>
+                                <option value="scent">Scent</option>
+                                <option value="texture">Texture</option>
+                                <option value="temperature">Temperature</option>
+                                <option value="light">Light</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="generateSceneDescription()" class="w-full md:w-auto bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90 transition text-base">Paint the Scene</button>
+                    <div id="ai-scene-output" class="mt-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded p-4 min-h-[160px] prose prose-sm dark:prose-invert max-w-none text-sm">
+                        <p class="text-gray-500 dark:text-gray-400">Dial in a location, mood, and sensation to receive a ready-made description.</p>
+                    </div>
+                </section>
+
+                <section class="bg-gray-50 dark:bg-gray-900 rounded-lg p-5 shadow-sm border border-gray-200 dark:border-gray-800">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">AI Idea Vault</h3>
+                        <button onclick="aiHistory = []; renderAiHistory(); showToast('Cleared AI idea history.');" class="text-sm px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">Clear</button>
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Every generated idea is saved here for quick reference. Click any entry to copy it back to your clipboard.</p>
+                    <div id="ai-history" class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+                        <!-- History is rendered here -->
+                    </div>
+                </section>
+            </div>
+        </div>
     </div>
 
     <!-- Create Campaign Modal -->
@@ -428,6 +582,233 @@
         let combatants = [];
         let combatRound = 1;
         let rollHistory = [];
+        let aiHistory = [];
+
+        const aiTables = {
+            names: ["Eldra", "Brannik", "Seraphine", "Torvyn", "Ilyssa", "Korrin", "Nymera", "Jaxom", "Vesha", "Maelor", "Quint", "Sylphene", "Orin", "Tamsin", "Vandor", "Elowen"],
+            heroicDescriptors: ["steadfast", "lionhearted", "undaunted", "honorable", "radiant"],
+            grittyDescriptors: ["world-weary", "scarred", "pragmatic", "grizzled", "relentless"],
+            whimsicalDescriptors: ["sprightly", "eccentric", "free-spirited", "imaginative", "irrepressible"],
+            mysteriousDescriptors: ["enigmatic", "soft-spoken", "veil-cloaked", "cryptic", "brooding"],
+            backgrounds: ["a former court jester turned wandering mediator", "a disgraced knight seeking a path back to glory", "an archivist who catalogues forbidden prophecies", "a monster hunter who hears whispers from trophies kept in jars", "an herbalist from a vanished village of dreamwalkers", "a cartographer obsessed with mapping ley lines", "a survivor of the star-fall that scarred the land", "a pilgrim sworn to light candles in forgotten shrines"],
+            motivations: ["hopes to atone for a costly mistake", "wants to protect those unable to defend themselves", "is trying to complete a vow sworn under an eclipse", "seeks rare lore to bargain for a loved one's return", "must gather debts owed to a sleeping patron", "wants to prove that fate can be rewritten"],
+            personalityTraits: ["compassionate but stubborn about traditions", "calculating yet unexpectedly sentimental", "infectiously optimistic even in dire straits", "dry-witted with a talent for barbed compliments", "quietly intense and hungry for justice", "relaxed and musical, constantly tapping rhythms"],
+            quirks: ["keeps a pocket full of carved bone charms", "consults a deck of mismatched tarot cards before every decision", "writes every promise on scraps of red cloth", "is trailed by a tiny, invisible bell that only animals seem to hear", "refuses to turn their back on open doorways", "collects rumors about the players and trades them back as favors"],
+            hooks: ["Knows a hidden route into the next dungeon and is willing to guide the party if they help with a personal errand.", "Offers a rare artifact keyed to the party's current foe, but demands a dangerous test of character first.", "Begs the heroes to mediate a dispute that could ignite a civil feud.", "Asks the party to smuggle them past an execution squad waiting at the city gates.", "Believes one of the heroes fulfills a prophecy and wants to orchestrate the next step.", "Needs protection during a ritual that will shake the veil between planes."],
+            themeConnections: ["Their fate is intertwined with the party's past misadventures.", "Their family keeps lore about a foe the heroes will soon face.", "They carry a map fragment that resonates with the party's quest item.", "They witnessed the inciting incident of the current campaign.", "They are hunted by the same enemy that stalks the heroes."],
+            questTitlePrefixes: ["Echoes of", "The Last", "Shadows over", "Whispers of", "Siege of", "Secrets beneath", "The Broken", "Rescue at"],
+            questTitleSuffixes: ["the Astral Spire", "Grimholt Keep", "the Moonlit Mire", "the Clockwork Oracle", "the Ember Vault", "Blackstone Fen", "the Clockmaker's Tomb", "the Sapphire Reliquary"],
+            antagonists: ["a cult of star-eyed zealots", "a sentient storm forging living lightning", "a rival adventuring band striking preemptively", "a plague demon wearing a healer's guise", "a tyrant enthroned on cursed bone", "an oracle who wants to avert a prophecy at any cost"],
+            questComplications: ["the environment shifts each hour like a living dungeon", "allies are forced to duel each other by a binding geas", "the villain shares a tragic bond with one hero", "the locals believe the party are the villains", "time loops if the heroes fail to show compassion", "a beloved NPC has already defected to the enemy"],
+            questRewards: ["a relic that bends luck once per day", "a seat at a council that controls the region's trade", "ownership of a small keep along a ley line", "secret tutelage in an ancient spell duel tradition", "a boon from an elemental monarch", "a map leading to a legendary mentor"],
+            questTwists: ["the supposed villain is a puppet for a deeper power", "the quest location shifts planes midway through", "the artifact the heroes seek is actually a sapient ally", "completing the quest may doom an innocent settlement", "the heroes must choose between two equally vital objectives", "success requires sacrificing something the party treasures"],
+            pacingNotes: {
+                "one-shot": "Designed for a single intense session with a decisive climax.",
+                "short arc": "Built to unfold across several sessions with evolving stakes.",
+                "season-long": "Structured to anchor a sprawling campaign with layered factions."
+            },
+            difficultyNotes: {
+                "novice": "ideal for fresh adventurers finding their footing",
+                "seasoned": "challenging for capable heroes with a few scars",
+                "heroic": "demanding even for legends of the realm",
+                "deadly": "a perilous gauntlet that could reshape the campaign"
+            },
+            sceneOpeners: ["A breath catches as the horizon parts...", "You crest a ridge and behold...", "Mist curls away to reveal...", "A ripple through reality unveils...", "The world hushes when you step into..."],
+            sceneActions: ["Distant figures pause to watch the newcomers arrive.", "An omen flares briefly before fading back into the environment.", "Hidden runes answer the heroes with a soft resonance.", "Weather shifts the moment the party sets foot inside.", "A forgotten guardian stirs but hesitates, judging intentions."],
+            moodLines: {
+                "awe": ["The atmosphere swells with possibility, every detail begging to be explored."],
+                "tension": ["Every line feels taut, as though the scene itself is holding its breath."],
+                "melancholy": ["There is beauty in the decay here, a gentle ache woven through the silence."],
+                "whimsy": ["Playful contradictions bloom in every corner, daring the party to grin despite the odds."],
+                "horror": ["A creeping dread rides the air, hinting that something old refuses to stay buried."]
+            },
+            senseDetails: {
+                "sound": ["distant chimes made of bone, swaying on unseen winds", "echoing heartbeats that do not belong to the heroes", "low chanting woven through the rustle of leaves", "a gentle hum like a sleeping beast", "the click of unseen mechanisms testing ancient gears"],
+                "scent": ["ozone and singed petals mingled together", "old vellum soaked in incense and seawater", "sweet rot beneath a blanket of wildflowers", "cool iron and damp stone after rainfall", "smoldering sage mixed with fresh-baked bread"],
+                "texture": ["flagstones that thrum softly like drums", "velvet moss hiding knife-sharp shards", "air thick as syrup brushing against skin", "dust motes that cling like static", "banners frayed to silk strands soft as whispers"],
+                "temperature": ["a prickling chill rolling in waves", "humid warmth pulsing from the ground", "a sudden drop that frosts armor edges", "cozy hearth heat confined to a single beam of light", "drafts swirling in deliberate patterns"],
+                "light": ["shafts of emerald light bending around the heroes", "lanterns suspended in mid-air like frozen fireflies", "moonlight that spills upward instead of down", "a guttering glow that reacts to spoken words", "stained glass shadows painting the party in sigils"]
+            },
+            sceneDetails: ["spectral fish swim lazily through the air", "a colossal statue weeps molten tears into a basin", "timeworn murals animate whenever someone blinks", "floating market stalls bump gently against each other", "a crystal lattice hums in tune with beating hearts", "an astral current tugs at loose garments"]
+        };
+
+        function aiPick(list) {
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
+        function toneDescriptor(tone) {
+            const map = {
+                heroic: aiTables.heroicDescriptors,
+                gritty: aiTables.grittyDescriptors,
+                whimsical: aiTables.whimsicalDescriptors,
+                mysterious: aiTables.mysteriousDescriptors
+            };
+            const pool = map[tone] || aiTables.heroicDescriptors;
+            return aiPick(pool);
+        }
+
+        function sanitizeInput(value) {
+            if (!value) return '';
+            return value
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function generateNpcIdea() {
+            const tone = document.getElementById('ai-npc-tone').value;
+            const role = document.getElementById('ai-npc-role').value;
+            const theme = sanitizeInput(document.getElementById('ai-npc-theme').value.trim());
+
+            const name = aiPick(aiTables.names);
+            const descriptor = toneDescriptor(tone);
+            const background = aiPick(aiTables.backgrounds);
+            const motivation = aiPick(aiTables.motivations);
+            const personality = aiPick(aiTables.personalityTraits);
+            const quirk = aiPick(aiTables.quirks);
+            const hook = aiPick(aiTables.hooks);
+            const themeLine = theme ? `They tie directly into ${theme.toLowerCase()}.` : aiPick(aiTables.themeConnections);
+
+            const markdown = `### ${name}, the ${descriptor} ${role}
+**Overview:** ${name} is ${background} who ${motivation}. ${themeLine}
+**Personality:** ${personality}.
+**Quirk:** ${quirk}.
+**Adventure Hook:** ${hook}`;
+
+            updateAiOutput('ai-npc-output', markdown, 'NPC');
+        }
+
+        function generateQuestIdea() {
+            const difficulty = document.getElementById('ai-quest-difficulty').value;
+            const length = document.getElementById('ai-quest-length').value;
+            const theme = sanitizeInput(document.getElementById('ai-quest-theme').value.trim());
+
+            const title = `${aiPick(aiTables.questTitlePrefixes)} ${aiPick(aiTables.questTitleSuffixes)}`;
+            const antagonist = aiPick(aiTables.antagonists);
+            const complication = aiPick(aiTables.questComplications);
+            const twist = aiPick(aiTables.questTwists);
+            const reward = aiPick(aiTables.questRewards);
+            const themeLine = theme ? `The story seed revolves around ${theme.toLowerCase()}.` : 'The seed can be tailored to your current storyline.';
+
+            const markdown = `### ${title}
+**Tone:** ${difficulty.toUpperCase()} — ${aiTables.difficultyNotes[difficulty]}.
+**Pacing:** ${aiTables.pacingNotes[length]}
+
+**Quest Pitch:** The heroes confront ${antagonist} while ${themeLine}
+- **Primary Obstacle:** ${complication}.
+- **Signature Twist:** ${twist}.
+- **Reward:** ${reward}.`;
+
+            updateAiOutput('ai-quest-output', markdown, 'Quest');
+        }
+
+        function generateSceneDescription() {
+            const location = document.getElementById('ai-scene-location').value;
+            const mood = document.getElementById('ai-scene-mood').value;
+            const sense = document.getElementById('ai-scene-sense').value;
+
+            const opener = aiPick(aiTables.sceneOpeners);
+            const moodLine = aiPick(aiTables.moodLines[mood] || aiTables.moodLines.awe);
+            const sensory = aiPick(aiTables.senseDetails[sense]);
+            const detail = aiPick(aiTables.sceneDetails);
+            const action = aiPick(aiTables.sceneActions);
+
+            const markdown = `### ${opener}
+${moodLine}
+
+You arrive at the ${location}, where ${detail}. The ${sense} is dominated by ${sensory}. ${action}`;
+
+            updateAiOutput('ai-scene-output', markdown, 'Scene');
+        }
+
+        function updateAiOutput(elementId, markdown, typeLabel) {
+            const container = document.getElementById(elementId);
+            if (!container) return;
+
+            container.innerHTML = marked.parse(markdown);
+            container.dataset.raw = markdown;
+
+            pushAiHistory(typeLabel, markdown);
+        }
+
+        function pushAiHistory(typeLabel, markdown) {
+            aiHistory.unshift({
+                type: typeLabel,
+                markdown,
+                timestamp: new Date().toLocaleTimeString()
+            });
+
+            if (aiHistory.length > 12) {
+                aiHistory.pop();
+            }
+
+            renderAiHistory();
+        }
+
+        function renderAiHistory() {
+            const container = document.getElementById('ai-history');
+            if (!container) return;
+
+            if (aiHistory.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">Generate an idea to begin filling your vault.</p>';
+                return;
+            }
+
+            container.innerHTML = aiHistory.map((entry, index) => `
+                <div class="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded p-3 transition hover:border-primary hover:shadow cursor-pointer" onclick="copyAiHistory(${index})">
+                    <div class="flex justify-between text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
+                        <span>${entry.type}</span>
+                        <span>${entry.timestamp}</span>
+                    </div>
+                    <div class="prose prose-sm dark:prose-invert max-w-none">
+                        ${marked.parse(entry.markdown)}
+                    </div>
+                    <p class="text-xs text-primary opacity-0 group-hover:opacity-100 transition mt-2">Click to copy</p>
+                </div>
+            `).join('');
+        }
+
+        function copyAiText(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            const raw = element.dataset.raw || element.textContent || '';
+            copyText(raw.trim());
+        }
+
+        function copyAiHistory(index) {
+            const entry = aiHistory[index];
+            if (!entry) return;
+            copyText(entry.markdown.trim());
+        }
+
+        function copyText(text) {
+            if (!text) return;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard.'));
+            } else {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                textarea.remove();
+                showToast('Copied to clipboard.');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-6 right-6 bg-gray-900 text-white px-4 py-2 rounded shadow-lg text-sm z-50';
+            toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(8px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
 
         // Tab switching
         function switchTab(tab) {
@@ -915,6 +1296,7 @@
         }
 
         // Initialize
+        renderAiHistory();
         renderCharacters();
         renderCombat();
     </script>
