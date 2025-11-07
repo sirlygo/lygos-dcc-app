@@ -341,6 +341,8 @@
 
                     <div class="dm-card space-y-6">
                         <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="bg-gray-50 dark:bg-surface rounded-lg border border-gray-200 dark:border-gray-800 p-4 space-y-4">
+                        <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                             <div>
                                 <h3 class="text-xl font-semibold">AI Co-DM Helper</h3>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">Bundle your prep into prompt-ready snippets for your favorite assistant.</p>
@@ -489,6 +491,36 @@
                                     </div>
                                     <p id="dm-ai-launch-status" class="text-xs text-gray-500 dark:text-gray-400"></p>
                                 </div>
+                            <button id="dm-ai-refresh-context" class="self-start px-3 py-1 text-xs border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition">Refresh</button>
+                        </div>
+                        <div class="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            <span class="chip bg-white/70 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700">Encounters: <span id="dm-ai-encounter-count" class="ml-1 font-semibold text-gray-800 dark:text-gray-200">0</span></span>
+                            <span class="chip bg-white/70 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700">Notes: <span id="dm-ai-note-count" class="ml-1 font-semibold text-gray-800 dark:text-gray-200">0</span></span>
+                            <span class="chip bg-white/70 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700">Spotlight: <span id="dm-ai-spotlight-count" class="ml-1 font-semibold text-gray-800 dark:text-gray-200">0</span></span>
+                            <span class="chip bg-white/70 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700">Inspiration: <span id="dm-ai-inspiration-count" class="ml-1 font-semibold text-gray-800 dark:text-gray-200">0</span></span>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Context Snapshot</label>
+                            <textarea id="dm-ai-context" rows="6" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" readonly placeholder="Log encounters or spotlight notes to build AI-ready context."></textarea>
+                            <div class="flex justify-end">
+                                <button id="dm-ai-copy-context" class="px-3 py-2 text-xs border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Copy Context</button>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <h4 class="text-sm font-semibold">Prompt Starters</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                                <button data-ai-prompt="session-recap" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Session Recap</button>
+                                <button data-ai-prompt="encounter-escalation" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Encounter Twist</button>
+                                <button data-ai-prompt="npc-dialogue" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">NPC Roleplay</button>
+                                <button data-ai-prompt="downtime-hooks" class="px-3 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">Downtime Hooks</button>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Working Prompt</label>
+                            <textarea id="dm-ai-prompt-output" rows="4" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-sm" placeholder="Press a prompt starter or draft your own request for the AI."></textarea>
+                            <div class="flex justify-end gap-2">
+                                <button id="dm-ai-clear-prompt" class="px-3 py-2 text-xs border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition">Clear</button>
+                                <button id="dm-ai-copy-prompt" class="px-3 py-2 text-xs bg-primary text-white rounded hover:bg-opacity-90 transition">Copy Prompt</button>
                             </div>
                         </div>
                     </div>
@@ -1517,6 +1549,12 @@
                 const focusLine = hasSpotlight ? 'Prioritize spotlight notes when highlighting character moments.' : 'Infer key beats from the provided context even if spotlight notes are absent.';
                 const styleGuide = buildAIStyleDirectives(settings, { preferredStructure: 'narrative' });
                 return finalizeAIPrompt([
+        const aiPromptTemplates = {
+            'session-recap': ({ context, data }) => {
+                const contextBlock = context ? `Context:\n${context}` : 'Context: (Ask the judge for encounter details and highlights before drafting the recap.)';
+                const hasSpotlight = (data?.spotlightNotes || []).length > 0;
+                const focusLine = hasSpotlight ? 'Prioritize spotlight notes when highlighting character moments.' : 'Infer key beats from the provided context even if spotlight notes are absent.';
+                return [
                     'You are chronicling a Dungeon Crawl Classics session for the players.',
                     focusLine,
                     'Write a recap with:',
@@ -1531,6 +1569,16 @@
                 const contextBlock = context ? `Context:\n${context}` : 'Context: (Gather encounter information from the judge before responding.)';
                 const styleGuide = buildAIStyleDirectives(settings, { preferredStructure: 'bullet' });
                 return finalizeAIPrompt([
+                    '- Bullet points listing unresolved threads and boons earned',
+                    '',
+                    contextBlock
+                ].join('\n');
+            },
+            'encounter-escalation': ({ context, data }) => {
+                const focusEncounter = data?.encounters?.[0]?.name;
+                const hook = focusEncounter ? `Focus on the encounter "${focusEncounter}" when proposing twists.` : 'Use whichever encounter seems most imminent in the context.';
+                const contextBlock = context ? `Context:\n${context}` : 'Context: (Gather encounter information from the judge before responding.)';
+                return [
                     'You are an assistant Judge for Dungeon Crawl Classics helping intensify an upcoming encounter.',
                     hook,
                     'Provide:',
@@ -1545,6 +1593,16 @@
                 const contextBlock = context ? `Context:\n${context}` : 'Context: (Collect current session details before drafting dialogue.)';
                 const styleGuide = buildAIStyleDirectives(settings, { preferredStructure: 'dialogue', preferredLength: 'tight' });
                 return finalizeAIPrompt([
+                    '- Treasure or story rewards tied to the encounter outcome',
+                    '',
+                    contextBlock
+                ].join('\n');
+            },
+            'npc-dialogue': ({ context, data }) => {
+                const reference = data?.randomHistory?.[0]?.result;
+                const quirkHint = reference ? `Incorporate this spark: "${reference}".` : 'Invent a memorable quirk using the context.';
+                const contextBlock = context ? `Context:\n${context}` : 'Context: (Collect current session details before drafting dialogue.)';
+                return [
                     'Help the Judge improvise NPC roleplay for Dungeon Crawl Classics.',
                     quirkHint,
                     'Output:',
@@ -1554,12 +1612,19 @@
                 ], contextBlock, styleGuide);
             },
             'downtime-hooks': ({ context, data, settings }) => {
+                    '- A secret or rumor they might reveal if persuaded',
+                    '',
+                    contextBlock
+                ].join('\n');
+            },
+            'downtime-hooks': ({ context, data }) => {
                 const trackerSummary = Object.entries(data?.trackers || {}).some(([, value]) => Number(value) > 0)
                     ? 'Tie at least one hook to the active resource trackers.'
                     : 'Invent hooks that build on the encounters and notes provided.';
                 const contextBlock = context ? `Context:\n${context}` : 'Context: (Add session details so hooks can reference current threats.)';
                 const styleGuide = buildAIStyleDirectives(settings, { preferredStructure: 'bullet' });
                 return finalizeAIPrompt([
+                return [
                     'Generate downtime opportunities for the party between Dungeon Crawl Classics adventures.',
                     trackerSummary,
                     'Deliver 4 hooks. For each include:',
@@ -1620,6 +1685,10 @@
                     '- A vivid description or quirk',
                     '- A mechanical or narrative payoff for claiming it'
                 ], contextBlock, styleGuide);
+                    '- What boon or fallout completing it creates',
+                    '',
+                    contextBlock
+                ].join('\n');
             }
         };
 
@@ -3709,6 +3778,7 @@
             const fallbackEncounters = allEncounters.slice(0, 5);
             const encounters = upcomingEncounters.length ? upcomingEncounters : fallbackEncounters;
             const resolvedEncounters = allEncounters.filter(encounter => encounter.resolved).slice(0, 3);
+            const encounters = (state.dm.encounters || []).slice(0, 5);
             const notes = state.dm.sessionNotes || [];
             const spotlightNotes = notes.filter(note => note.spotlight).slice(0, 5);
             const recentNotes = notes.slice(0, 5);
@@ -3716,6 +3786,7 @@
             const trackers = { ...(state.dm.trackers || {}) };
             const stopwatch = state.dm.stopwatch || clone(defaultState.dm.stopwatch);
             return { encounters, spotlightNotes, recentNotes, randomHistory, trackers, stopwatch, resolvedEncounters, allEncounters };
+            return { encounters, spotlightNotes, recentNotes, randomHistory, trackers, stopwatch };
         }
 
         function summarizeForContext(text, limit = 180) {
@@ -3728,6 +3799,9 @@
             const sections = [];
             const toggles = settings?.toggles || defaultDMAISettings.toggles;
             if (toggles.encounters !== false && data.encounters.length) {
+        function buildDMAIContext(data = gatherDMAIData()) {
+            const sections = [];
+            if (data.encounters.length) {
                 const encounterLines = data.encounters.map(encounter => {
                     const quantity = Number(encounter.quantity) > 1 ? `${encounter.quantity} × ` : '';
                     const name = encounter.name || 'Untitled encounter';
@@ -3755,6 +3829,7 @@
             }
 
             if (toggles.spotlight !== false && data.spotlightNotes.length) {
+            if (data.spotlightNotes.length) {
                 const spotlightLines = data.spotlightNotes.map(note => {
                     const summary = summarizeForContext(note.text, 160) || 'No details provided.';
                     const timestamp = formatTimestamp(note.timestamp);
@@ -3766,6 +3841,7 @@
 
             const additionalNotes = data.recentNotes.filter(note => !note.spotlight).slice(0, 3);
             if (toggles.beats !== false && additionalNotes.length) {
+            if (additionalNotes.length) {
                 const noteLines = additionalNotes.map(note => {
                     const summary = summarizeForContext(note.text, 150) || 'No details provided.';
                     const timestamp = formatTimestamp(note.timestamp);
@@ -3780,6 +3856,11 @@
             }
 
             if (toggles.inspiration !== false && data.randomHistory.length) {
+            if (trackerEntries.length) {
+                sections.push(`Resource trackers: ${trackerEntries.join(', ')}`);
+            }
+
+            if (data.randomHistory.length) {
                 const labels = { weather: 'Weather', complication: 'Complication', treasure: 'Treasure', npc: 'NPC' };
                 const randomLines = data.randomHistory.map(entry => {
                     const tag = labels[entry.type] || 'Prompt';
@@ -3821,6 +3902,7 @@
             if (styleGuide && !promptLower.includes('style guide:')) {
                 sections.push(`Style guide:\n${styleGuide}`);
             }
+            sections.push(`Session clock: ${formatDuration(elapsed)} (${status})`);
 
             return sections.join('\n\n').trim();
         }
@@ -3988,6 +4070,17 @@
             const hasPrepContext = context.trim().length > 0;
 
             syncDMAIControls(settings);
+            const context = buildDMAIContext(data);
+            const elapsed = getStopwatchElapsed();
+            const hasPrepContext = Boolean(
+                data.encounters.length ||
+                data.spotlightNotes.length ||
+                data.recentNotes.length ||
+                data.randomHistory.length ||
+                Object.values(data.trackers || {}).some(value => Number(value) > 0) ||
+                elapsed > 0 ||
+                (state?.dm?.stopwatch?.running)
+            );
 
             const contextField = document.getElementById('dm-ai-context');
             if (contextField) {
@@ -4019,6 +4112,18 @@
 
             setButtonAvailability(copyContextButton, hasPrepContext);
             setButtonAvailability(copyPromptButton, hasPrompt);
+
+            if (copyContextButton) {
+                copyContextButton.disabled = !hasPrepContext;
+                copyContextButton.classList.toggle('opacity-50', !hasPrepContext);
+                copyContextButton.classList.toggle('cursor-not-allowed', !hasPrepContext);
+            }
+
+            if (copyPromptButton) {
+                copyPromptButton.disabled = !hasPrompt;
+                copyPromptButton.classList.toggle('opacity-50', !hasPrompt);
+                copyPromptButton.classList.toggle('cursor-not-allowed', !hasPrompt);
+            }
 
             if (promptOutput && !hasPrompt) {
                 promptOutput.placeholder = hasPrepContext
@@ -4116,6 +4221,9 @@
             document.querySelectorAll('[data-ai-prompt]').forEach(button => {
                 button.classList.toggle('opacity-60', !promptButtonsEnabled);
                 button.setAttribute('aria-disabled', String(!promptButtonsEnabled));
+            document.querySelectorAll('[data-ai-prompt]').forEach(button => {
+                button.classList.toggle('opacity-60', !hasPrepContext);
+                button.setAttribute('aria-disabled', String(!hasPrepContext));
             });
         }
 
@@ -4126,6 +4234,10 @@
             const builder = aiPromptTemplates[type];
             if (typeof builder === 'function') {
                 return builder({ context, data, settings });
+            const context = buildDMAIContext(data);
+            const builder = aiPromptTemplates[type];
+            if (typeof builder === 'function') {
+                return builder({ context, data });
             }
             if (typeof builder === 'string') {
                 return builder;
@@ -4202,6 +4314,17 @@
                 });
             }
             return Promise.resolve(fallbackCopy(value, button));
+                return;
+            }
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                navigator.clipboard.writeText(value).then(() => {
+                    showCopyFeedback(button);
+                }).catch(() => {
+                    fallbackCopy(value, button);
+                });
+            } else {
+                fallbackCopy(value, button);
+            }
         }
 
         function triggerDMGenerator(type) {
